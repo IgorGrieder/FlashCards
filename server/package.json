@@ -2,6 +2,7 @@
   "name": "flash-server",
   "version": "1.0.0",
   "description": "backend of a flash card website",
+  "type": "module",
   "main": "index.js",
   "scripts": {
     "dev": "nodemon src/index.js"
