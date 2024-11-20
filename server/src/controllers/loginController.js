@@ -137,7 +137,6 @@ logInRoutes.post("/login", validateLogIn, async (req, res) => {
   const { login, password } = req.body;
   const result = await AuthService.logIn(login, password);
 
-  // Log in accepted
   if (result.success) {
     return res.status(200).json({ loggged: true, token: result.token });
   }

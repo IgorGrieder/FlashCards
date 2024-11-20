@@ -156,6 +156,47 @@ class AuthService {
   }
 
   /**
+   * @function validateJWT
+   * @description Validates a JWT token and returns the validation status along with the decoded payload if valid.
+   *
+   * This function uses `jsonwebtoken.verify` to check the validity of the provided token.
+   * If the token is valid, it returns the decoded payload. Otherwise, it returns an appropriate error message.
+   *
+   * @param {string} token - The JWT token to be validated.
+   * @returns {Object} An object containing the validation result:
+   * - `validated` (boolean): Indicates whether the token is valid.
+   * - `decoded` (Object|null): The decoded payload if the token is valid; otherwise, `null`.
+   * - `message` (string|null): An error message if the token is invalid or an error occurred; otherwise, `null`.
+   *
+   * @example
+   * // Example usage
+   * const result = AuthService.validateJWT(token);
+   * if (result.validated) {
+   *   console.log("Token is valid:", result.decoded);
+   * } else {
+   *   console.error("Token validation failed:", result.message);
+   * }
+   */
+  static validateJWT(token) {
+    try {
+      const decoded = jsonwebtoken.verify(token, process.env.SECRET_KEY_JWT);
+      return { validated: true, decoded };
+    } catch (error) {
+      // Log or handle specific error types if needed
+      if (error.name === "TokenExpiredError") {
+        return { validated: false, message: "Token has expired" };
+      } else if (error.name === "JsonWebTokenError") {
+        return { validated: false, message: "Invalid token" };
+      } else {
+        return {
+          validated: false,
+          message: "An error occurred while validating the token",
+        };
+      }
+    }
+  }
+
+  /**
    * Finds a user by their email or username.
    *
    * This function checks whether the provided login is an email or a username.
