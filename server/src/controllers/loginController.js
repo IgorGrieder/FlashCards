@@ -25,11 +25,51 @@ const logInRoutes = new Router();
  */
 const validateLogIn = (req, res, next) => {
   const { login, password } = req.body;
-
   if (!login || !password) {
     return res.status(400).json({
       logged: false,
       message: "Email/username and password are required.",
+    });
+  }
+
+  next();
+};
+
+/**
+ * Middleware to validate the input for password change requests.
+ *
+ * This middleware checks that the request body contains the necessary fields for changing the password.
+ * It ensures that `login`, `oldPassword`, and `newPassword` are provided by the client.
+ * If any of these fields are missing, the middleware responds with a 400 status and an error message.
+ *
+ * @middleware
+ * @route POST /change-password
+ * @param {string} login.body.required - The email/username of the user requesting the password change.
+ * @param {string} oldPassword.body.required - The current password of the user.
+ * @param {string} newPassword.body.required - The new password to be set for the user.
+ * @returns {Object} 400 - An error message if the request body is missing required fields.
+ *
+ * @example
+ * // Example request body
+ * {
+ *   "login": "user@example.com",
+ *   "oldPassword": "oldPassword123",
+ *   "newPassword": "newPassword456"
+ * }
+ *
+ * @example
+ * // Example response (400)
+ * {
+ *   "logged": false,
+ *   "message": "Email/username and passwords are required."
+ * }
+ */
+const validatePasswordChange = (req, res, next) => {
+  const { login, oldPassword, newPassword } = req.body;
+  if (!login || !oldPassword || !newPassword) {
+    return res.status(400).json({
+      logged: false,
+      message: "Email/username and passwords are required.",
     });
   }
 
@@ -64,7 +104,7 @@ const validateCreateAccount = async (req, res, next) => {
   }
 
   user = await AuthService.findUser(username);
-  if (user) {
+  if (user.success) {
     return res.status(400).json({
       accountCreated: false,
       message: "Username already exists, try another one",
@@ -72,7 +112,7 @@ const validateCreateAccount = async (req, res, next) => {
   }
 
   user = await AuthService.findUser(email);
-  if (user) {
+  if (user.success) {
     return res.status(400).json({
       accountCreated: false,
       message: "Email already exists, try another one",
@@ -158,6 +198,71 @@ logInRoutes.post("/login", validateLogIn, async (req, res) => {
 });
 
 /**
+ * Route to change the password of a user.
+ *
+ * This endpoint allows a user to change their password. It first verifies the old password
+ * provided by the user and then updates it with the new password if the old password is correct.
+ *
+ * @route PATCH /change-password
+ * @group Auth - Operations related to authentication
+ * @param {string} login.body.required - The username or email of the user requesting the password change.
+ * @param {string} oldPassword.body.required - The current password to authenticate the user.
+ * @param {string} newPassword.body.required - The new password to set for the user.
+ * @returns {Object} 200 - A success message when the password is updated successfully.
+ * @returns {Object} 400 - An error message if the old password is incorrect or the user doesn't exist.
+ * @returns {Object} 500 - An error message if an unexpected server error occurs.
+ *
+ * @example
+ * // Example request body
+ * {
+ *   "login": "user@example.com",
+ *   "oldPassword": "oldPassword123",
+ *   "newPassword": "newPassword456"
+ * }
+ *
+ * @example
+ * // Example response (200)
+ * {
+ *   "passwordChanged": true,
+ *   "message": "Your password was changed successfully"
+ * }
+ *
+ * @example
+ * // Example response (500)
+ * {
+ *   "passwordChanged": false,
+ *   "message": "An unexpected error occurred."
+ * }
+ */
+logInRoutes.patch(
+  "/change-password",
+  validatePasswordChange,
+  async (req, res) => {
+    const { login, oldPassword, newPassword } = req.body;
+
+    const result = await AuthService.updatePassword(
+      login,
+      oldPassword,
+      newPassword,
+    );
+    if (result.passwordUpdated) {
+      return res.status(200).json({
+        passwordChanged: true,
+        message: "Your password was changed successfully",
+      });
+    }
+
+    // Internal server error
+    if (result.code === 500) {
+      return res.status(500).json({
+        passwordChanged: false,
+        message: "An unexpected error occurred.",
+      });
+    }
+  },
+);
+
+/**
  * This route requires a valid JWT token to authenticate the user making the request.
  * If the token is valid, the server will attempt to delete the user associated with the `userId` from the token's payload.
  * If successful, it will return a `204 No Content` response.
@@ -172,7 +277,7 @@ logInRoutes.post("/login", validateLogIn, async (req, res) => {
  *
  * @example
  * // Example request
- * DELETE /delete-user
+ * DELETE /delete-account
  * Authorization: Bearer <valid-jwt-token>
  *
  * // Example success response
@@ -186,7 +291,7 @@ logInRoutes.post("/login", validateLogIn, async (req, res) => {
  * }
  */
 logInRoutes.delete(
-  "/delete-user",
+  "/delete-account",
   Utils.validateJWTMiddlewear,
   async (req, res) => {
     const { userId } = req.body.decoded;

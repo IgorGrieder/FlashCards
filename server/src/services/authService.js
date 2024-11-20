@@ -30,19 +30,75 @@ class AuthService {
    * }
    */
   static async logIn(login, password) {
-    const user = await AuthService.findUser(login);
-
-    if (!user) {
-      return { success: false, code: 401 };
+    const result = await AuthService.findUser(login);
+    if (!result.success) {
+      return { success: false, code: user.code };
     }
 
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    const isPasswordValid = await bcrypt.compare(
+      password,
+      result.user.password,
+    );
     if (!isPasswordValid) {
       return { success: false, code: 401 };
     }
 
-    const token = AuthService.generateJWT(user);
+    const token = AuthService.generateJWT(result.user);
     return { success: true, code: 200, token };
+  }
+
+  /**
+   * Updates a user's password after verifying the old password.
+   *
+   * This function first checks whether the old password provided by the user matches the
+   * current password in the database. If valid, the password is updated to a new hashed
+   * password and saved to the database. If any errors occur during the process, the function
+   * will handle them gracefully and return an appropriate response.
+   *
+   * @async
+   * @function updatePassword
+   * @param {string} login - The username or email of the user trying to update their password.
+   * @param {string} oldPassword - The user's current password to verify.
+   * @param {string} newPassword - The new password that the user wants to set.
+   * @returns {Promise<Object>} A promise that resolves to an object with the status of the operation.
+   * @returns {boolean} return.passwordUpdated - Indicates whether the password update was successful.
+   * @returns {number} return.code - The HTTP status code indicating the result of the operation:
+   *   - 200: Password updated successfully.
+   *   - 401: Invalid old password.
+   *   - 404: User not found (if `findUser` fails).
+   *   - 500: Internal server error (if there's a failure in saving the new password).
+   *
+   * @example
+   * const result = await AuthService.updatePassword("user@example.com", "oldPassword123", "newPassword456");
+   * if (result.passwordUpdated) {
+   *   console.log("Password updated successfully");
+   * } else {
+   *   console.log(`Failed to update password, status code: ${result.code}`);
+   * }
+   */
+  static async updatePassword(login, oldPassword, newPassword) {
+    const result = await AuthService.findUser(login);
+
+    if (!result.success) {
+      return { passwordUpdated: false, code: user.code };
+    }
+
+    const isPasswordValid = await bcrypt.compare(
+      oldPassword,
+      result.user.password,
+    );
+    if (!isPasswordValid) {
+      return { passwordUpdated: false, code: 401 };
+    }
+
+    try {
+      const hashedNewPassword = await AuthService.hashPassword(newPassword);
+      result.user.password = hashedNewPassword;
+      await result.user.save();
+      return { passwordUpdated: true, code: 200 };
+    } catch (error) {
+      return { passwordUpdated: false, code: 500 };
+    }
   }
 
   /**
@@ -196,6 +252,28 @@ class AuthService {
     }
   }
 
+  /**
+   * This function attempts to delete a user document from the `userModel` collection using the provided `userId`.
+   * If the deletion is successful, it returns a success response with a status code of 204 (No Content).
+   * If an error occurs during the deletion process, it returns a failure response with a status code of 500 (Internal Server Error).
+   * @function
+   * @async
+   * @param {string} userId - The ID of the user to be deleted.
+   * @returns {Object} An object containing the deletion status and HTTP status code:
+   * - `deleted` (boolean): Indicates whether the user was successfully deleted.
+   * - `code` (number): The HTTP status code related to the deletion operation.
+   *   - `204` if the user was deleted successfully.
+   *   - `500` if an error occurred during deletion.
+   *
+   * @example
+   * // Example usage
+   * const result = await AuthService.deleteUser(userId);
+   * if (result.deleted) {
+   *   console.log("User deleted successfully.");
+   * } else {
+   *   console.error("Failed to delete user.");
+   * }
+   */
   static async deleteUser(userId) {
     try {
       await userModel.deleteOne({ _id: userId });
@@ -231,13 +309,17 @@ class AuthService {
       } else {
         user = await userModel.findOne({ username: login });
       }
+
+      if (!user) {
+        return { success: false, code: 400 };
+      }
     } catch (error) {
       return {
         success: false,
         code: 500,
       };
     }
-    return user;
+    return { success: true, user };
   }
 }
 
