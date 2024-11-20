@@ -2,7 +2,7 @@ import { Router } from "express";
 import AuthService from "../services/authService.js";
 import Utils from "../utils/utils.js";
 
-const logInRoutes = new Router();
+const userRoutes = new Router();
 
 /**
  * Middleware to validate the login request body.
@@ -138,7 +138,7 @@ const validateCreateAccount = async (req, res, next) => {
  * @param {object} res - The Express response object used to send back the response.
  * @returns {void} Sends a JSON response with either success or error details.
  */
-logInRoutes.post("/create-account", validateCreateAccount, async (req, res) => {
+userRoutes.post("/create-account", validateCreateAccount, async (req, res) => {
   const { email, username, password } = req.body;
   const result = await AuthService.createAccount(email, username, password);
 
@@ -174,7 +174,7 @@ logInRoutes.post("/create-account", validateCreateAccount, async (req, res) => {
  *   - On success: { logged: true, token: "JWT_TOKEN" }
  *   - On failure: { logged: false, message: "Your email/username or your password is wrong, try again" }
  */
-logInRoutes.post("/login", validateLogIn, async (req, res) => {
+userRoutes.post("/login", validateLogIn, async (req, res) => {
   const { login, password } = req.body;
   const result = await AuthService.logIn(login, password);
 
@@ -234,7 +234,7 @@ logInRoutes.post("/login", validateLogIn, async (req, res) => {
  *   "message": "An unexpected error occurred."
  * }
  */
-logInRoutes.patch(
+userRoutes.patch(
   "/change-password",
   validatePasswordChange,
   async (req, res) => {
@@ -290,7 +290,7 @@ logInRoutes.patch(
  *   "message": "An unexpected error occurred."
  * }
  */
-logInRoutes.delete(
+userRoutes.delete(
   "/delete-account",
   Utils.validateJWTMiddlewear,
   async (req, res) => {
@@ -310,4 +310,4 @@ logInRoutes.delete(
   },
 );
 
-export default logInRoutes;
+export default userRoutes;
