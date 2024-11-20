@@ -35,6 +35,22 @@ const validateLogIn = (req, res, next) => {
   next();
 };
 
+/**
+ * Middleware to validate the creation of a user account.
+ *
+ * This function checks that the `username`, `email`, and `password` fields are provided in the request body.
+ * It then checks if the `username` or `email` already exists in the system by querying the `AuthService.findUser` method.
+ * If any of the fields are missing or if the username/email is already taken, it returns a `400 Bad Request` response.
+ * If all validations pass, it proceeds to the next middleware or route handler.
+ *
+ * @function
+ * @async
+ * @param {object} req - The Express request object.
+ * @param {object} req.body - The request body containing the `username`, `email`, and `password`.
+ * @param {object} res - The Express response object used to send responses.
+ * @param {function} next - The next middleware function to pass control to.
+ * @returns {void} This function either responds with an error or calls `next()` to continue the request processing.
+ */
 const validateCreateAccount = async (req, res, next) => {
   const { username, email, password } = req.body;
   let user;

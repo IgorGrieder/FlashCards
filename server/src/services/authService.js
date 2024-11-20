@@ -9,7 +9,8 @@ class AuthService {
    * It first determines whether the login is an email or a username, searches for
    * the corresponding user in the database, and then validates the provided password.
    * If the credentials are valid, it generates an authentication token.
-   *
+   * @function
+   * @async
    * @param {string} login - The user's login identifier (email or username).
    * @param {string} password - The user's plaintext password.
    * @returns {Promise<object>} A promise that resolves to an object with the following structure:
@@ -28,26 +29,19 @@ class AuthService {
    * }
    */
   static async logIn(login, password) {
-    try {
-      const user = await AuthService.findUser(login);
+    const user = await AuthService.findUser(login);
 
-      if (!user) {
-        return { success: false, code: 401 };
-      }
-
-      const isPasswordValid = await bcrypt.compare(password, user.password);
-      if (!isPasswordValid) {
-        return { success: false, code: 401 };
-      }
-
-      const token = AuthService.generateToken(user);
-      return { success: true, code: 200, token };
-    } catch (error) {
-      return {
-        success: false,
-        code: 500,
-      };
+    if (!user) {
+      return { success: false, code: 401 };
     }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return { success: false, code: 401 };
+    }
+
+    const token = AuthService.generateToken(user);
+    return { success: true, code: 200, token };
   }
 
   static createAccount(email, username, password) {
@@ -86,6 +80,18 @@ class AuthService {
     return jwt.sign(payload, process.env.SECRET_KET_JWT, { expiresIn: "1h" });
   }
 
+  /**
+   * Finds a user by their email or username.
+   *
+   * This function checks whether the provided login is an email or a username.
+   * It then queries the database to find a user by their email or username.
+   * If a matching user is found, it is returned; otherwise, `null` is returned.
+   *
+   * @function
+   * @async
+   * @param {string} login - The login identifier (either email or username) of the user.
+   * @returns {Promise<object|null>} A promise that resolves to the user object if found, or `null` if no user is found.
+   */
   static async findUser(login) {
     let isEmail = false;
     let user;
@@ -94,12 +100,18 @@ class AuthService {
       isEmail = true;
     }
 
-    if (isEmail) {
-      user = await userModel.findOne({ email: login });
-    } else {
-      user = await userModel.findOne({ username: login });
+    try {
+      if (isEmail) {
+        user = await userModel.findOne({ email: login });
+      } else {
+        user = await userModel.findOne({ username: login });
+      }
+    } catch (error) {
+      return {
+        success: false,
+        code: 500,
+      };
     }
-
     return user;
   }
 }
