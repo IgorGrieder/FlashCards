@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs/dist/bcrypt.js";
 import userModel from "../models/userModel.js";
+import jsonwebtoken from "jsonwebtoken";
 
 class AuthService {
   /**
@@ -40,7 +41,7 @@ class AuthService {
       return { success: false, code: 401 };
     }
 
-    const token = AuthService.generateToken(user);
+    const token = AuthService.generateJWT(user);
     return { success: true, code: 200, token };
   }
 
@@ -118,7 +119,9 @@ class AuthService {
       email: user.email,
     };
 
-    return jwt.sign(payload, process.env.SECRET_KET_JWT, { expiresIn: "1h" });
+    return jsonwebtoken.sign(payload, process.env.SECRET_KEY_JWT, {
+      expiresIn: "1h",
+    });
   }
 
   /**

@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 import express from "express";
 import setUpRoutes from "./controllers/routes.js";
 import connectDB from "./database/config.js";
+import mongoose from "mongoose";
 
 const app = express();
 dotenv.config();
