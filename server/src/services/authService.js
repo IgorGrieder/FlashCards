@@ -196,6 +196,15 @@ class AuthService {
     }
   }
 
+  static async deleteUser(userId) {
+    try {
+      await userModel.deleteOne({ _id: userId });
+      return { deleted: true, code: 204 };
+    } catch (error) {
+      return { deleted: false, code: 500 };
+    }
+  }
+
   /**
    * Finds a user by their email or username.
    *

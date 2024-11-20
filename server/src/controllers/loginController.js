@@ -1,5 +1,6 @@
 import { Router } from "express";
 import AuthService from "../services/authService.js";
+import Utils from "../utils/utils.js";
 
 const logInRoutes = new Router();
 
@@ -155,5 +156,53 @@ logInRoutes.post("/login", validateLogIn, async (req, res) => {
     message: "Invalid credentials",
   });
 });
+
+/**
+ * This route requires a valid JWT token to authenticate the user making the request.
+ * If the token is valid, the server will attempt to delete the user associated with the `userId` from the token's payload.
+ * If successful, it will return a `204 No Content` response.
+ * If there is an error during deletion, a `500 Internal Server Error` is returned.
+ *
+ * @security BearerAuth
+ * @async
+ * @function
+ * @param {Object} req - The request object containing the JWT token in the header and the user data in the body.
+ * @param {Object} res - The response object to send the result of the deletion request.
+ * @returns {Object} 204 No Content or 500 Internal Server Error response.
+ *
+ * @example
+ * // Example request
+ * DELETE /delete-user
+ * Authorization: Bearer <valid-jwt-token>
+ *
+ * // Example success response
+ * HTTP/1.1 204 No Content
+ *
+ * // Example error response
+ * HTTP/1.1 500 Internal Server Error
+ * {
+ *   "accountCreated": false,
+ *   "message": "An unexpected error occurred."
+ * }
+ */
+logInRoutes.delete(
+  "/delete-user",
+  Utils.validateJWTMiddlewear,
+  async (req, res) => {
+    const { userId } = req.body.decoded;
+
+    const result = await AuthService.deleteUser(userId);
+
+    // Internal server error
+    if (result.code === 500) {
+      return res.status(500).json({
+        accountCreated: false,
+        message: "An unexpected error occurred.",
+      });
+    }
+
+    return res.status(204).send();
+  },
+);
 
 export default logInRoutes;
