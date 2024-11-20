@@ -14,6 +14,7 @@ class AuthService {
    * @param {string} password - The user's plaintext password.
    * @returns {Promise<object>} A promise that resolves to an object with the following structure:
    *   - `success` {boolean}: Indicates if the login attempt was successful.
+   *   - `code` {number}: Indicates the respective HTTP status that will be returned.
    *   - `message` {string}: A descriptive message (e.g., "User not found", "Invalid password").
    *   - `token` {string} [optional]: The authentication token, provided if login is successful.
    *
@@ -42,20 +43,20 @@ class AuthService {
       }
 
       if (!user) {
-        return { success: false, message: "User not found." };
+        return { success: false, code: 401 };
       }
 
       const isPasswordValid = await bcrypt.compare(password, user.password);
       if (!isPasswordValid) {
-        return { success: false, message: "Invalid password" };
+        return { success: false, code: 401 };
       }
 
       const token = AuthService.generateToken(user);
-      return { success: true, token };
+      return { success: true, code: 200, token };
     } catch (error) {
       return {
         success: false,
-        message: "An error occurred",
+        code: 500,
       };
     }
   }

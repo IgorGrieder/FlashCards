@@ -26,9 +26,10 @@ const validateLogIn = (req, res, next) => {
   const { login, password } = req.body;
 
   if (!login || !password) {
-    return res
-      .status(400)
-      .json({ message: "Email/username e senha são obrigatórios" });
+    return res.status(400).json({
+      logged: false,
+      message: "Email/username and password are required.",
+    });
   }
   next();
 };
@@ -52,15 +53,25 @@ const validateLogIn = (req, res, next) => {
 logInRoutes.post("/login", validateLogIn, async (req, res) => {
   const { login, password } = req.body;
 
-  const result = AuthService.logIn(login, password);
+  const result = await AuthService.logIn(login, password);
 
+  // Log in accepted
   if (result.success) {
     res.status(200).json({ loggged: true, token: result.token });
   }
 
+  // Internal server error
+  if (result.code === 500) {
+    return res.status(500).json({
+      logged: false,
+      message: "An unexpected error occurred.",
+    });
+  }
+
+  // Unauthorized log in
   res.status(401).json({
     logged: false,
-    message: "Your email/username or your password is worng, try again",
+    message: "Invalid credentials",
   });
 });
 
