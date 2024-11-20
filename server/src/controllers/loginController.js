@@ -31,8 +31,91 @@ const validateLogIn = (req, res, next) => {
       message: "Email/username and password are required.",
     });
   }
+
   next();
 };
+
+/**
+ * Middleware to validate the creation of a user account.
+ *
+ * This function checks that the `username`, `email`, and `password` fields are provided in the request body.
+ * It then checks if the `username` or `email` already exists in the system by querying the `AuthService.findUser` method.
+ * If any of the fields are missing or if the username/email is already taken, it returns a `400 Bad Request` response.
+ * If all validations pass, it proceeds to the next middleware or route handler.
+ *
+ * @function
+ * @async
+ * @param {object} req - The Express request object.
+ * @param {object} req.body - The request body containing the `username`, `email`, and `password`.
+ * @param {object} res - The Express response object used to send responses.
+ * @param {function} next - The next middleware function to pass control to.
+ * @returns {void} This function either responds with an error or calls `next()` to continue the request processing.
+ */
+const validateCreateAccount = async (req, res, next) => {
+  const { username, email, password } = req.body;
+  let user;
+
+  if (!username || !email || !password) {
+    return res.status(400).json({
+      accountCreated: false,
+      message: "Email/username and password are required.",
+    });
+  }
+
+  user = await AuthService.findUser(username);
+  if (user) {
+    return res.status(400).json({
+      accountCreated: false,
+      message: "Username already exists, try another one",
+    });
+  }
+
+  user = await AuthService.findUser(email);
+  if (user) {
+    return res.status(400).json({
+      accountCreated: false,
+      message: "Email already exists, try another one",
+    });
+  }
+
+  next();
+};
+
+/**
+ * Endpoint to handle user account creation.
+ *
+ * This endpoint first runs the `validateCreateAccount` middleware to validate the input data
+ * (username, email, password) and check for uniqueness. If validation passes, it proceeds to call the
+ * `AuthService.createAccount` function to create the new user account. The response depends on the result:
+ * - If the account creation is successful, it returns a `200 OK` status with a success message.
+ * - If an internal server error occurs, it returns a `500 Internal Server Error` with an error message.
+ *
+ * @function
+ * @async
+ * @param {object} req - The Express request object containing the `email`, `username`, and `password` in the body.
+ * @param {object} req.body - The request body containing user account details (`email`, `username`, `password`).
+ * @param {object} res - The Express response object used to send back the response.
+ * @returns {void} Sends a JSON response with either success or error details.
+ */
+logInRoutes.post("/create-account", validateCreateAccount, async (req, res) => {
+  const { email, username, password } = req.body;
+  const result = await AuthService.createAccount(email, username, password);
+
+  if (result.accountCreated) {
+    return res.status(201).json({
+      accountCreated: true,
+      message: "Your account was created",
+    });
+  }
+
+  // Internal server error
+  if (result.code === 500) {
+    return res.status(500).json({
+      accountCreated: false,
+      message: "An unexpected error occurred.",
+    });
+  }
+});
 
 /**
  * POST /login - Authenticates a user and returns a JWT token if successful.
@@ -52,12 +135,11 @@ const validateLogIn = (req, res, next) => {
  */
 logInRoutes.post("/login", validateLogIn, async (req, res) => {
   const { login, password } = req.body;
-
   const result = await AuthService.logIn(login, password);
 
   // Log in accepted
   if (result.success) {
-    res.status(200).json({ loggged: true, token: result.token });
+    return res.status(200).json({ loggged: true, token: result.token });
   }
 
   // Internal server error
@@ -69,7 +151,7 @@ logInRoutes.post("/login", validateLogIn, async (req, res) => {
   }
 
   // Unauthorized log in
-  res.status(401).json({
+  return res.status(401).json({
     logged: false,
     message: "Invalid credentials",
   });
