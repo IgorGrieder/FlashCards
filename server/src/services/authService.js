@@ -28,19 +28,8 @@ class AuthService {
    * }
    */
   static async logIn(login, password) {
-    let isEmail = false;
-    let user;
-
-    if (login.includes("@")) {
-      isEmail = true;
-    }
-
     try {
-      if (isEmail) {
-        user = await userModel.findOne({ email: login });
-      } else {
-        user = await userModel.findOne({ username: login });
-      }
+      const user = await AuthService.findUser(login);
 
       if (!user) {
         return { success: false, code: 401 };
@@ -59,6 +48,11 @@ class AuthService {
         code: 500,
       };
     }
+  }
+
+  static createAccount(email, username, password) {
+    // Nesse ponto eh somente peagr a senha, slavar as infos no banco e pronto sinceramente.
+    // Posso chaamar a outra rota de login direto tmabem no final
   }
 
   /**
@@ -90,6 +84,23 @@ class AuthService {
     };
 
     return jwt.sign(payload, process.env.SECRET_KET_JWT, { expiresIn: "1h" });
+  }
+
+  static async findUser(login) {
+    let isEmail = false;
+    let user;
+
+    if (login.includes("@")) {
+      isEmail = true;
+    }
+
+    if (isEmail) {
+      user = await userModel.findOne({ email: login });
+    } else {
+      user = await userModel.findOne({ username: login });
+    }
+
+    return user;
   }
 }
 

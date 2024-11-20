@@ -31,8 +31,60 @@ const validateLogIn = (req, res, next) => {
       message: "Email/username and password are required.",
     });
   }
+
   next();
 };
+
+const validateCreateAccount = async (req, res, next) => {
+  const { username, email, password } = req.body;
+  let user;
+
+  if (!username || !email || !password) {
+    return res.status(400).json({
+      accountCreated: false,
+      message: "Email/username and password are required.",
+    });
+  }
+
+  user = await AuthService.findUser(username);
+  if (user) {
+    return res.status(400).json({
+      accountCreated: false,
+      message: "Username already exists, try another one",
+    });
+  }
+
+  user = await AuthService.findUser(email);
+  if (user) {
+    return res.status(400).json({
+      accountCreated: false,
+      message: "Email already exists, try another one",
+    });
+  }
+
+  next();
+};
+
+logInRoutes.post("/create-account", validateCreateAccount, async (req, res) => {
+  const { email, username, password } = req.body;
+
+  const result = await AuthService.createAccount(email, username, password);
+
+  if (result.success) {
+    return res.status(200).json({
+      accountCreated: true,
+      message: "Your account was created",
+    });
+  }
+
+  // Internal server error
+  if (result.code === 500) {
+    return res.status(500).json({
+      logged: false,
+      message: "An unexpected error occurred.",
+    });
+  }
+});
 
 /**
  * POST /login - Authenticates a user and returns a JWT token if successful.
