@@ -1,3 +1,5 @@
+import AuthService from "../services/authService.js";
+
 class Utils {
   /**
    * @function validateJWTMiddleware
@@ -33,6 +35,7 @@ class Utils {
       return res.status(401).json({ message: result.message });
     }
 
+    req.body.decoded = result.decoded;
     // Proceed to the next middleware/route
     next();
   }
