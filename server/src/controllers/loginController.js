@@ -57,7 +57,7 @@ logInRoutes.post("/login", validateLogIn, async (req, res) => {
 
   // Log in accepted
   if (result.success) {
-    res.status(200).json({ loggged: true, token: result.token });
+    return res.status(200).json({ loggged: true, token: result.token });
   }
 
   // Internal server error
@@ -69,7 +69,7 @@ logInRoutes.post("/login", validateLogIn, async (req, res) => {
   }
 
   // Unauthorized log in
-  res.status(401).json({
+  return res.status(401).json({
     logged: false,
     message: "Invalid credentials",
   });
