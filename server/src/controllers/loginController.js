@@ -81,13 +81,28 @@ const validateCreateAccount = async (req, res, next) => {
   next();
 };
 
+/**
+ * Endpoint to handle user account creation.
+ *
+ * This endpoint first runs the `validateCreateAccount` middleware to validate the input data
+ * (username, email, password) and check for uniqueness. If validation passes, it proceeds to call the
+ * `AuthService.createAccount` function to create the new user account. The response depends on the result:
+ * - If the account creation is successful, it returns a `200 OK` status with a success message.
+ * - If an internal server error occurs, it returns a `500 Internal Server Error` with an error message.
+ *
+ * @function
+ * @async
+ * @param {object} req - The Express request object containing the `email`, `username`, and `password` in the body.
+ * @param {object} req.body - The request body containing user account details (`email`, `username`, `password`).
+ * @param {object} res - The Express response object used to send back the response.
+ * @returns {void} Sends a JSON response with either success or error details.
+ */
 logInRoutes.post("/create-account", validateCreateAccount, async (req, res) => {
   const { email, username, password } = req.body;
-
   const result = await AuthService.createAccount(email, username, password);
 
-  if (result.success) {
-    return res.status(200).json({
+  if (result.accountCreated) {
+    return res.status(201).json({
       accountCreated: true,
       message: "Your account was created",
     });
@@ -96,7 +111,7 @@ logInRoutes.post("/create-account", validateCreateAccount, async (req, res) => {
   // Internal server error
   if (result.code === 500) {
     return res.status(500).json({
-      logged: false,
+      accountCreated: false,
       message: "An unexpected error occurred.",
     });
   }
@@ -120,7 +135,6 @@ logInRoutes.post("/create-account", validateCreateAccount, async (req, res) => {
  */
 logInRoutes.post("/login", validateLogIn, async (req, res) => {
   const { login, password } = req.body;
-
   const result = await AuthService.logIn(login, password);
 
   // Log in accepted

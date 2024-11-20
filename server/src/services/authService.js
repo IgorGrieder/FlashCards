@@ -44,9 +44,50 @@ class AuthService {
     return { success: true, code: 200, token };
   }
 
-  static createAccount(email, username, password) {
-    // Nesse ponto eh somente peagr a senha, slavar as infos no banco e pronto sinceramente.
-    // Posso chaamar a outra rota de login direto tmabem no final
+  /**
+   * Creates a new user account with the provided email, username, and password.
+   *
+   * This function hashes the provided password, then attempts to create a new user in the database
+   * using the hashed password. It handles possible errors and returns appropriate responses based on
+   * the outcome of the account creation process.
+   *
+   * @function
+   * @async
+   * @param {string} email - The email address of the user to be created.
+   * @param {string} username - The username of the user to be created.
+   * @param {string} password - The plain-text password of the user to be hashed and stored securely.
+   * @returns {Promise<object>} An object containing the result of the operation:
+   * - `accountCreated` (boolean): Indicates whether the account was successfully created.
+   * - `code` (number): The HTTP-like status code representing the result:
+   *   - `201` for successful account creation.
+   *   - `400` if the account could not be created.
+   *   - `500` if an internal server error occurred.
+   *
+   * @example
+   * const result = await AuthService.createAccount("user@example.com", "username", "password123");
+   * if (result.accountCreated) {
+   *   console.log("Account created successfully!");
+   * } else {
+   *   console.error("Account creation failed with code:", result.code);
+   * }
+   */
+  static async createAccount(email, username, password) {
+    try {
+      const hashedPassword = await AuthService.hashPassword(password);
+      const newUser = await userModel.create({
+        username,
+        email,
+        password: hashedPassword,
+      });
+
+      if (!newUser) {
+        return { accountCreated: false, code: 400 };
+      }
+
+      return { accountCreated: true, code: 201 };
+    } catch (error) {
+      return { accountCreated: false, code: 500 };
+    }
   }
 
   /**
@@ -78,6 +119,37 @@ class AuthService {
     };
 
     return jwt.sign(payload, process.env.SECRET_KET_JWT, { expiresIn: "1h" });
+  }
+
+  /**
+   * Hashes a plain-text password using bcrypt.
+   *
+   * This function generates a hashed version of the provided password using bcrypt with a predefined
+   * number of salt rounds (currently set to 10). It ensures that sensitive passwords are securely
+   * stored in a hashed format.
+   *
+   * @function
+   * @async
+   * @param {string} password - The plain-text password to be hashed.
+   * @returns {Promise<string>} The hashed password.
+   * @throws {Error} If an error occurs during the hashing process, it propagates the error.
+   *
+   * @example
+   * try {
+   *   const hashedPassword = await AuthService.hashPassword("mySecurePassword123");
+   *   console.log("Hashed password:", hashedPassword);
+   * } catch (error) {
+   *   console.error("Error hashing password:", error);
+   * }
+   */
+  static async hashPassword(password) {
+    try {
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(password, saltRounds);
+      return hashedPassword;
+    } catch (error) {
+      throw error;
+    }
   }
 
   /**
