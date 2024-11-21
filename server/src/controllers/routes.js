@@ -13,8 +13,8 @@ import userRoutes from "./loginController.js";
  * @returns {void}
  */
 const setUpRoutes = (app) => {
-  app.use(cardRoutes);
-  app.use("/api/user", userRoutes);
+  app.use("/api/cards", cardRoutes);
+  app.use("/api/users", userRoutes);
 };
 
 export default setUpRoutes;
