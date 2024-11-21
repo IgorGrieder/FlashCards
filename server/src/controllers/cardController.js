@@ -92,12 +92,46 @@ cardRoutes.get(
   },
 );
 
+const validateCreateCollection = (req, res, next) => {
+  const { name, category } = req.body;
+
+  if (!name || !category) {
+    return res.status(400).json({
+      collectionCreated: false,
+      message: "Collection name/category are required.",
+    });
+  }
+
+  next();
+};
+
 cardRoutes.post(
   "/create-collection",
+  validateCreateCollection,
   Utils.validateJWTMiddlewear,
   async (req, res) => {
     const { userId } = req.body.decoded;
-    const result = await CollectionService.createCollection(userId);
+    const { name, category } = req.body;
+    const result = await CollectionService.createCollection(
+      category,
+      name,
+      userId,
+    );
+
+    if (result.success) {
+      return res.status(201).json({
+        collectionCreated: true,
+        message: "Your collection was created successfully.",
+      });
+    }
+
+    // Internal server error
+    if (result.code === 500) {
+      return res.status(500).json({
+        collectionCreated: false,
+        message: "An unexpected error occurred.",
+      });
+    }
   },
 );
 export default cardRoutes;

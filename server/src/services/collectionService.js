@@ -41,12 +41,28 @@ class CollectionService {
 
       return { success: true, collections };
     } catch (error) {
-      console.log(error);
       return { success: false, code: 500 };
     }
   }
 
-  static async createCollection(userId) {}
+  static async createCollection(category, name, userId) {
+    try {
+      const newCollection = await collectionModel.create({
+        name,
+        owner: userId,
+        category,
+        cards: [],
+      });
+
+      if (!newCollection) {
+        return { success: false, code: 500 };
+      }
+
+      return { success: true, code: 201 };
+    } catch (error) {
+      return { success: false, code: 500 };
+    }
+  }
 }
 
 export default CollectionService;
