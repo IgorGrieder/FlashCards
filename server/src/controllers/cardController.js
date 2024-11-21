@@ -88,4 +88,5 @@ cardRoutes.get("/", Utils.validateJWTMiddlewear, async (req, res) => {
   }
 });
 
+cardRoutes.post("");
 export default cardRoutes;

@@ -1,5 +1,5 @@
 import cardRoutes from "./cardController.js";
-import userRoutes from "./loginController.js";
+import userRoutes from "./userController.js";
 
 /**
  * setUpRoutes - This function sets up the application's routes by attaching route handlers
