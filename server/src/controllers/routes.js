@@ -14,7 +14,7 @@ import userRoutes from "./loginController.js";
  */
 const setUpRoutes = (app) => {
   app.use(cardRoutes);
-  app.use(userRoutes);
+  app.use("/api/user", userRoutes);
 };
 
 export default setUpRoutes;
