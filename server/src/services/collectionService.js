@@ -45,6 +45,8 @@ class CollectionService {
       return { success: false, code: 500 };
     }
   }
+
+  static async createCollection(userId) {}
 }
 
 export default CollectionService;

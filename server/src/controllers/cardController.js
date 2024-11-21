@@ -63,30 +63,41 @@ const cardRoutes = new Router();
  *   "message": "An unexpected error occurred."
  * }
  */
-cardRoutes.get("/", Utils.validateJWTMiddlewear, async (req, res) => {
-  const { userId } = req.body.decoded;
-  const result = await CollectionService.getUserCollections(userId);
+cardRoutes.get(
+  "/get-collections",
+  Utils.validateJWTMiddlewear,
+  async (req, res) => {
+    const { userId } = req.body.decoded;
+    const result = await CollectionService.getUserCollections(userId);
 
-  if (result.success) {
-    return res.status(200).json({
-      collectionsFound: true,
-      collections: result.collections,
-    });
-  }
+    if (result.success) {
+      return res.status(200).json({
+        collectionsFound: true,
+        collections: result.collections,
+      });
+    }
 
-  // No content
-  if (result.code === 204) {
-    return res.status(204).send();
-  }
+    // No content
+    if (result.code === 204) {
+      return res.status(204).send();
+    }
 
-  // Internal server error
-  if (result.code === 500) {
-    return res.status(500).json({
-      collectionsFound: false,
-      message: "An unexpected error occurred.",
-    });
-  }
-});
+    // Internal server error
+    if (result.code === 500) {
+      return res.status(500).json({
+        collectionsFound: false,
+        message: "An unexpected error occurred.",
+      });
+    }
+  },
+);
 
-cardRoutes.post("");
+cardRoutes.post(
+  "/create-collection",
+  Utils.validateJWTMiddlewear,
+  async (req, res) => {
+    const { userId } = req.body.decoded;
+    const result = await CollectionService.createCollection(userId);
+  },
+);
 export default cardRoutes;
