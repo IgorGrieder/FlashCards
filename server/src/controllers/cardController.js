@@ -5,6 +5,77 @@ import CollectionService from "../services/collectionService.js";
 const cardRoutes = new Router();
 
 /**
+ * Middleware to validate the request payload for adding a card to a collection.
+ *
+ * This middleware ensures that all required fields (`answer`, `category`, and `question`)
+ * are present in the `card` object of the request body. If any of these fields are missing,
+ * it sends a `400 Bad Request` response with an appropriate error message.
+ *
+ * @function validateCardToCollection
+ * @param {Object} req - The request object.
+ * @param {Object} req.body - The body of the request.
+ * @param {Object} req.body.card - The flashcard details.
+ * @param {string} req.body.card.answer - The answer for the flashcard (required).
+ * @param {string} req.body.card.category - The category of the flashcard (required).
+ * @param {string} req.body.card.question - The question for the flashcard (required).
+ * @param {Object} res - The response object.
+ * @param {Function} next - The next middleware function.
+ *
+ * @returns {void}
+ * - If validation passes, it calls the `next()` function to proceed to the next middleware or route handler.
+ * - If validation fails, it returns a `400 Bad Request` response.
+ *
+ * @response {number} 400 - Indicates a bad request due to missing fields in the `card` object.
+ * @responseBody {boolean} cardAdded - Always `false` when validation fails.
+ * @responseBody {string} message - An error message specifying that required fields are missing.
+ *
+ * @example
+ * // Request with missing fields
+ * POST /add-card
+ * {
+ *   "card": {
+ *     "answer": "42",
+ *     "category": "Trivia"
+ *     // Missing "question"
+ *   },
+ *   "collectionName": "My Trivia Collection"
+ * }
+ *
+ * // Response
+ * 400 Bad Request
+ * {
+ *   "cardAdded": false,
+ *   "message": "Answer/category/question are required."
+ * }
+ *
+ * @example
+ * // Request with all fields present
+ * POST /add-card
+ * {
+ *   "card": {
+ *     "answer": "42",
+ *     "category": "Trivia",
+ *     "question": "What is the answer to life, the universe, and everything?"
+ *   },
+ *   "collectionName": "My Trivia Collection"
+ * }
+ *
+ * // Middleware passes, next() is called, and request proceeds.
+ */
+const validateCardToCollection = (req, res, next) => {
+  const { answer, category, question } = req.body.card;
+
+  if (!answer || !category || !question) {
+    return res.status(400).json({
+      cardAdded: false,
+      message: "Answer/category/question are required.",
+    });
+  }
+
+  next();
+};
+
+/**
  * Middleware to validate the required fields for creating a new collection.
  *
  * This middleware checks if the `name` and `category` fields are present in the request body.
@@ -208,19 +279,65 @@ cardRoutes.post(
   },
 );
 
-const validateCardToCollection = (req, res, next) => {
-  const { answer, category, question } = req.body.card;
-
-  if (!answer || !category || !question) {
-    return res.status(400).json({
-      cardAdded: false,
-      message: "Answer/category/question are required.",
-    });
-  }
-
-  next();
-};
-
+/**
+ * Adds a new card to a specified collection.
+ *
+ * This endpoint allows users to add a new flashcard to a specific collection they own.
+ * The user must provide the card details (answer, category, question, and optional image)
+ * and the name of the collection where the card should be added.
+ *
+ * @route PATCH /add-card
+ * @middleware Utils.validateJWTMiddlewear - Validates the JWT token to authenticate the user.
+ * @middleware validateCardToCollection - Validates the request payload for card and collection details.
+ * @access Protected
+ *
+ * @requestBody {Object} req.body - The request payload.
+ * @requestBody {Object} req.body.decoded - Decoded JWT payload containing user information.
+ * @requestBody {string} req.body.decoded.userId - The ID of the authenticated user.
+ * @requestBody {Object} req.body.card - The flashcard details.
+ * @requestBody {string} req.body.card.answer - The answer for the flashcard.
+ * @requestBody {string} req.body.card.category - The category of the flashcard.
+ * @requestBody {string} req.body.card.question - The question for the flashcard.
+ * @requestBody {string} [req.body.card.img] - Optional image URL for the flashcard.
+ * @requestBody {string} req.body.collectionName - The name of the collection to which the card will be added.
+ *
+ * @response {Object} res - The response object.
+ * @response {number} 201 - Indicates that the card was successfully added to the collection.
+ * @responseBody {boolean} cardAdded - Confirms that the card was added successfully.
+ * @responseBody {string} message - A success message.
+ *
+ * @response {number} 500 - Indicates an internal server error.
+ * @responseBody {boolean} collectionCreated - Always `false` for internal server errors.
+ * @responseBody {string} message - An error message explaining the issue.
+ *
+ * @example
+ * // Request
+ * PATCH /add-card
+ * Authorization: Bearer <JWT_TOKEN>
+ * {
+ *   "card": {
+ *     "answer": "42",
+ *     "category": "Trivia",
+ *     "question": "What is the answer to life, the universe, and everything?",
+ *     "img": "https://example.com/image.png"
+ *   },
+ *   "collectionName": "My Trivia Collection"
+ * }
+ *
+ * // Success Response
+ * 201 Created
+ * {
+ *   "cardAdded": true,
+ *   "message": "Card added to your collection"
+ * }
+ *
+ * // Error Response (Internal Server Error)
+ * 500 Internal Server Error
+ * {
+ *   "collectionCreated": false,
+ *   "message": "An unexpected error occurred."
+ * }
+ */
 cardRoutes.patch(
   "/add-card",
   Utils.validateJWTMiddlewear,

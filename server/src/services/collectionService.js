@@ -64,6 +64,58 @@ class CollectionService {
     }
   }
 
+  /**
+   * Adds a new card to a specified collection owned by a user.
+   *
+   * This method creates a new card object based on the provided details (answer, question, category, and optional image)
+   * and adds it to the `cards` array of the specified collection belonging to the user. If the operation is successful,
+   * it returns a confirmation; otherwise, it handles various failure scenarios.
+   *
+   * @async
+   * @function
+   * @param {string} answer - The answer text for the flashcard.
+   * @param {string} category - The category of the flashcard.
+   * @param {string} question - The question text for the flashcard.
+   * @param {string} userId - The ID of the user who owns the collection.
+   * @param {string} [img] - Optional image URL associated with the flashcard.
+   * @param {string} collectionName - The name of the collection to which the card will be added.
+   * @returns {Promise<Object>} The result of the operation.
+   * @returns {boolean} result.success - Indicates if the card was successfully added.
+   * @returns {number} result.code - The HTTP-like status code representing the outcome.
+   *
+   * - `203`: Card successfully added to the collection.
+   * - `400`: The specified collection was not found or the card could not be added.
+   * - `500`: An unexpected server error occurred.
+   *
+   * @example
+   * // Call the function
+   * const result = await CollectionService.addCardToCollection(
+   *   "42",
+   *   "Trivia",
+   *   "What is the answer to life, the universe, and everything?",
+   *   "12345",
+   *   "https://example.com/image.png",
+   *   "My Trivia Collection"
+   * );
+   *
+   * // Success response
+   * {
+   *   success: true,
+   *   code: 203
+   * }
+   *
+   * // Failure response (collection not found)
+   * {
+   *   success: false,
+   *   code: 400
+   * }
+   *
+   * // Failure response (server error)
+   * {
+   *   success: false,
+   *   code: 500
+   * }
+   */
   static async addCardToCollection(
     answer,
     category,
