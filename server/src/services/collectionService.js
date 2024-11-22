@@ -63,6 +63,46 @@ class CollectionService {
       return { success: false, code: 500 };
     }
   }
+
+  static async addCardToCollection(
+    answer,
+    category,
+    question,
+    userId,
+    img,
+    collectionName,
+  ) {
+    try {
+      const newCard = { answer, category, question };
+
+      // img's are not required for a flash card
+      if (img) {
+        newCard.img = img;
+      }
+
+      const added = await collectionModel.findOneAndUpdate(
+        {
+          owner: userId,
+          name: collectionName,
+        },
+        {
+          $push: { cards: newCard },
+        },
+        { new: true },
+      );
+
+      if (added) {
+        return {
+          success: true,
+          code: 203,
+        };
+      }
+
+      return { success: false, code: 400 };
+    } catch (error) {
+      return { success: false, code: 500 };
+    }
+  }
 }
 
 export default CollectionService;
