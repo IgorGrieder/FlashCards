@@ -5,6 +5,73 @@ import CollectionService from "../services/collectionService.js";
 const cardRoutes = new Router();
 
 /**
+ * Middleware to validate the request payload for deleting a card from a collection.
+ *
+ * This middleware ensures that the `question`, `category`, and `collectionName` fields are present
+ * in the `card` object of the request body. If any of these fields are missing, a `400 Bad Request`
+ * response is returned with an appropriate error message.
+ *
+ * @function validateCardToDelete
+ * @param {Object} req - The request object.
+ * @param {Object} req.body - The body of the request.
+ * @param {Object} req.body.card - The card details for deletion.
+ * @param {string} req.body.card.question - The question of the card to delete (required).
+ * @param {string} req.body.card.category - The category of the card to delete (required).
+ * @param {string} req.body.card.collectionName - The collection from which the card will be deleted (required).
+ * @param {Object} res - The response object.
+ * @param {Function} next - The next middleware function.
+ *
+ * @returns {void} - If validation passes, it calls `next()` to proceed to the next middleware or route handler.
+ * @returns {Object} 400 - If validation fails, a `400 Bad Request` response is returned.
+ *
+ * @response {boolean} collectionCreated - Always `false` when validation fails.
+ * @response {string} message - A message specifying the missing required fields.
+ *
+ * @example
+ * // Request with missing fields
+ * PATCH /delete-card
+ * {
+ *   "card": {
+ *     "question": "What is Node.js?",
+ *     "category": "Programming"
+ *     // Missing "collectionName"
+ *   }
+ * }
+ *
+ * // Response
+ * 400 Bad Request
+ * {
+ *   "collectionCreated": false,
+ *   "message": "Card question/category are required."
+ * }
+ *
+ * @example
+ * // Request with all fields present
+ * PATCH /delete-card
+ * {
+ *   "card": {
+ *     "question": "What is Node.js?",
+ *     "category": "Programming",
+ *     "collectionName": "Tech Cards"
+ *   }
+ * }
+ *
+ * // Middleware passes, next() is called, and request proceeds.
+ */
+const validateCardToDelete = (req, res, next) => {
+  const { question, category, collectionName } = req.body.card;
+
+  if (!question || !category || !collectionName) {
+    return res.status(400).json({
+      collectionCreated: false,
+      message: "Card question/category are required.",
+    });
+  }
+
+  next();
+};
+
+/**
  * Middleware to validate the request payload for adding a card to a collection.
  *
  * This middleware ensures that all required fields (`answer`, `category`, and `question`)
@@ -64,11 +131,11 @@ const cardRoutes = new Router();
  */
 const validateCardToCollection = (req, res, next) => {
   const { answer, category, question } = req.body.card;
-
-  if (!answer || !category || !question) {
+  const { collectionName } = req.body;
+  if (!answer || !category || !question || !collectionName) {
     return res.status(400).json({
       cardAdded: false,
-      message: "Answer/category/question are required.",
+      message: "Answer/category/question/collectionName are required.",
     });
   }
 
@@ -276,6 +343,91 @@ cardRoutes.post(
         message: "An unexpected error occurred.",
       });
     }
+
+    return res.status(400).json({
+      collectionCreated: false,
+      message: "We couldn't create your card collection.",
+    });
+  },
+);
+
+/**
+ * Deletes a card from a user's collection.
+ *
+ * This route handler allows a user to delete a card from one of their collections.
+ * The card is identified by its `question`, `category`, and the `collectionName` where it resides.
+ *
+ * The user must be authenticated via JWT, and the middleware `validateCardToDelete` ensures that
+ * the necessary fields are present in the request body before the deletion is performed.
+ *
+ * @route PATCH /delete-card
+ * @group Card - Operations related to card management in collections
+ *
+ * @param {string} authorization.header - User JWT token for authentication
+ * @param {Object} req.body - The request body containing card and collection information
+ * @param {Object} req.body.card - Card details to be deleted
+ * @param {string} req.body.card.question - The question of the card to be deleted (required)
+ * @param {string} req.body.card.category - The category of the card to be deleted (required)
+ * @param {string} req.body.card.collectionName - The collection name from which the card will be deleted (required)
+ *
+ * @param {Object} res - The response object
+ * @param {Function} res.status - Function to set the HTTP status code
+ *
+ * @returns {void} 204 - Card successfully deleted (no content)
+ * @returns {Object} 500 - Internal Server Error if the deletion fails
+ * @returns {Object} 400 - Bad Request if the required fields are missing
+ *
+ * @responseBody {boolean} collectionCreated - Indicates whether the deletion was successful
+ * @responseBody {string} message - A message detailing the result of the operation
+ *
+ * @example
+ * // Request to delete a card from a collection
+ * PATCH /delete-card
+ * {
+ *   "card": {
+ *     "question": "What is Node.js?",
+ *     "category": "Programming",
+ *     "collectionName": "Tech Cards"
+ *   },
+ *   "authorization": "Bearer JWT_TOKEN_HERE"
+ * }
+ *
+ * // Response if card is deleted successfully
+ * 204 No Content
+ *
+ * // Response if the required fields are missing
+ * 400 Bad Request
+ * {
+ *   "collectionCreated": false,
+ *   "message": "Card question/category are required."
+ * }
+ */
+cardRoutes.patch(
+  "/delete-card",
+  Utils.validateJWTMiddlewear,
+  validateCardToDelete,
+  async (req, res) => {
+    const { userId } = req.body.decoded;
+    const { category, question, collectionName } = req.body.card;
+
+    const result = await CollectionService.deleteCardFromCollection(
+      category,
+      question,
+      userId,
+      collectionName,
+    );
+
+    if (result.success) {
+      return res.status(204);
+    }
+
+    // Internal server error
+    if (result.code === 500) {
+      return res.status(500).json({
+        collectionCreated: false,
+        message: "An unexpected error occurred.",
+      });
+    }
   },
 );
 
@@ -370,6 +522,11 @@ cardRoutes.patch(
         message: "An unexpected error occurred.",
       });
     }
+
+    return res.status(400).json({
+      collectionCreated: false,
+      message: "We couldn't add your card to the collection",
+    });
   },
 );
 export default cardRoutes;

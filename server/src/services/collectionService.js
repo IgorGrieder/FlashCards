@@ -155,6 +155,61 @@ class CollectionService {
       return { success: false, code: 500 };
     }
   }
+
+  /**
+   * Deletes a card from the specified collection of a user.
+   *
+   * This method finds the collection owned by the user and removes the card with the given
+   * `question` and `category` from the collection's `cards` array.
+   *
+   * @function deleteCardFromCollection
+   * @param {string} category - The category of the card to delete (required).
+   * @param {string} question - The question of the card to delete (required).
+   * @param {string} userId - The ID of the user requesting the deletion (required).
+   * @param {string} collectionName - The name of the collection from which the card will be deleted (required).
+   *
+   * @returns {Object} success - An object indicating the success or failure of the operation.
+   * @returns {boolean} success.success - `true` if the card was successfully deleted.
+   * @returns {number} success.code - HTTP status code for the operation.
+   *
+   * @response {Object} 204 - Successfully deleted card (no content).
+   * @response {Object} 500 - Internal server error if the deletion fails.
+   *
+   * @example
+   * // Request to delete a card from a collection
+   * deleteCardFromCollection("Programming", "What is Node.js?", "user123", "Tech Cards");
+   *
+   * // Returns
+   * {
+   *   success: true,
+   *   code: 204
+   * }
+   */
+  static async deleteCardFromCollection(
+    category,
+    question,
+    userId,
+    collectionName,
+  ) {
+    try {
+      const deleted = await collectionModel.findOneAndUpdate(
+        {
+          owner: userId,
+          name: collectionName,
+        },
+        {
+          $pull: { cards: { category, question } },
+        },
+      );
+
+      return {
+        success: true,
+        code: 204,
+      };
+    } catch (error) {
+      return { success: false, code: 500 };
+    }
+  }
 }
 
 export default CollectionService;
