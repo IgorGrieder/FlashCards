@@ -1,6 +1,7 @@
 import { Router } from "express";
 import Utils from "../utils/utils.js";
 import CollectionService from "../services/collectionService.js";
+import collectionModel from "../models/collectionModel.js";
 
 const cardRoutes = new Router();
 
@@ -139,6 +140,47 @@ const validateCardToCollection = (req, res, next) => {
     });
   }
 
+  next();
+};
+
+const validateCardInTheCollection = async (req, res, next) => {
+  try {
+    const { userId } = req.body.decoded;
+    const { collectionName, question, category } = req.body.card;
+    let cardFound = false;
+
+    const result = await collectionModel.find({
+      collectionName,
+      owner: userId,
+    });
+
+    if (!result) {
+      res.status(400).json({
+        cardUpdated: false,
+        message: "We couldn't find your collection",
+      });
+    }
+
+    result.cards.forEach((card) => {
+      if (card.question === question && card.category === category) {
+        cardFound = true;
+      }
+    });
+
+    if (!cardFound) {
+      res.status(400).json({
+        cardUpdated: false,
+        message: "We couldn't find your card in the collection",
+      });
+    }
+
+    next();
+  } catch (error) {
+    return res.status(500).json({
+      cardUpdated: false,
+      message: "Internal server error",
+    });
+  }
   next();
 };
 
@@ -414,6 +456,41 @@ cardRoutes.patch(
       category,
       question,
       userId,
+      collectionName,
+    );
+
+    if (result.success) {
+      return res.status(204);
+    }
+
+    // Internal server error
+    if (result.code === 500) {
+      return res.status(500).json({
+        collectionCreated: false,
+        message: "An unexpected error occurred.",
+      });
+    }
+  },
+);
+
+const validateCardToUpdate = (req, res, next) => {
+  next();
+};
+cardRoutes.patch(
+  "/update-card",
+  Utils.validateJWTMiddlewear,
+  validateCardToUpdate,
+  validateCardInTheCollection,
+  async (req, res) => {
+    const { userId } = req.body.decoded;
+    const { category, question, answer, img, collectionName } = req.body.card;
+
+    const result = await CollectionService.updateCardFromCollection(
+      answer,
+      category,
+      question,
+      userId,
+      img,
       collectionName,
     );
 

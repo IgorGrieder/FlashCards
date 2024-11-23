@@ -210,6 +210,42 @@ class CollectionService {
       return { success: false, code: 500 };
     }
   }
+
+  static async updateCardFromCollection(
+    answer,
+    category,
+    question,
+    userId,
+    img,
+    collectionName,
+  ) {
+    try {
+      const collection = await collectionModel.findOne({
+        owner: userId,
+        name: collectionName,
+      });
+
+      collection.forEach((card) => {
+        if (card.question === question && card.category === category) {
+          wasFound = true;
+
+          answer && (card.answer = answer);
+          img && (card.img = img);
+          question && (card.question = question);
+          category && (card.category = category);
+        }
+      });
+
+      await collection.save();
+      if (wasFound) {
+        return { success: true, code: 204 };
+      } else {
+        return { success: false, code: 400 };
+      }
+    } catch (error) {
+      return { success: false, code: 500 };
+    }
+  }
 }
 
 export default CollectionService;
