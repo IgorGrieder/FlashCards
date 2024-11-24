@@ -218,15 +218,18 @@ class CollectionService {
     userId,
     img,
     collectionName,
+    cardQuestion,
+    cardCategory,
   ) {
     try {
       const collection = await collectionModel.findOne({
         owner: userId,
         name: collectionName,
       });
+      let wasFound = false;
 
-      collection.forEach((card) => {
-        if (card.question === question && card.category === category) {
+      collection.cards.forEach((card) => {
+        if (card.question === cardQuestion && card.category === cardCategory) {
           wasFound = true;
 
           answer && (card.answer = answer);

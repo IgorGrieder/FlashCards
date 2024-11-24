@@ -218,13 +218,13 @@ const validateCardInTheCollection = async (req, res, next) => {
     const { collectionName, question, category } = req.body.card;
     let cardFound = false;
 
-    const result = await collectionModel.find({
-      collectionName,
+    const result = await collectionModel.findOne({
+      name: collectionName,
       owner: userId,
     });
 
     if (!result) {
-      res.status(400).json({
+      return res.status(400).json({
         cardUpdated: false,
         message: "We couldn't find your collection",
       });
@@ -237,7 +237,7 @@ const validateCardInTheCollection = async (req, res, next) => {
     });
 
     if (!cardFound) {
-      res.status(400).json({
+      return res.status(400).json({
         cardUpdated: false,
         message: "We couldn't find your card in the collection",
       });
@@ -250,7 +250,6 @@ const validateCardInTheCollection = async (req, res, next) => {
       message: "Internal server error",
     });
   }
-  next();
 };
 
 /**
@@ -611,19 +610,22 @@ cardRoutes.patch(
   validateCardInTheCollection,
   async (req, res) => {
     const { userId } = req.body.decoded;
-    const { category, question, answer, img, collectionName } = req.body.card;
+    const { category, question, collectionName } = req.body.card;
+    const { newQuestion, newCategory, newImg, newAnswer } = req.body.newCard;
 
     const result = await CollectionService.updateCardFromCollection(
-      answer,
-      category,
-      question,
+      newAnswer,
+      newCategory,
+      newQuestion,
       userId,
-      img,
+      newImg,
       collectionName,
+      question,
+      category,
     );
 
     if (result.success) {
-      return res.status(204);
+      return res.status(204).send();
     }
 
     // Internal server error
