@@ -32,7 +32,7 @@ class AuthService {
   static async logIn(login, password) {
     const result = await AuthService.findUser(login);
     if (!result.success) {
-      return { success: false, code: user.code };
+      return { success: false, code: result.code };
     }
 
     const isPasswordValid = await bcrypt.compare(
@@ -80,7 +80,7 @@ class AuthService {
     const result = await AuthService.findUser(login);
 
     if (!result.success) {
-      return { passwordUpdated: false, code: user.code };
+      return { passwordUpdated: false, code: result.code };
     }
 
     const isPasswordValid = await bcrypt.compare(

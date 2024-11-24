@@ -1,5 +1,5 @@
 import cardRoutes from "./cardController.js";
-import userRoutes from "./loginController.js";
+import userRoutes from "./userController.js";
 
 /**
  * setUpRoutes - This function sets up the application's routes by attaching route handlers
@@ -13,8 +13,8 @@ import userRoutes from "./loginController.js";
  * @returns {void}
  */
 const setUpRoutes = (app) => {
-  app.use(cardRoutes);
-  app.use("/api/user", userRoutes);
+  app.use("/api/cards", cardRoutes);
+  app.use("/api/users", userRoutes);
 };
 
 export default setUpRoutes;
