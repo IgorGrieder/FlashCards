@@ -3,6 +3,7 @@ import express from "express";
 import setUpRoutes from "./controllers/routes.js";
 import connectDB from "./database/config.js";
 import mongoose from "mongoose";
+import cookieParser from "cookie-parser";
 
 const app = express();
 dotenv.config();
@@ -29,6 +30,7 @@ const startServer = async () => {
     // Set up middlewares and routes after DB connection is established
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
+    app.use(cookieParser());
 
     // Middleware to check DB connection status
     app.use((req, res, next) => {
