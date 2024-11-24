@@ -3,11 +3,12 @@ import React from "react";
 import { useForm } from "react-hook-form";
 
 type LoginFormInputs = {
-  identifier: string;
+  email: string;
+  username: string;
   password: string;
 };
 
-export default function Login() {
+export default function CreateAccount() {
   const {
     register,
     handleSubmit,
@@ -30,29 +31,45 @@ export default function Login() {
         {/* Email Field */}
         <div className="mb-4">
           <label htmlFor="email" className="block text-sm font-medium mb-2">
-            Email/usuário
+            Email
           </label>
           <input
             id="email"
-            type="text"
-            {...register("identifier", {
-              required: "Email ou usuário são necessários.",
-              validate: (value) => {
-                // Check if it's a valid email
-                if (value.includes("@")) {
-                  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                  return emailRegex.test(value) || "Email inválido.";
-                }
-                return true;
+            type="email"
+            {...register("email", {
+              required: "Email é necessário.",
+              pattern: {
+                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                message: "Email inválido.",
               },
             })}
             className={`w-full px-3 py-2 border rounded ${
-              errors.identifier ? "border-red-500" : "border-gray-300"
+              errors.email ? "border-red-500" : "border-gray-300"
             }`}
           />
-          {errors.identifier && (
+          {errors.email && (
+            <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
+          )}
+        </div>
+
+        {/* Username Field */}
+        <div className="mb-4">
+          <label htmlFor="username" className="block text-sm font-medium mb-2">
+            Usuário
+          </label>
+          <input
+            id="username"
+            type="text"
+            {...register("username", {
+              required: "Usuário é necessário.",
+            })}
+            className={`w-full px-3 py-2 border rounded ${
+              errors.username ? "border-red-500" : "border-gray-300"
+            }`}
+          />
+          {errors.username && (
             <p className="text-red-500 text-sm mt-1">
-              {errors.identifier.message}
+              {errors.username.message}
             </p>
           )}
         </div>
@@ -66,7 +83,7 @@ export default function Login() {
             id="password"
             type="password"
             {...register("password", {
-              required: "Senha é necessária",
+              required: "Senha é necessária.",
               minLength: {
                 value: 6,
                 message: "Senha deve conter no mínimo 6 caractéres.",
@@ -88,16 +105,8 @@ export default function Login() {
           type="submit"
           className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 mb-5"
         >
-          Entrar
+          Criar Conta
         </button>
-
-        {/* Create an account option*/}
-        <a
-          href="/create-account"
-          className="text-blue-400 mt-2 hover:text-blue-800 underline"
-        >
-          Ainda não tem uma conta? Crie agora!
-        </a>
       </form>
     </main>
   );
