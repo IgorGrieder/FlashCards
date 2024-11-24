@@ -26,7 +26,7 @@ export default function CreateAccount() {
         onSubmit={handleSubmit(onSubmit)}
         className="bg-white p-6 rounded-xl shadow-md w-full max-w-md"
       >
-        <h2 className="text-2xl font-bold text-center mb-6">Entrar</h2>
+        <h2 className="text-2xl font-bold text-center mb-6">Crie sua conta</h2>
 
         {/* Email Field */}
         <div className="mb-4">

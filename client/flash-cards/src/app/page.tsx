@@ -13,19 +13,22 @@ export default function Home() {
   return (
     <main className="bg-green-300 h-screen text-black text-xl">
       <section className="flex flex-col items-center justify-center h-full w-full">
-        <h1 className="text-5xl mb-10">Flash Cards</h1>
-        <div className="flex items-center gap-5">
+        <h1 className="text-5xl mb-32">Flash Cards</h1>
+        <div className="flex gap-5">
           <div className="flex">
             <p className="w-[200px]">
               &quot;O verdadeiro aprendizado não é sobre acumular conhecimento,
               mas lembrar dele quando for importante.&quot;
             </p>
-            <Image
-              src="/Girl-using-laptop.png"
-              alt="Girl using a computer"
-              width={250}
-              height={250}
-            ></Image>
+            <div className="relative w-[250px] h-[250px]">
+              <Image
+                src="/Girl-using-laptop.png"
+                alt="Girl using a computer"
+                width={250}
+                height={250}
+                priority
+              />
+            </div>
           </div>
           <div className="flex flex-col gap-4">
             <p>Venha fazer parte da melhor forma de estudar!</p>
