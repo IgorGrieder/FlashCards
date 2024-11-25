@@ -223,7 +223,9 @@ userRoutes.post("/login", validateLogIn, async (req, res) => {
       maxAge: 3600000,
     });
 
-    return res.status(200).json({ loggged: true });
+    return res
+      .status(200)
+      .json({ loggged: true, username: result.user.username });
   }
 
   // Internal server error

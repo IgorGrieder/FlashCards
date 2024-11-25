@@ -1,6 +1,6 @@
 "use client";
 import Image from "next/image";
-import Button from "./utils/button";
+import Button from "./components/button";
 import { useRouter } from "next/navigation";
 
 export default function Home() {

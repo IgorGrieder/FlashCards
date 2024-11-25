@@ -5,32 +5,43 @@ import { useForm } from "react-hook-form";
 import { useMutation } from "@tanstack/react-query";
 import { api } from "../libs/axios";
 import { LoginFormInputs, LoginResponse } from "../types/types";
+import { useRouter } from "next/navigation";
 
 export default function Login() {
+  const router = useRouter();
+
+  // Function to make the request to the backend about the user login
+  const loginUser = async (
+    credentials: LoginFormInputs,
+  ): AxiosPromise<LoginResponse> => {
+    const result = await api.post("/users/login", {
+      login: credentials.identifier,
+      password: credentials.password,
+    });
+    return result;
+  };
+
+  // TanStack query instance for a mutation
+  const mutation = useMutation({
+    mutationFn: loginUser,
+  });
+
+  // React hook form usage
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm<LoginFormInputs>();
 
-  const loginUser = async (
-    credentials: LoginFormInputs,
-  ): AxiosPromise<LoginResponse> => {
-    const { data } = await api.post("/users/login", {
-      login: credentials.identifier,
-      password: credentials.password,
-    });
-    return data;
-  };
-
-  const mutation = useMutation({
-    mutationFn: loginUser,
-  });
-
+  // onSubmit method
   const onSubmit = async (formData: LoginFormInputs) => {
     try {
-      const data = await mutation.mutateAsync(formData);
-      console.log(data);
+      const request = await mutation.mutateAsync(formData);
+
+      if (request.status === 200) {
+        router.push("/home");
+      } else {
+      }
     } catch (error) {
       console.log(error);
     }

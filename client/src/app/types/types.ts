@@ -4,9 +4,13 @@ export type LoginFormInputs = {
 };
 
 export type LoginResponse = {
-  token: string;
-  user: {
-    id: string;
-    email: string;
-  };
+  logged: boolean;
+  message?: string;
+  username?: string;
+};
+
+export type UserCtx = {
+  user: string | null;
+  login: (data: string) => void;
+  logout: VoidFunction;
 };
