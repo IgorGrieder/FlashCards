@@ -4,3 +4,4 @@ client/flash-cards/.env
 client/flash-cards/node_modules/
 .vscode/launch.json
 client/flash-cards/.next
+client/flash-cards/.env

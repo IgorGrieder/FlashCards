@@ -11,7 +11,7 @@ export default function Home() {
   };
 
   return (
-    <main className="bg-green-300 h-screen text-black text-xl">
+    <div className="bg-green-300 h-screen text-black text-xl">
       <section className="flex flex-col items-center justify-center h-full w-full">
         <h1 className="text-5xl mb-32">Flash Cards</h1>
         <div className="flex gap-5">
@@ -42,6 +42,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-    </main>
+    </div>
   );
 }

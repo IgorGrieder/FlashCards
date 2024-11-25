@@ -1,11 +1,10 @@
 "use client";
+import { AxiosPromise } from "axios";
 import React from "react";
 import { useForm } from "react-hook-form";
-
-type LoginFormInputs = {
-  identifier: string;
-  password: string;
-};
+import { useMutation } from "@tanstack/react-query";
+import { api } from "../libs/axios";
+import { LoginFormInputs, LoginResponse } from "../types/types";
 
 export default function Login() {
   const {
@@ -14,9 +13,27 @@ export default function Login() {
     formState: { errors },
   } = useForm<LoginFormInputs>();
 
-  const onSubmit = (data: LoginFormInputs) => {
-    console.log("Login Data: ", data);
-    // Perform login logic here (e.g., API call)
+  const loginUser = async (
+    credentials: LoginFormInputs,
+  ): AxiosPromise<LoginResponse> => {
+    const { data } = await api.post("/users/login", {
+      login: credentials.identifier,
+      password: credentials.password,
+    });
+    return data;
+  };
+
+  const mutation = useMutation({
+    mutationFn: loginUser,
+  });
+
+  const onSubmit = async (formData: LoginFormInputs) => {
+    try {
+      const data = await mutation.mutateAsync(formData);
+      console.log(data);
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (
@@ -38,7 +55,6 @@ export default function Login() {
             {...register("identifier", {
               required: "Email ou usuário são necessários.",
               validate: (value) => {
-                // Check if it's a valid email
                 if (value.includes("@")) {
                   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                   return emailRegex.test(value) || "Email inválido.";
@@ -86,9 +102,10 @@ export default function Login() {
         {/* Submit Button */}
         <button
           type="submit"
-          className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 mb-5"
+          disabled={mutation.isPending}
+          className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 mb-5 disabled:bg-blue-300"
         >
-          Entrar
+          {mutation.isPending ? "Entrando..." : "Entrar"}
         </button>
 
         {/* Create an account option*/}
