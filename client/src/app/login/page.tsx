@@ -4,9 +4,37 @@ import { useContext, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useMutation } from "@tanstack/react-query";
 import { api } from "../libs/axios";
-import { LoginFormInputs, LoginResponse } from "../types/types";
+import { LoginResponse } from "../types/types";
 import { useRouter } from "next/navigation";
 import { UserContext } from "../context/userContext";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+const loginSchema = z.object({
+  login: z
+    .string()
+    .min(3, "Login deve ter pelo menos 3 caracteres")
+    .max(50, "Login não pode ter mais de 50 caracteres")
+    .refine(
+      (value) => {
+        // Check if it's a valid email
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        // Check if it's a valid username (alphanumeric and underscores)
+        const usernameRegex = /^[a-zA-Z0-9_]+$/;
+
+        return emailRegex.test(value) || usernameRegex.test(value);
+      },
+      {
+        message: "Login deve ser um email válido ou um nome de usuário válido",
+      },
+    ),
+  password: z
+    .string()
+    .min(6, "Senha deve ter pelo menos 6 caracteres")
+    .max(50, "Senha não pode ter mais de 50 caracteres"),
+});
+
+type LoginSchemaType = z.infer<typeof loginSchema>;
 
 export default function Login() {
   const router = useRouter();
@@ -15,10 +43,10 @@ export default function Login() {
 
   // Function to make the request to the backend about the user login
   const loginUser = async (
-    credentials: LoginFormInputs,
+    credentials: LoginSchemaType,
   ): AxiosPromise<LoginResponse> => {
     const result = await api.post("/users/login", {
-      login: credentials.identifier,
+      login: credentials.login,
       password: credentials.password,
     });
     return result;
@@ -34,23 +62,30 @@ export default function Login() {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<LoginFormInputs>();
+  } = useForm<LoginSchemaType>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      login: "",
+      password: "",
+    },
+  });
 
   // onSubmit method
-  const onSubmit = async (formData: LoginFormInputs) => {
+  const onSubmit = async (formData: LoginSchemaType) => {
     try {
+      // Making the post request to our api to login the user
       const request = await mutation.mutateAsync(formData);
 
-      if (request.status === 200) {
+      // If the login was authorized we will change to the home page with the user logged on
+      if (request.status === 200 && request.data.logged) {
         if (request.data.username) {
           userCtx?.login(request.data.username);
           router.push("/home");
         }
-      } else {
-        setLoginFailed(true);
       }
-    } catch (error) {
-      console.log(error);
+    } catch (e) {
+      setLoginFailed(true);
+      console.log(e);
     }
   };
 
@@ -70,24 +105,15 @@ export default function Login() {
           <input
             id="email"
             type="text"
-            {...register("identifier", {
-              required: "Email ou usuário são necessários.",
-              validate: (value) => {
-                if (value.includes("@")) {
-                  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                  return emailRegex.test(value) || "Email inválido.";
-                }
-                return true;
-              },
+            {...register("login", {
+              onChange: () => setLoginFailed(false),
             })}
             className={`w-full px-3 py-2 border rounded ${
-              errors.identifier ? "border-red-500" : "border-gray-300"
+              errors.login ? "border-red-500" : "border-gray-300"
             }`}
           />
-          {errors.identifier && (
-            <p className="text-red-500 text-sm mt-1">
-              {errors.identifier.message}
-            </p>
+          {errors.login && (
+            <p className="text-red-500 text-sm mt-1">{errors.login.message}</p>
           )}
         </div>
 
@@ -100,11 +126,7 @@ export default function Login() {
             id="password"
             type="password"
             {...register("password", {
-              required: "Senha é necessária",
-              minLength: {
-                value: 6,
-                message: "Senha deve conter no mínimo 6 caractéres.",
-              },
+              onChange: () => setLoginFailed(false),
             })}
             className={`w-full px-3 py-2 border rounded ${
               errors.password ? "border-red-500" : "border-gray-300"
@@ -118,11 +140,13 @@ export default function Login() {
         </div>
 
         {/* Login failed message */}
-        {loginFailed && (
-          <p className="text-red-500 text-sm mt-1">
+        <div>
+          <p
+            className={`${loginFailed ? "text-red-500" : "text-white"} text-sm mb-2`}
+          >
             Email/usuário ou senha estão errados.
           </p>
-        )}
+        </div>
 
         {/* Submit Button */}
         <button

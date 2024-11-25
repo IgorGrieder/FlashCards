@@ -1,8 +1,3 @@
-export type LoginFormInputs = {
-  identifier: string;
-  password: string;
-};
-
 export type LoginResponse = {
   logged: boolean;
   message?: string;

@@ -225,7 +225,7 @@ userRoutes.post("/login", validateLogIn, async (req, res) => {
 
     return res
       .status(200)
-      .json({ loggged: true, username: result.user.username });
+      .json({ logged: true, username: result.user.username });
   }
 
   // Internal server error
