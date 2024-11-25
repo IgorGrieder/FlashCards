@@ -1,7 +1,8 @@
 server/.env
 server/node_modules/
-client/flash-cards/.env
-client/flash-cards/node_modules/
+client/node_modules/
 .vscode/launch.json
-client/flash-cards/.next
-client/flash-cards/.env
+client/.next
+client/.env
+.env
+client/next.config.ts

@@ -1,6 +1,7 @@
 import axios from "axios";
+console.log(process.env.API_URL);
 
 export const api = axios.create({
-  baseURL: "http://localhost:8080/api",
+  baseURL: process.env.API_URL,
   withCredentials: true,
 });

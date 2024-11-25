@@ -7,7 +7,7 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 
 const app = express();
-dotenv.config();
+dotenv.config({ path: "../.env" });
 const PORT = process.env.PORT;
 
 /**
