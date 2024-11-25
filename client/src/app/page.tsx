@@ -38,6 +38,14 @@ export default function Home() {
                 onClick={onClickLogin}
                 additionalClasses="mx-auto block hover:bg-sky-300"
               ></Button>
+              <div className="flex justify-center">
+                <a
+                  href="/create-account"
+                  className="text-blue-400 mt-2 hover:text-blue-800 underline text-xl"
+                >
+                  Ainda não tem uma conta? Crie agora!
+                </a>
+              </div>
             </div>
           </div>
         </div>

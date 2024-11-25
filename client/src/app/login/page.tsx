@@ -142,7 +142,7 @@ export default function Login() {
         {/* Login failed message */}
         <div>
           <p
-            className={`${loginFailed ? "text-red-500" : "text-white"} text-sm mb-2`}
+            className={`${loginFailed ? "text-red-500" : "text-white"} text-sm mb-4`}
           >
             Email/usuário ou senha estão errados.
           </p>
@@ -158,12 +158,14 @@ export default function Login() {
         </button>
 
         {/* Create an account option*/}
-        <a
-          href="/create-account"
-          className="text-blue-400 mt-2 hover:text-blue-800 underline"
-        >
-          Ainda não tem uma conta? Crie agora!
-        </a>
+        <div className="flex justify-center">
+          <a
+            href="/create-account"
+            className="text-blue-400 mt-2 hover:text-blue-800 underline"
+          >
+            Ainda não tem uma conta? Crie agora!
+          </a>
+        </div>
       </form>
     </main>
   );
