@@ -159,27 +159,71 @@ userRoutes.post("/create-account", validateCreateAccount, async (req, res) => {
 });
 
 /**
- * POST /login - Authenticates a user and returns a JWT token if successful.
+ * POST /login
  *
- * This route accepts a login identifier (email or username) and a password in the request body.
- * It uses `validateLogIn` middleware to ensure the input is valid.
- * If authentication succeeds, a JWT token is returned. Otherwise, an error message is sent.
+ * Authenticates a user and issues a session token as an HTTP-only cookie.
+ * On successful login, a JSON Web Token (JWT) is stored in a secure cookie for subsequent authentication.
  *
- * @name POST /login
+ * @async
  * @function
- * @param {object} req - The Express request object.
- * @param {object} req.body - The request body containing the `login` and `password` fields.
- * @param {object} res - The Express response object.
- * @returns {object} JSON response with the following structure:
- *   - On success: { logged: true, token: "JWT_TOKEN" }
- *   - On failure: { logged: false, message: "Your email/username or your password is wrong, try again" }
+ * @param {Object} req - The request object.
+ * @param {Object} req.body - The body of the request.
+ * @param {string} req.body.login - The user's login credential (required).
+ * @param {string} req.body.password - The user's password (required).
+ * @param {Object} res - The response object.
+ *
+ * @response {number} 200 - Indicates successful login.
+ * @responseBody {boolean} logged - Always `true` when login succeeds.
+ *
+ * @response {number} 401 - Indicates invalid credentials.
+ * @responseBody {boolean} logged - Always `false` when login fails.
+ * @responseBody {string} message - An error message indicating invalid credentials.
+ *
+ * @response {number} 500 - Indicates an unexpected server error.
+ * @responseBody {boolean} logged - Always `false` when an internal error occurs.
+ * @responseBody {string} message - An error message indicating the issue.
+ *
+ * @example
+ * // Request
+ * POST /login
+ * {
+ *   "login": "user123",
+ *   "password": "password123"
+ * }
+ *
+ * // Response for successful login
+ * 200 OK
+ * {
+ *   "logged": true
+ * }
+ *
+ * // Response for invalid credentials
+ * 401 Unauthorized
+ * {
+ *   "logged": false,
+ *   "message": "Invalid credentials"
+ * }
+ *
+ * // Response for server error
+ * 500 Internal Server Error
+ * {
+ *   "logged": false,
+ *   "message": "An unexpected error occurred."
+ * }
  */
 userRoutes.post("/login", validateLogIn, async (req, res) => {
   const { login, password } = req.body;
   const result = await AuthService.logIn(login, password);
 
   if (result.success) {
-    return res.status(200).json({ loggged: true, token: result.token });
+    res.cookie("jwt", result.token, {
+      httpOnly: true,
+      secure: process.env.ENVIROMENT === "DEV" ? false : true,
+      sameSite: "strict",
+      maxAge: 3600000,
+    });
+
+    return res.status(200).json({ loggged: true });
   }
 
   // Internal server error
@@ -195,6 +239,36 @@ userRoutes.post("/login", validateLogIn, async (req, res) => {
     logged: false,
     message: "Invalid credentials",
   });
+});
+
+/**
+ * POST /logout
+ *
+ * Logs the user out by clearing the `jwt` cookie and sending a success response.
+ * This endpoint removes the session token stored in an HTTP-only cookie, effectively ending the user's session.
+ *
+ * @function
+ * @param {Object} req - The request object.
+ * @param {Object} res - The response object.
+ *
+ * @response {number} 200 - Indicates successful logout.
+ * @responseBody {boolean} loggedOut - Always `true` when logout succeeds.
+ * @responseBody {string} message - A success message indicating the user has been logged out.
+ *
+ * @example
+ * // Request
+ * POST /logout
+ *
+ * // Response
+ * 200 OK
+ * {
+ *   "loggedOut": true,
+ *   "message": "Logged out successfully"
+ * }
+ */
+userRoutes.post("/logout", (req, res) => {
+  res.clearCookie("jwt");
+  res.json({ loggedOut: true, message: "Logged out successfully" });
 });
 
 /**

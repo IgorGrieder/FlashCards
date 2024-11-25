@@ -3,6 +3,8 @@ import express from "express";
 import setUpRoutes from "./controllers/routes.js";
 import connectDB from "./database/config.js";
 import mongoose from "mongoose";
+import cookieParser from "cookie-parser";
+import cors from "cors";
 
 const app = express();
 dotenv.config();
@@ -25,10 +27,17 @@ const PORT = process.env.PORT;
 const startServer = async () => {
   try {
     await connectDB(); // Ensure the DB connection is successful before proceeding
-
+    app.use(
+      cors({
+        origin: "http://localhost:3000",
+        credentials: true, // Allow credentials
+        methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+      }),
+    );
     // Set up middlewares and routes after DB connection is established
     app.use(express.json());
     app.use(express.urlencoded({ extended: true }));
+    app.use(cookieParser());
 
     // Middleware to check DB connection status
     app.use((req, res, next) => {
