@@ -1,14 +1,17 @@
 "use client";
 import { AxiosPromise } from "axios";
-import React from "react";
+import { useContext, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useMutation } from "@tanstack/react-query";
 import { api } from "../libs/axios";
 import { LoginFormInputs, LoginResponse } from "../types/types";
 import { useRouter } from "next/navigation";
+import { UserContext } from "../context/userContext";
 
 export default function Login() {
   const router = useRouter();
+  const userCtx = useContext(UserContext);
+  const [loginFailed, setLoginFailed] = useState<boolean>(false);
 
   // Function to make the request to the backend about the user login
   const loginUser = async (
@@ -39,8 +42,12 @@ export default function Login() {
       const request = await mutation.mutateAsync(formData);
 
       if (request.status === 200) {
-        router.push("/home");
+        if (request.data.username) {
+          userCtx?.login(request.data.username);
+          router.push("/home");
+        }
       } else {
+        setLoginFailed(true);
       }
     } catch (error) {
       console.log(error);
@@ -109,6 +116,13 @@ export default function Login() {
             </p>
           )}
         </div>
+
+        {/* Login failed message */}
+        {loginFailed && (
+          <p className="text-red-500 text-sm mt-1">
+            Email/usuário ou senha estão errados.
+          </p>
+        )}
 
         {/* Submit Button */}
         <button
