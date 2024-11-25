@@ -7,6 +7,7 @@ import { api } from "../libs/axios";
 import { LoginFormInputs, LoginResponse } from "../types/types";
 
 export default function Login() {
+  console.log(process.env.API_URL);
   const {
     register,
     handleSubmit,
