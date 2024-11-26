@@ -6,3 +6,4 @@ client/.next
 client/.env
 .env
 client/next.config.ts
+.DS_Store
