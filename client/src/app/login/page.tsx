@@ -99,11 +99,11 @@ export default function Login() {
 
         {/* Email Field */}
         <div className="mb-4">
-          <label htmlFor="email" className="block text-sm font-medium mb-2">
+          <label htmlFor="login" className="block text-sm font-medium mb-2">
             Email/usuário
           </label>
           <input
-            id="email"
+            id="login"
             type="text"
             {...register("login", {
               onChange: () => setLoginFailed(false),
@@ -144,7 +144,7 @@ export default function Login() {
           <p
             className={`${loginFailed ? "text-red-500" : "text-white"} text-sm mb-4`}
           >
-            Email/usuário ou senha estão errados.
+            Email/usuário ou senha estão errados
           </p>
         </div>
 

@@ -145,6 +145,7 @@ userRoutes.post("/create-account", validateCreateAccount, async (req, res) => {
   if (result.accountCreated) {
     return res.status(201).json({
       accountCreated: true,
+      username: username,
       message: "Your account was created",
     });
   }
