@@ -1,23 +1,93 @@
 "use client";
-import React from "react";
+import { AxiosPromise } from "axios";
+import { useContext, useState } from "react";
 import { useForm } from "react-hook-form";
+import { useMutation } from "@tanstack/react-query";
+import { api } from "../libs/axios";
+import { CreateAccountResponse } from "../types/types";
+import { useRouter } from "next/navigation";
+import { UserContext } from "../context/userContext";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 
-type LoginFormInputs = {
-  email: string;
-  username: string;
-  password: string;
-};
+const createSchema = z.object({
+  email: z.string().email("Insira um email válido"),
+  username: z
+    .string()
+    .min(3, "Usuário deve ter pelo menos 3 caracteres")
+    .max(50, "Usuário não pode ter mais de 50 caracteres")
+    .refine(
+      (value) => {
+        // Check if it's a valid username (alphanumeric and underscores)
+        const usernameRegex = /^[a-zA-Z0-9_]+$/;
 
-export default function CreateAccount() {
+        return usernameRegex.test(value);
+      },
+      {
+        message: "Insira um nome de usuário válido",
+      },
+    ),
+  password: z
+    .string()
+    .min(6, "Senha deve ter pelo menos 6 caracteres")
+    .max(50, "Senha não pode ter mais de 50 caracteres"),
+});
+
+type LoginSchemaType = z.infer<typeof createSchema>;
+
+export default function Login() {
+  const router = useRouter();
+  const userCtx = useContext(UserContext);
+  const [createFailed, setCreateFailed] = useState<boolean>(false);
+
+  // Function to make the request to the backend about the account creation
+  const createUser = async (
+    credentials: LoginSchemaType,
+  ): AxiosPromise<CreateAccountResponse> => {
+    const result = await api.post("/users/create-account", {
+      email: credentials.email,
+      username: credentials.username,
+      password: credentials.password,
+    });
+    return result;
+  };
+
+  // TanStack query instance for a mutation
+  const mutation = useMutation({
+    mutationFn: createUser,
+  });
+
+  // React hook form usage
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<LoginFormInputs>();
+  } = useForm<LoginSchemaType>({
+    resolver: zodResolver(createSchema),
+    defaultValues: {
+      email: "",
+      username: "",
+      password: "",
+    },
+  });
 
-  const onSubmit = (data: LoginFormInputs) => {
-    console.log("Login Data: ", data);
-    // Perform login logic here (e.g., API call)
+  // onSubmit method
+  const onSubmit = async (formData: LoginSchemaType) => {
+    try {
+      // Making the post request to our api to create an user
+      const request = await mutation.mutateAsync(formData);
+
+      // If the user was created we will send back to the home page
+      if (request.status === 201 && request.data.accountCreated) {
+        if (request.data.username) {
+          userCtx?.login(request.data.username);
+          router.push("/home");
+        }
+      }
+    } catch (e) {
+      setCreateFailed(true);
+      console.log(e);
+    }
   };
 
   return (
@@ -26,7 +96,7 @@ export default function CreateAccount() {
         onSubmit={handleSubmit(onSubmit)}
         className="bg-white p-6 rounded-xl shadow-md w-full max-w-md"
       >
-        <h2 className="text-2xl font-bold text-center mb-6">Crie sua conta</h2>
+        <h2 className="text-2xl font-bold text-center mb-6">Entrar</h2>
 
         {/* Email Field */}
         <div className="mb-4">
@@ -35,13 +105,9 @@ export default function CreateAccount() {
           </label>
           <input
             id="email"
-            type="email"
+            type="text"
             {...register("email", {
-              required: "Email é necessário.",
-              pattern: {
-                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                message: "Email inválido.",
-              },
+              onChange: () => setCreateFailed(false),
             })}
             className={`w-full px-3 py-2 border rounded ${
               errors.email ? "border-red-500" : "border-gray-300"
@@ -61,7 +127,7 @@ export default function CreateAccount() {
             id="username"
             type="text"
             {...register("username", {
-              required: "Usuário é necessário.",
+              onChange: () => setCreateFailed(false),
             })}
             className={`w-full px-3 py-2 border rounded ${
               errors.username ? "border-red-500" : "border-gray-300"
@@ -83,11 +149,7 @@ export default function CreateAccount() {
             id="password"
             type="password"
             {...register("password", {
-              required: "Senha é necessária.",
-              minLength: {
-                value: 6,
-                message: "Senha deve conter no mínimo 6 caractéres.",
-              },
+              onChange: () => setCreateFailed(false),
             })}
             className={`w-full px-3 py-2 border rounded ${
               errors.password ? "border-red-500" : "border-gray-300"
@@ -100,12 +162,22 @@ export default function CreateAccount() {
           )}
         </div>
 
+        {/* Login failed message */}
+        <div>
+          <p
+            className={`${createFailed ? "text-red-500" : "text-white"} text-sm mb-4`}
+          >
+            Preencha todos os campos corretamente
+          </p>
+        </div>
+
         {/* Submit Button */}
         <button
           type="submit"
-          className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 mb-5"
+          disabled={mutation.isPending}
+          className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 mb-5 disabled:bg-blue-300"
         >
-          Criar Conta
+          {mutation.isPending ? "Entrando..." : "Entrar"}
         </button>
       </form>
     </main>

@@ -145,6 +145,7 @@ userRoutes.post("/create-account", validateCreateAccount, async (req, res) => {
   if (result.accountCreated) {
     return res.status(201).json({
       accountCreated: true,
+      username: username,
       message: "Your account was created",
     });
   }
@@ -223,7 +224,9 @@ userRoutes.post("/login", validateLogIn, async (req, res) => {
       maxAge: 3600000,
     });
 
-    return res.status(200).json({ loggged: true });
+    return res
+      .status(200)
+      .json({ logged: true, username: result.user.username });
   }
 
   // Internal server error

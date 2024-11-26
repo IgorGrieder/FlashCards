@@ -44,7 +44,7 @@ class AuthService {
     }
 
     const token = AuthService.generateJWT(result.user);
-    return { success: true, code: 200, token };
+    return { success: true, code: 200, token, user: result.user };
   }
 
   /**
