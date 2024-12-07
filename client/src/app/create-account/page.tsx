@@ -35,22 +35,22 @@ const createSchema = z.object({
 
 type LoginSchemaType = z.infer<typeof createSchema>;
 
+// Function to make the request to the backend about the account creation
+const createUser = async (
+  credentials: LoginSchemaType,
+): AxiosPromise<CreateAccountResponse> => {
+  const result = await api.post("/users/create-account", {
+    email: credentials.email,
+    username: credentials.username,
+    password: credentials.password,
+  });
+  return result;
+};
+
 export default function Login() {
   const router = useRouter();
   const userCtx = useContext(UserContext);
   const [createFailed, setCreateFailed] = useState<boolean>(false);
-
-  // Function to make the request to the backend about the account creation
-  const createUser = async (
-    credentials: LoginSchemaType,
-  ): AxiosPromise<CreateAccountResponse> => {
-    const result = await api.post("/users/create-account", {
-      email: credentials.email,
-      username: credentials.username,
-      password: credentials.password,
-    });
-    return result;
-  };
 
   // TanStack query instance for a mutation
   const mutation = useMutation({
@@ -80,7 +80,13 @@ export default function Login() {
       // If the user was created we will send back to the home page
       if (request.status === 201 && request.data.accountCreated) {
         if (request.data.username) {
-          userCtx?.login(request.data.username);
+          userCtx?.dispatch({
+            type: "LOGIN",
+            payload: {
+              username: request.data.username,
+              collections: [],
+            },
+          });
           router.push("/home");
         }
       }

@@ -126,28 +126,41 @@ const validateCreateAccount = async (req, res, next) => {
  * Endpoint to handle user account creation.
  *
  * This endpoint first runs the `validateCreateAccount` middleware to validate the input data
- * (username, email, password) and check for uniqueness. If validation passes, it proceeds to call the
- * `AuthService.createAccount` function to create the new user account. The response depends on the result:
- * - If the account creation is successful, it returns a `200 OK` status with a success message.
+ * (`email`, `username`, `password`) and check for uniqueness. If validation passes, it calls the
+ * `AuthService.createAccount` function to create the new user account. The response behavior is as follows:
+ *
+ * - If account creation is successful, it sets a `jwt` cookie in the response and returns a `200 OK` status
+ *   with the account creation status and the username.
  * - If an internal server error occurs, it returns a `500 Internal Server Error` with an error message.
+ *
+ * The `jwt` cookie is configured as `httpOnly` and `secure`, depending on the environment, and has a
+ * `sameSite` policy set to `strict`.
  *
  * @function
  * @async
- * @param {object} req - The Express request object containing the `email`, `username`, and `password` in the body.
+ * @param {object} req - The Express request object containing the user account details in the request body.
  * @param {object} req.body - The request body containing user account details (`email`, `username`, `password`).
+ * @param {string} req.body.email - The email address for the new account.
+ * @param {string} req.body.username - The username for the new account.
+ * @param {string} req.body.password - The password for the new account.
  * @param {object} res - The Express response object used to send back the response.
- * @returns {void} Sends a JSON response with either success or error details.
+ * @returns {void} Sends a JSON response with either success or error details, and sets a `jwt` cookie on success.
  */
 userRoutes.post("/create-account", validateCreateAccount, async (req, res) => {
   const { email, username, password } = req.body;
   const result = await AuthService.createAccount(email, username, password);
 
   if (result.accountCreated) {
-    return res.status(201).json({
-      accountCreated: true,
-      username: username,
-      message: "Your account was created",
+    res.cookie("jwt", result.token, {
+      httpOnly: true,
+      secure: process.env.ENVIROMENT === "DEV" ? false : true,
+      sameSite: "strict",
+      maxAge: 3600000,
     });
+
+    return res
+      .status(200)
+      .json({ accountCreated: true, username: result.username });
   }
 
   // Internal server error
