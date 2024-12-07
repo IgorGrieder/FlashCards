@@ -1,41 +1,41 @@
 "use client";
-import { createContext, useState } from "react";
-import { UserCtx } from "../types/types";
+import { createContext, useReducer } from "react";
+import { ActionUser, User, UserCtx } from "../types/types";
 
 export const UserContext = createContext<UserCtx | null>(null);
+
+const reducer = (state: User | null, action: ActionUser): User | null => {
+  switch (action.type) {
+    case "LOGIN":
+      return action.payload; // Setting user data
+    case "LOGOUT":
+      return null; // Clearing user data
+    case "UPDATE":
+      return state ? { ...state, ...action.payload } : null; // Updating user data
+    default:
+      return state;
+  }
+};
+
+// Initializer function
+const initializer = (): User | null => {
+  if (typeof window !== "undefined") {
+    const storedUser = localStorage.getItem("user");
+    return storedUser ? JSON.parse(storedUser) : null;
+  }
+  return null;
+};
 
 export default function UserProvider({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // Initialize state directly from localStorage
-  const [user, setUser] = useState<string | null>(() => {
-    if (typeof window !== "undefined") {
-      const storedUser = localStorage.getItem("user");
-      return storedUser ? JSON.parse(storedUser) : null;
-    }
-    return null;
-  });
-
-  // function to store the user information
-  const login = (user: string) => {
-    if (typeof window !== "undefined") {
-      setUser(user);
-      localStorage.setItem("user", JSON.stringify(user));
-    }
-  };
-
-  // Function to log out the user in the context
-  const logout = () => {
-    if (typeof window !== "undefined") {
-      setUser(null);
-      localStorage.removeItem("user");
-    }
-  };
+  // Initialize state directly from localStorage using reducer
+  const [user, dispatch] = useReducer(reducer, null, initializer);
 
   return (
-    <UserContext.Provider value={{ user, login, logout }}>
+    <UserContext.Provider value={{ user, dispatch }}>
       {children}
     </UserContext.Provider>
   );

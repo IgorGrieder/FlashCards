@@ -104,26 +104,29 @@ class AuthService {
   /**
    * Creates a new user account with the provided email, username, and password.
    *
-   * This function hashes the provided password, then attempts to create a new user in the database
-   * using the hashed password. It handles possible errors and returns appropriate responses based on
-   * the outcome of the account creation process.
+   * This function hashes the provided password securely and attempts to create a new user record in the database
+   * using the hashed password. If the account creation succeeds, it generates a JWT for the newly created user.
+   * The method handles various outcomes and returns an appropriate response object.
    *
    * @function
    * @async
-   * @param {string} email - The email address of the user to be created.
-   * @param {string} username - The username of the user to be created.
-   * @param {string} password - The plain-text password of the user to be hashed and stored securely.
-   * @returns {Promise<object>} An object containing the result of the operation:
+   * @param {string} email - The email address for the new user account.
+   * @param {string} username - The username for the new user account.
+   * @param {string} password - The plain-text password, which will be hashed before storing.
+   * @returns {Promise<object>} A promise that resolves to an object with the result of the account creation:
    * - `accountCreated` (boolean): Indicates whether the account was successfully created.
-   * - `code` (number): The HTTP-like status code representing the result:
-   *   - `201` for successful account creation.
-   *   - `400` if the account could not be created.
-   *   - `500` if an internal server error occurred.
+   * - `code` (number): An HTTP-like status code indicating the result:
+   *   - `201`: Account created successfully.
+   *   - `400`: Account creation failed (e.g., validation issues).
+   *   - `500`: Internal server error.
+   * - `token` (string, optional): A JWT for the newly created user, included only if `accountCreated` is `true`.
+   * - `username` (string, optional): The username of the newly created user, included only if `accountCreated` is `true`.
    *
    * @example
    * const result = await AuthService.createAccount("user@example.com", "username", "password123");
    * if (result.accountCreated) {
    *   console.log("Account created successfully!");
+   *   console.log("JWT:", result.token);
    * } else {
    *   console.error("Account creation failed with code:", result.code);
    * }
@@ -141,7 +144,9 @@ class AuthService {
         return { accountCreated: false, code: 400 };
       }
 
-      return { accountCreated: true, code: 201 };
+      const token = AuthService.generateJWT(newUser);
+
+      return { accountCreated: true, code: 201, token, username };
     } catch (error) {
       return { accountCreated: false, code: 500 };
     }
