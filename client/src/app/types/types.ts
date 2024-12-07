@@ -4,6 +4,7 @@ export type LoginResponse = {
   logged: boolean;
   message?: string;
   username?: string;
+  collections?: [Collection];
 };
 
 export type User = {

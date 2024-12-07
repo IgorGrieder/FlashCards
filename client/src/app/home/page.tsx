@@ -1,5 +1,6 @@
+"use client";
 import { useContext } from "react";
-import { useQuery } from "react-query";
+import { useQuery } from "@tanstack/react-query";
 import { UserContext } from "../context/userContext";
 import axios, { AxiosResponse } from "axios";
 import { Collection, CollectionsRespose } from "../types/types";
@@ -12,8 +13,9 @@ export default function MainUserPage() {
   // Function to call the api to get the users collection
   const fetchCollectionsData = async (): Promise<void> => {
     try {
-      const result: AxiosResponse<CollectionsRespose> =
-        await axios.get("/get-collections");
+      const result: AxiosResponse<CollectionsRespose> = await axios.get(
+        "cards/get-collections",
+      );
 
       // If we have successfully fetched information in the backend we will add to the user context
       if (result.status === 200 || result.status === 204) {
