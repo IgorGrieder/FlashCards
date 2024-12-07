@@ -5,6 +5,7 @@ import { UserContext } from "../context/userContext";
 import axios, { AxiosResponse } from "axios";
 import { Collection, CollectionsRespose } from "../types/types";
 import { useRouter } from "next/navigation";
+import CollectionCard from "../components/collectionCard";
 
 export default function MainUserPage() {
   const userCtx = useContext(UserContext);
@@ -50,17 +51,29 @@ export default function MainUserPage() {
     cardsCollection = userCtx.user.collections;
   }
 
+  // If we fail trying to request the collection go back to the home screen
+  const goBack = () => {
+    router.push("/");
+  };
+
   if (query.isError) {
-    return <main></main>;
+    setTimeout(goBack, 5000);
+    return (
+      <main className="bg-white"> Não foi possível acessar suas coleções</main>
+    );
   }
 
   return (
-    <main>
-      <>
-        {cardsCollection.map((item) => (
-          <div key={crypto.randomUUID()}>Ola {item.name}</div>
+    <main className="h-screen bg-green-300">
+      <div className="my-auto border border-black px-5 py-10">
+        {cardsCollection.map((collection) => (
+          <CollectionCard
+            key={crypto.randomUUID()}
+            category={collection.name}
+            name={collection.name}
+          ></CollectionCard>
         ))}
-      </>
+      </div>
     </main>
   );
 }
