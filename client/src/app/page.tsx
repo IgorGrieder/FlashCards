@@ -20,7 +20,7 @@ export default function Home() {
               &quot;O verdadeiro aprendizado não é sobre acumular conhecimento,
               mas lembrar dele quando for importante.&quot;
             </p>
-            <div className="relative w-[250px] h-[250px]">
+            <div className="relative w-auto h-auto">
               <Image
                 src="/Girl-using-laptop.png"
                 alt="Girl using a computer"
