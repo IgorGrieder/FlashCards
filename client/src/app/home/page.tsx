@@ -72,7 +72,7 @@ export default function MainUserPage() {
   }
 
   return (
-    <main className="">
+    <main className="p-10">
       {/* General informationn for the user in regards of the application usage */}
       <section className="px-5 py-10">
         <h1 className="text-black text-4xl text-center">
@@ -98,13 +98,17 @@ export default function MainUserPage() {
 
       {/* Collections section to be displayed */}
       <section className="border border-black px-5 py-10 bg-white h-full">
-        {cardsCollection.map((collection) => (
-          <CollectionCard
-            key={crypto.randomUUID()}
-            category={collection.name}
-            name={collection.name}
-          ></CollectionCard>
-        ))}
+        {cardsCollection.length > 0 ? (
+          cardsCollection.map((collection) => (
+            <CollectionCard
+              key={crypto.randomUUID()}
+              category={collection.name}
+              name={collection.name}
+            ></CollectionCard>
+          ))
+        ) : (
+          <h1>Crie sua primeira coleção!</h1>
+        )}
       </section>
     </main>
   );
