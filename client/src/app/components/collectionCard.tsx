@@ -11,7 +11,7 @@ export default function CollectionCard({ category, name }: CollectionProps) {
 
   // Handle click to redirect to the collection card section
   const handleClick = () => {
-    router.push(`/collections/${name}`);
+    router.push(`home/collection?name=${name}`);
   };
 
   return (
