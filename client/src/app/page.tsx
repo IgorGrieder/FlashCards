@@ -8,7 +8,7 @@ import { UserContext } from "./context/userContext";
 export default function Home() {
   const router = useRouter();
   const userCtx = useContext(UserContext);
-  const [isChecked, setIsChecked] = useState(true);
+  const [isChecked, setIsChecked] = useState(false);
 
   const onClickLogin = () => {
     router.push("/login");
@@ -23,7 +23,7 @@ export default function Home() {
     }
   }, [userCtx, router]);
 
-  if (isChecked) {
+  if (!isChecked) {
     return null;
   }
 

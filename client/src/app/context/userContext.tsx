@@ -29,11 +29,8 @@ const reducer = (state: User | null, action: ActionUser): User | null => {
 
 // Initializer function
 const initializer = (): User | null => {
-  if (typeof window !== "undefined") {
-    const storedUser = localStorage.getItem("user");
-    return storedUser ? JSON.parse(storedUser) : null;
-  }
-  return null;
+  const storedUser = localStorage.getItem("user");
+  return storedUser ? JSON.parse(storedUser) : null;
 };
 
 export default function UserProvider({
