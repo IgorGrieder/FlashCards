@@ -1,7 +1,11 @@
 "use client";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
-import UserProvider from "../context/userContext";
+import dynamic from "next/dynamic";
 const queryClient = new QueryClient();
+
+const UserProvider = dynamic(() => import("../context/userContext"), {
+  ssr: false,
+});
 
 const Providers = ({ children }: { children: React.ReactNode }) => {
   return (

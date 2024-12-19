@@ -67,10 +67,10 @@ export default function CollectionPage() {
         <Button text="Vamos lá" onClick={handleClick}></Button>
       </section>
 
-      {/* Cards section will be in foocus on teh screen*/}
+      {/* Cards section will be in focus on the screen*/}
       {showCards && (
         <section className="absolute w-screen h-screen z-10 bg-black bg-opacity-80 left-0 top-0 flex items-center justify-center">
-          <div className="bg-white w-[400px]">
+          <div className="bg-white max-w-[400px] px-5 py-10">
             <h1>Olaaa</h1>
           </div>
         </section>

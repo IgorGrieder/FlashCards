@@ -26,15 +26,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <Providers>
-      <html lang="en">
-        <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased text-black bg-green-300`}
-        >
+    <html lang="en">
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased text-black bg-green-300`}
+      >
+        <Providers>
           {children}
           <ReactQueryDevtools initialIsOpen={true} position="bottom" />
-        </body>
-      </html>
-    </Providers>
+        </Providers>
+      </body>
+    </html>
   );
 }

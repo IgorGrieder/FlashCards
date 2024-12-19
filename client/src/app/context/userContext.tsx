@@ -1,6 +1,7 @@
 "use client";
-import { createContext, useReducer } from "react";
+import { createContext, useEffect, useReducer } from "react";
 import { ActionUser, User, UserCtx } from "../types/types";
+import { useRouter } from "next/navigation";
 
 export const UserContext = createContext<UserCtx | null>(null);
 
@@ -40,6 +41,14 @@ export default function UserProvider({
 }) {
   // Initialize state directly from localStorage using reducer
   const [user, dispatch] = useReducer(reducer, null, initializer);
+  const router = useRouter();
+
+  // If we don't have an user redirect to the main page for login
+  useEffect(() => {
+    if (!user) {
+      router.push("/");
+    }
+  });
 
   return (
     <UserContext.Provider value={{ user, dispatch }}>

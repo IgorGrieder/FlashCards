@@ -41,7 +41,7 @@ export type ActionUser = LogoutAction | LoginAction | UpdateUser;
 
 export type CollectionsRespose = {
   collectionsFound: boolean;
-  collections: [Collection];
+  collections?: [Collection];
   message?: string;
 };
 
