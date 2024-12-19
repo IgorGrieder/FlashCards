@@ -79,7 +79,13 @@ export default function Login() {
       // If the login was authorized we will change to the home page with the user logged on
       if (request.status === 200 && request.data.logged) {
         if (request.data.username) {
-          userCtx?.login(request.data.username);
+          userCtx?.dispatch({
+            type: "LOGIN",
+            payload: {
+              username: request.data.username,
+              collections: request.data.collections || [],
+            },
+          });
           router.push("/home");
         }
       }

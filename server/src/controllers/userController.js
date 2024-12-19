@@ -1,7 +1,6 @@
 import { Router } from "express";
 import AuthService from "../services/authService.js";
 import Utils from "../utils/utils.js";
-
 const userRoutes = new Router();
 
 /**

@@ -4,6 +4,7 @@ export type LoginResponse = {
   logged: boolean;
   message?: string;
   username?: string;
+  collections?: [Collection];
 };
 
 export type User = {
@@ -40,7 +41,7 @@ export type ActionUser = LogoutAction | LoginAction | UpdateUser;
 
 export type CollectionsRespose = {
   collectionsFound: boolean;
-  collections: [Collection];
+  collections?: [Collection];
   message?: string;
 };
 
