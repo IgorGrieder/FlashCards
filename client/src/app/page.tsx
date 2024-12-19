@@ -2,30 +2,13 @@
 import Image from "next/image";
 import Button from "./components/button";
 import { useRouter } from "next/navigation";
-import { useContext, useEffect, useState } from "react";
-import { UserContext } from "./context/userContext";
 
 export default function Home() {
   const router = useRouter();
-  const userCtx = useContext(UserContext);
-  const [isChecked, setIsChecked] = useState(false);
 
   const onClickLogin = () => {
     router.push("/login");
   };
-
-  useEffect(() => {
-    // If the user is logged we will send him to the home page
-    if (userCtx?.user?.username) {
-      router.push("/home");
-    } else {
-      setIsChecked(true);
-    }
-  }, [userCtx, router]);
-
-  if (!isChecked) {
-    return null;
-  }
 
   return (
     <main className="bg-green-300 h-screen text-black text-xl">
