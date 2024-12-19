@@ -1,7 +1,8 @@
 "use client";
+import Button from "@/app/components/button";
 import { UserContext } from "@/app/context/userContext";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
 
 export default function CollectionPage() {
   const router = useRouter();
@@ -9,36 +10,71 @@ export default function CollectionPage() {
   const userCtx = useContext(UserContext);
   const userCollection = userCtx?.user?.collections;
   const collectionName = searchParams.get("name");
-  let collectionExists = false;
+  const [isChecked, setIsChecked] = useState(false);
+  const [showCards, setShowCards] = useState(false);
 
-  // If the user is not logged
-  if (userCtx?.user === null) {
-    router.push("/");
-  }
+  // Use effect for checking user and collections
+  useEffect(() => {
+    let collectionExists = false;
 
-  // The user doesn't have any collection
-  if (userCollection && userCollection.length <= 0) {
-    router.push("/home");
-  }
+    // If the user is not logged
+    if (userCtx?.user === null) {
+      router.push("/");
+    }
 
-  // Checking if the user has a collection with the name provided
-  if (userCollection) {
-    for (let i = 0; i <= userCollection?.length - 1; i++) {
-      if (userCollection[i].name === collectionName) {
-        collectionExists = true;
-        break;
+    // The user doesn't have any collection
+    if (userCollection && userCollection.length <= 0) {
+      router.push("/home");
+    }
+
+    // Checking if the user has a collection with the name provided
+    if (userCollection) {
+      for (let i = 0; i <= userCollection?.length - 1; i++) {
+        if (userCollection[i].name === collectionName) {
+          collectionExists = true;
+          break;
+        }
       }
     }
+
+    // If the collection doesb't exist we will inform the user and go to the home page
+    if (!collectionExists) {
+      router.push("/home");
+    }
+
+    setIsChecked(true);
+  }, [userCtx, router, userCollection, collectionName]);
+
+  if (!isChecked) {
+    return null;
   }
 
-  if (!collectionExists) {
-    return (
-      <main className="bg-black text-white flex items-center justify-center">
-        <h1 className="text-6xl">Você não possui uma coleção com esse nome</h1>
-        <h2>{collectionName}</h2>
-      </main>
-    );
-  }
+  // Handle click function to interact with the button
+  const handleClick = () => {
+    setShowCards(true);
+  };
 
-  return <main>Oiiii</main>;
+  return (
+    <main>
+      {/* Top section with intro */}
+      <section className="my-auto">
+        <h1 className="text-6xl text-center">{collectionName}</h1>
+        <p>
+          Responda a cada pergunta e no final compare com a respostas esperada!
+          No final, você verá um resumo com seus acertos e erros. Aproveite para
+          aprender e melhorar!
+        </p>
+        <Button text="Vamos lá" onClick={handleClick}></Button>
+      </section>
+
+      {/* Cards section will be in foocus on teh screen*/}
+      {showCards && (
+        <section className="absolute w-screen h-screen z-10 bg-black bg-opacity-80 left-0 top-0 flex items-center justify-center">
+          <div className="bg-white w-[400px]">
+            <h1>Olaaa</h1>
+          </div>
+        </section>
+      )}
+    </main>
+  );
 }
