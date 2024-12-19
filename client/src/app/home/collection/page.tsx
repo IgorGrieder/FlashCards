@@ -1,6 +1,9 @@
 "use client";
 import Button from "@/app/components/button";
+import CardsSection from "@/app/components/cardsSection";
+import LoadingPage from "@/app/components/loadingPage";
 import { UserContext } from "@/app/context/userContext";
+import { Collection } from "@/app/types/types";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useContext, useEffect, useState } from "react";
 
@@ -8,45 +11,42 @@ export default function CollectionPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const userCtx = useContext(UserContext);
-  const userCollection = userCtx?.user?.collections;
+  const userCollections = userCtx?.user?.collections;
   const collectionName = searchParams.get("name");
   const [isChecked, setIsChecked] = useState(false);
   const [showCards, setShowCards] = useState(false);
+  const [collection, setCollection] = useState<Collection | null>(null);
 
   // Use effect for checking user and collections
   useEffect(() => {
     let collectionExists = false;
 
-    // If the user is not logged
-    if (userCtx?.user === null) {
-      router.push("/");
-    }
-
     // The user doesn't have any collection
-    if (userCollection && userCollection.length <= 0) {
+    if (userCollections && userCollections.length <= 0) {
       router.push("/home");
     }
 
     // Checking if the user has a collection with the name provided
-    if (userCollection) {
-      for (let i = 0; i <= userCollection?.length - 1; i++) {
-        if (userCollection[i].name === collectionName) {
+    if (userCollections) {
+      for (let i = 0; i <= userCollections?.length - 1; i++) {
+        if (userCollections[i].name === collectionName) {
           collectionExists = true;
+          setCollection(userCollections[i]);
           break;
         }
       }
     }
 
-    // If the collection doesb't exist we will inform the user and go to the home page
+    // If the collection doesn't exist we will send the user back to the home page
     if (!collectionExists) {
       router.push("/home");
     }
 
     setIsChecked(true);
-  }, [userCtx, router, userCollection, collectionName]);
+  }, [userCtx, router, userCollections, collectionName]);
 
   if (!isChecked) {
-    return null;
+    return <LoadingPage></LoadingPage>;
   }
 
   // Handle click function to interact with the button
@@ -55,25 +55,23 @@ export default function CollectionPage() {
   };
 
   return (
-    <main>
+    <main className="p-10">
       {/* Top section with intro */}
-      <section className="my-auto">
-        <h1 className="text-6xl text-center">{collectionName}</h1>
-        <p>
+      <h1 className="text-6xl text-center">{collectionName}</h1>
+      <section className="flex items-center justify-center mt-10">
+        <p className="max-w-[300px]">
           Responda a cada pergunta e no final compare com a respostas esperada!
           No final, você verá um resumo com seus acertos e erros. Aproveite para
           aprender e melhorar!
         </p>
-        <Button text="Vamos lá" onClick={handleClick}></Button>
+        {collection && !showCards && (
+          <Button text="Vamos lá" onClick={handleClick}></Button>
+        )}
       </section>
 
       {/* Cards section will be in focus on the screen*/}
-      {showCards && (
-        <section className="absolute w-screen h-screen z-10 bg-black bg-opacity-80 left-0 top-0 flex items-center justify-center">
-          <div className="bg-white max-w-[400px] px-5 py-10">
-            <h1>Olaaa</h1>
-          </div>
-        </section>
+      {collection && showCards && (
+        <CardsSection collection={collection}></CardsSection>
       )}
     </main>
   );

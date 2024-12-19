@@ -1,24 +1,41 @@
 "use client";
-import { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { UserContext } from "../context/userContext";
 import { AxiosError, AxiosResponse } from "axios";
-import { CollectionsRespose } from "../types/types";
+import { Collection, CollectionsRespose } from "../types/types";
 import { useRouter } from "next/navigation";
-import CollectionCard from "../components/collectionCard";
 import { api } from "../libs/axios";
 import LoadingPage from "../components/loadingPage";
-import LoadingSpinner from "../components/loadingSpinner";
+import EditCollection from "../components/editCollection";
+import CollectionsSection from "../components/collectionsSection";
 
 export default function MainUserPage() {
   const userCtx = useContext(UserContext);
   const router = useRouter();
   const [isClient, setIsClient] = useState(false);
+  const [editSectionCollection, setEditSectionCollection] =
+    useState<Collection | null>(null);
+  const editSection = useRef<HTMLElement>(null);
 
   // Set client-side flag after mount
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  // On click function to put on focus teh edit section
+  const handleOpenEditSection = (editCollection: Collection) => {
+    setEditSectionCollection(editCollection);
+
+    requestAnimationFrame(() => {
+      if (editSection.current) {
+        editSection.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      }
+    });
+  };
 
   const fetchCollectionsData = async (): Promise<CollectionsRespose> => {
     try {
@@ -106,19 +123,22 @@ export default function MainUserPage() {
         </div>
       </section>
 
-      <section className="border border-black px-5 py-10 bg-white h-full">
-        {cardsCollection.length > 0 ? (
-          cardsCollection.map((collection) => (
-            <CollectionCard
-              key={crypto.randomUUID()}
-              category={collection.name}
-              name={collection.name}
-            />
-          ))
-        ) : (
-          <LoadingSpinner></LoadingSpinner>
-        )}
-      </section>
+      {/* Cards collections section */}
+      <CollectionsSection
+        collections={cardsCollection}
+        onEditCollection={handleOpenEditSection}
+      ></CollectionsSection>
+
+      {/* Edit collection section */}
+      {editSectionCollection && (
+        <section
+          className="mt-[100px] bg-white h-[400px] py-10 px-5 border border-black rounded-2xl"
+          ref={editSection}
+        >
+          <h1 className="text-4xl text-center">Editar coleção</h1>
+          <EditCollection collection={editSectionCollection}></EditCollection>
+        </section>
+      )}
     </main>
   );
 }
