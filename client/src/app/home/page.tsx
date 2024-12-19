@@ -1,27 +1,33 @@
 "use client";
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { UserContext } from "../context/userContext";
 import { AxiosError, AxiosResponse } from "axios";
-import { Collection, CollectionsRespose } from "../types/types";
+import { CollectionsRespose } from "../types/types";
 import { useRouter } from "next/navigation";
 import CollectionCard from "../components/collectionCard";
 import { api } from "../libs/axios";
+import LoadingPage from "../components/loadingPage";
+import LoadingSpinner from "../components/loadingSpinner";
 
 export default function MainUserPage() {
   const userCtx = useContext(UserContext);
   const router = useRouter();
+  const [isClient, setIsClient] = useState(false);
 
-  // Function to call the api to get the users collection
+  // Set client-side flag after mount
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   const fetchCollectionsData = async (): Promise<CollectionsRespose> => {
     try {
       const result: AxiosResponse<CollectionsRespose> = await api.get(
         "cards/get-collections",
       );
 
-      // If we have successfully fetched information in the backend we will add to the user context
       if (result.data.collections && userCtx?.user) {
-        userCtx?.dispatch({
+        userCtx.dispatch({
           type: "UPDATE",
           payload: {
             ...userCtx.user,
@@ -32,52 +38,55 @@ export default function MainUserPage() {
 
       return result.data;
     } catch (e) {
-      // If we get that the user is not authorized we will redirect it to the main page
       const error = e as AxiosError;
       if (error.response?.status === 401) {
         userCtx?.dispatch({ type: "LOGOUT" });
         router.push("/");
       }
-      return {
-        collectionsFound: false,
-      };
+      throw error;
     }
   };
 
   const query = useQuery({
     queryFn: fetchCollectionsData,
     queryKey: ["userCollection"],
+    enabled: isClient && !!userCtx?.user,
   });
 
-  // Separating the user collections in a variable
-  let cardsCollection: [Collection] | [] = [];
-  if (userCtx?.user) {
-    cardsCollection = userCtx.user.collections;
-  }
+  // Get collections from user context
+  const cardsCollection = userCtx?.user?.collections || [];
 
-  // If we fail trying to request the collection go back to the home screen
-  const goBack = () => {
-    router.push("/");
-  };
-
-  // If we don't have a user we will prevent component rendering with information
-  if (!userCtx?.user) {
-    return null;
-  }
-
-  if (query.isError) {
-    setTimeout(goBack, 5000);
+  // Show loading state during SSR
+  if (!isClient) {
     return (
-      <main className="bg-white"> Não foi possível acessar suas coleções</main>
+      <main className="p-10">
+        <LoadingPage></LoadingPage>
+      </main>
+    );
+  }
+
+  // Show loading state while checking authentication
+  if (!userCtx?.user) {
+    return (
+      <main className="p-10">
+        <LoadingPage></LoadingPage>
+      </main>
+    );
+  }
+
+  // Handle query error
+  if (query.isError) {
+    setTimeout(() => router.push("/"), 5000);
+    return (
+      <main className="bg-white">Não foi possível acessar suas coleções</main>
     );
   }
 
   return (
     <main className="p-10">
-      {/* General informationn for the user in regards of the application usage */}
       <section className="px-5 py-10">
         <h1 className="text-black text-4xl text-center">
-          Suas coleções, {userCtx?.user?.username}!
+          Suas coleções, {userCtx.user.username}!
         </h1>
         <div className="px-4 py-5">
           <h4 className="text-xl font-bold">📚 Como começar</h4>
@@ -97,7 +106,6 @@ export default function MainUserPage() {
         </div>
       </section>
 
-      {/* Collections section to be displayed */}
       <section className="border border-black px-5 py-10 bg-white h-full">
         {cardsCollection.length > 0 ? (
           cardsCollection.map((collection) => (
@@ -105,10 +113,10 @@ export default function MainUserPage() {
               key={crypto.randomUUID()}
               category={collection.name}
               name={collection.name}
-            ></CollectionCard>
+            />
           ))
         ) : (
-          <h1>Crie sua primeira coleção!</h1>
+          <LoadingSpinner></LoadingSpinner>
         )}
       </section>
     </main>
