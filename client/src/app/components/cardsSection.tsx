@@ -75,8 +75,8 @@ export default function CardsSection({ collection }: CardsSectionProps) {
               height="24px"
               viewBox="0 -960 960 960"
               width="24px"
-              fill="#000000"
-              className={`${currentCard === 0 ? "opacity-60 cursor-auto" : "cursor-pointer opacity-100 hover:bg-black"}`}
+              fill="currentColor"
+              className={`${currentCard === 0 ? "opacity-60 cursor-auto" : "cursor-pointer opacity-100 hover:text-black"} text-gray-300`}
               onClick={handlePreviousQuestion}
             >
               <path d="M560-240 320-480l240-240 56 56-184 184 184 184-56 56Z" />
@@ -92,8 +92,8 @@ export default function CardsSection({ collection }: CardsSectionProps) {
               height="24px"
               viewBox="0 -960 960 960"
               width="24px"
-              fill="#000000"
-              className={`${currentCard + 1 <= collection.length - 1 ? "cursor-pointer opacity-100 hover:bg-black" : "opacity-60 cursor-auto"}`}
+              fill="currentColor"
+              className={`${currentCard + 1 <= collection.length - 1 ? "cursor-pointer opacity-100 hover:text-black" : "opacity-60 cursor-auto"} text-gray-300`}
               onClick={handleNextQuestion}
             >
               <path d="M504-480 320-664l56-56 240 240-240 240-56-56 184-184Z" />
