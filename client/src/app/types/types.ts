@@ -1,10 +1,16 @@
-import { Dispatch } from "react";
+import { Dispatch, SetStateAction } from "react";
 
 export type LoginResponse = {
   logged: boolean;
   message?: string;
   username?: string;
   collections?: [Collection];
+};
+
+export type FlashCardContextType = {
+  answersArray: boolean[];
+  setAnswersArray: Dispatch<SetStateAction<boolean[]>>;
+  clearAnswers: () => void;
 };
 
 export type User = {

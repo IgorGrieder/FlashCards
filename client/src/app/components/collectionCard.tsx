@@ -28,7 +28,7 @@ export default function CollectionCard({
 
   return (
     <div
-      className="border border-black flex flex-col gap-2 bg-green-300 relative w-[300px] py-5 px-2 rounded-xl text-black text-center cursor-pointer"
+      className="border border-black flex flex-col gap-2 relative w-[300px] py-5 px-2 rounded-xl text-black text-center cursor-pointer bg-neutral-100"
       onClick={handleClick}
     >
       <div className="mx-auto">

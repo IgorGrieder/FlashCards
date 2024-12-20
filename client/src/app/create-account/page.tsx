@@ -97,7 +97,7 @@ export default function Login() {
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-green-300 text-black">
+    <main className="min-h-screen flex items-center justify-center text-black">
       <form
         onSubmit={handleSubmit(onSubmit)}
         className="bg-white p-6 rounded-xl shadow-md w-full max-w-md"
