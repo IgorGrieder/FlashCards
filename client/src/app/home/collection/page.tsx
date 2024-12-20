@@ -38,12 +38,12 @@ export default function CollectionPage() {
     }
 
     // If the collection doesn't exist we will send the user back to the home page
-    if (!collectionExists) {
+    if (!collectionExists || (collection && collection?.cards.length <= 0)) {
       router.push("/home");
     }
 
     setIsChecked(true);
-  }, [userCtx, router, userCollections, collectionName]);
+  }, [userCtx, router, userCollections, collectionName, collection]);
 
   if (!isChecked) {
     return <LoadingPage></LoadingPage>;

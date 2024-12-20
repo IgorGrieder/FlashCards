@@ -23,7 +23,7 @@ export default function MainUserPage() {
     setIsClient(true);
   }, []);
 
-  // On click function to put on focus teh edit section
+  // On click function to put on focus the edit section
   const handleOpenEditSection = (editCollection: Collection) => {
     setEditSectionCollection(editCollection);
 
@@ -73,17 +73,8 @@ export default function MainUserPage() {
   // Get collections from user context
   const cardsCollection = userCtx?.user?.collections || [];
 
-  // Show loading state during SSR
-  if (!isClient) {
-    return (
-      <main className="p-10">
-        <LoadingPage></LoadingPage>
-      </main>
-    );
-  }
-
-  // Show loading state while checking authentication
-  if (!userCtx?.user) {
+  // Show loading state during SSR and checking user context
+  if (!isClient || !userCtx?.user) {
     return (
       <main className="p-10">
         <LoadingPage></LoadingPage>
@@ -98,6 +89,10 @@ export default function MainUserPage() {
       <main className="bg-white">Não foi possível acessar suas coleções</main>
     );
   }
+
+  const handleCloseEditSection = () => {
+    setEditSectionCollection(null);
+  };
 
   return (
     <main className="p-10">
@@ -132,10 +127,21 @@ export default function MainUserPage() {
       {/* Edit collection section */}
       {editSectionCollection && (
         <section
-          className="mt-[100px] bg-white h-[400px] py-10 px-5 border border-black rounded-2xl"
+          className="mt-[100px] bg-white h-[400px] py-10 px-5 border border-black rounded-2xl relative"
           ref={editSection}
         >
-          <h1 className="text-4xl text-center">Editar coleção</h1>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            height="24px"
+            viewBox="0 -960 960 960"
+            width="24px"
+            fill="#000000"
+            className="absolute top-[24px] right-[24px] cursor-pointer"
+            onClick={handleCloseEditSection}
+          >
+            <path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z" />
+          </svg>
+          <h1 className="text-2xl text-center">Editar coleção</h1>
           <EditCollection collection={editSectionCollection}></EditCollection>
         </section>
       )}
