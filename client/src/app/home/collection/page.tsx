@@ -77,7 +77,10 @@ export default function CollectionPage() {
       {/* Cards section will be in focus on the screen*/}
       {collection && (
         <div ref={flashCards}>
-          <CardsSection collection={collection.cards}></CardsSection>
+          <CardsSection
+            collection={collection.cards}
+            collectionName={collectionName ?? ""}
+          ></CardsSection>
         </div>
       )}
     </main>

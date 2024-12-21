@@ -4,20 +4,24 @@ type ButtonProps = {
   bgColor?: string;
   onClick: () => void;
   additionalClasses?: string;
+  children?: React.ReactNode;
 };
 
 export default function Button({
   text,
   textColor = "text-black",
-  bgColor = "bg-transparent",
+  bgColor = "bg-white",
   onClick,
   additionalClasses = "",
+  children,
 }: ButtonProps) {
   return (
     <button
-      className={`px-4 py-2 rounded-xl border border-black ${bgColor} ${textColor} ${additionalClasses}`}
+      className={`px-3 py-4 flex items-center text-sm transition-colors hover:text-white border-gray-300 border hover:bg-black sm:text-base rounded-lg ${bgColor} ${textColor} ${additionalClasses}`}
       onClick={onClick}
+      disabled={true}
     >
+      {children}
       {text}
     </button>
   );
