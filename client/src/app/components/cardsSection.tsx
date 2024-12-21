@@ -247,7 +247,7 @@ export default function CardsSection({
       </div>
 
       {/* Feedback section */}
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-3 gap-2">
         <Button
           text="Resposta correta"
           additionalClasses="group w-full"
@@ -290,6 +290,24 @@ export default function CardsSection({
             <path d="M22 5h-4"></path>
             <path d="M4 17v2"></path>
             <path d="M5 18H3"></path>
+          </svg>
+        </Button>
+        <Button
+          text="Encerrar"
+          additionalClasses="group w-full"
+          onClick={() => {
+            handleAnswer(false);
+          }}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            height="24px"
+            viewBox="0 -960 960 960"
+            width="24px"
+            fill="currentColor"
+            className="text-black group-hover:text-red-400 mr-2"
+          >
+            <path d="M873-88 609-352 495-238 269-464l56-58 170 170 56-56-414-414 56-58 736 736-56 56ZM269-238 43-464l56-56 170 170 56 56-56 56Zm452-226-56-56 196-196 58 54-198 198ZM607-578l-56-56 86-86 56 56-86 86Z" />
           </svg>
         </Button>
       </div>
