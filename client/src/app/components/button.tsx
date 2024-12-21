@@ -19,7 +19,6 @@ export default function Button({
     <button
       className={`px-3 py-4 flex items-center text-sm transition-colors hover:text-white border-gray-300 border hover:bg-black sm:text-base rounded-lg cursor-pointer ${bgColor} ${textColor} ${additionalClasses}`}
       onClick={onClick}
-      disabled={true}
     >
       {children}
       {text}

@@ -2,6 +2,8 @@
 import { useRef, useState } from "react";
 import { Card } from "../types/types";
 import Button from "./button";
+import confetti from "canvas-confetti";
+import { useRouter } from "next/navigation";
 
 type CardsSectionProps = {
   collection: [Card] | [];
@@ -12,6 +14,7 @@ export default function CardsSection({
   collection,
   collectionName,
 }: CardsSectionProps) {
+  const router = useRouter();
   const [currentCard, setCurrentCard] = useState(0);
   const [cardsAnswers, setCardsAnswers] = useState(() => {
     const emptyArray = new Array(collection.length).fill(null);
@@ -104,6 +107,48 @@ export default function CardsSection({
     if (progressBar.current) {
       progressBar.current.style.width = "0px";
     }
+  };
+
+  // Show stars animation with canvas confetti
+  const showStars = () => {
+    const defaults = {
+      spread: 360,
+      ticks: 50,
+      gravity: 0,
+      decay: 0.94,
+      startVelocity: 30,
+      colors: ["FFE400", "FFBD00", "E89400", "FFCA6C", "FDFFB8"],
+    };
+
+    const shoot = () => {
+      confetti({
+        ...defaults,
+        particleCount: 40,
+        scalar: 1.2,
+        shapes: ["star"],
+      });
+
+      confetti({
+        ...defaults,
+        particleCount: 10,
+        scalar: 0.75,
+        shapes: ["circle"],
+      });
+    };
+
+    setTimeout(shoot, 0);
+    setTimeout(shoot, 100);
+    setTimeout(shoot, 200);
+    setTimeout(shoot, 300);
+    setTimeout(shoot, 400);
+  };
+
+  // Handle the end of the collection
+  const handleCollectionFinish = () => {
+    showStars();
+    setTimeout(() => {
+      router.push("/home");
+    }, 2000);
   };
 
   return (
@@ -221,6 +266,11 @@ export default function CardsSection({
           <span>{collectionName}</span>
         </div>
         <p className="font-semibold text-xl">{question}</p>
+        {img && (
+          <div>
+            <img src={img} alt="Question image" className="mt-5" />
+          </div>
+        )}
         <button
           className="cursor-pointer text-sm text-gray-500 underline underline-offset-4 transition-colors hover:text-black sm:text-base absolute bottom-[20px] z-10"
           onClick={handleFeedback}
@@ -295,9 +345,7 @@ export default function CardsSection({
         <Button
           text="Encerrar"
           additionalClasses="group w-full"
-          onClick={() => {
-            handleAnswer(false);
-          }}
+          onClick={handleCollectionFinish}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
