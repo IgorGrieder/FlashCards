@@ -23,12 +23,14 @@ export default function CardsSection({
   const [rightAnswers, setRightAnswers] = useState(0);
   const [wrongAnswers, setWrongAnswers] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
+  const [disableButtons, setDisableButtons] = useState(false);
   const answer = collection[currentCard].answer;
   const question = collection[currentCard].question;
   const img = collection[currentCard].img;
   const category = collection[currentCard].category;
   const progressBar = useRef<HTMLDivElement>(null);
 
+  // Next question updates on the bar and the current card
   const handleNextQuestion = () => {
     if (currentCard + 1 <= collection.length - 1) {
       setCurrentCard(currentCard + 1);
@@ -47,14 +49,15 @@ export default function CardsSection({
     handleNextQuestion();
 
     // If we reach the end we will finish the session
-    if (currentCard === cardsAnswers.length - 1) {
-      const x = 0;
+    if (currentCard + 1 > cardsAnswers.length - 1) {
+      setDisableButtons(true);
+      showStars();
+    }
+
+    if (answer) {
+      setRightAnswers(rightAnswers + 1);
     } else {
-      if (answer) {
-        setRightAnswers(rightAnswers + 1);
-      } else {
-        setWrongAnswers(wrongAnswers + 1);
-      }
+      setWrongAnswers(wrongAnswers + 1);
     }
   };
 
@@ -62,6 +65,7 @@ export default function CardsSection({
   const handlePreviousQuestion = () => {
     if (currentCard > 0) {
       setCurrentCard(currentCard - 1);
+      setDisableButtons(false);
       if (progressBar.current) {
         const newProgress =
           currentCard - 1 === 0
@@ -70,20 +74,20 @@ export default function CardsSection({
         progressBar.current.style.width = newProgress + "%";
       }
 
-      // We need to check the feedback we gave to this flash card and remove ir
+      // We need to check the feedback we gave to this flash card and remove it
       const state = cardsAnswers[currentCard - 1];
       if (state !== null) {
         const answersArray = [...cardsAnswers];
-        answersArray[currentCard] = null;
+        answersArray[currentCard - 1] = null;
         setCardsAnswers(answersArray);
 
         // We need to adjust our counters
         if (state) {
-          if (rightAnswers !== 0) {
+          if (rightAnswers > 0) {
             setRightAnswers(rightAnswers - 1);
           }
         } else {
-          if (wrongAnswers !== 0) {
+          if (wrongAnswers > 0) {
             setWrongAnswers(wrongAnswers - 1);
           }
         }
@@ -103,6 +107,7 @@ export default function CardsSection({
     setWrongAnswers(0);
     setRightAnswers(0);
     setShowAnswer(false);
+    setDisableButtons(false);
 
     if (progressBar.current) {
       progressBar.current.style.width = "0px";
@@ -144,7 +149,7 @@ export default function CardsSection({
   };
 
   // Handle the end of the collection
-  const handleCollectionFinish = () => {
+  const handleQuit = () => {
     showStars();
     setTimeout(() => {
       router.push("/home");
@@ -156,7 +161,7 @@ export default function CardsSection({
       {/* General collection header */}
       <div className="border border-gray-300 rounded-lg px-2 py-5 bg-white">
         {/* Progress Bar */}
-        <div className="flex justify-around items-center">
+        <div className="flex justify-around items-center mx-auto">
           <div className="w-4/5 relative rounded-xl h-[10px] bg-gray-200">
             <div
               ref={progressBar}
@@ -171,8 +176,12 @@ export default function CardsSection({
               viewBox="0 -960 960 960"
               width="24px"
               fill="currentColor"
-              className={`${currentCard === 0 ? "opacity-60 cursor-auto" : "cursor-pointer opacity-100 hover:text-black"} text-gray-300`}
-              onClick={handlePreviousQuestion}
+              className={`${currentCard > 0 && !disableButtons ? "cursor-pointer opacity-100 hover:text-black" : "opacity-60 cursor-auto"} text-gray-300`}
+              onClick={() => {
+                if (currentCard > 0 && !disableButtons) {
+                  handlePreviousQuestion();
+                }
+              }}
             >
               <path d="M560-240 320-480l240-240 56 56-184 184 184 184-56 56Z" />
             </svg>
@@ -304,6 +313,7 @@ export default function CardsSection({
           onClick={() => {
             handleAnswer(true);
           }}
+          disable={disableButtons}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -322,6 +332,7 @@ export default function CardsSection({
           onClick={() => {
             handleAnswer(false);
           }}
+          disable={disableButtons}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -343,9 +354,9 @@ export default function CardsSection({
           </svg>
         </Button>
         <Button
-          text="Encerrar"
+          text="Sair"
           additionalClasses="group w-full"
-          onClick={handleCollectionFinish}
+          onClick={handleQuit}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
