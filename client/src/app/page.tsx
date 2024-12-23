@@ -30,13 +30,13 @@ export default function Home() {
               />
             </div>
           </div>
-          <div className="flex flex-col gap-4">
+          <div className="grid grid-cols-1 gap-4">
             <p>Venha fazer parte da melhor forma de estudar!</p>
             <div>
               <Button
                 text="Entrar"
                 onClick={onClickLogin}
-                additionalClasses="mx-auto block hover:bg-sky-300"
+                additionalClasses="mx-auto block justify-center w-full"
               ></Button>
               <div className="flex justify-center">
                 <a

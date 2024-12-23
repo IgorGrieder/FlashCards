@@ -181,9 +181,9 @@ export default function Login() {
         <button
           type="submit"
           disabled={mutation.isPending}
-          className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 mb-5 disabled:bg-blue-300"
+          className="px-3 py-4 items-center text-sm transition-colors hover:text-white border-gray-300 border hover:bg-black sm:text-base rounded-lg cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed w-full justify-center flex`}"
         >
-          {mutation.isPending ? "Entrando..." : "Entrar"}
+          {mutation.isPending ? "Criando..." : "Criar conta"}
         </button>
       </form>
     </main>
