@@ -28,7 +28,7 @@ export default function CollectionCard({
 
   return (
     <div
-      className="border border-black flex flex-col gap-2 relative w-[300px] py-5 px-2 rounded-xl text-black text-center cursor-pointer bg-neutral-100"
+      className="border border-black flex flex-col gap-2 relative min-w-[300px] py-5 px-2 rounded-xl text-black text-center cursor-pointer bg-neutral-100"
       onClick={handleClick}
     >
       <div className="mx-auto">
@@ -45,7 +45,7 @@ export default function CollectionCard({
       </div>
       <h1 className="text-2xl font-bold">{collection.name}</h1>
       <div>
-        <span className="font-semibold">Categoria:</span>
+        <span className="font-semibold">Categoria</span>
         <h2>{collection.category}</h2>
         {!hasCards && <h2>Você não possui cards na sua coleção!</h2>}
         <div className="h-4 w-4 bg-black" ref={editRef}></div>
