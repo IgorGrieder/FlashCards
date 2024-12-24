@@ -7,6 +7,8 @@ export type LoginResponse = {
   collections?: [Collection];
 };
 
+export type Direction = "left" | "right";
+
 export type FlashCardContextType = {
   answersArray: boolean[];
   setAnswersArray: Dispatch<SetStateAction<boolean[]>>;

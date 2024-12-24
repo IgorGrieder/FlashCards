@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Collection } from "../types/types";
 import CollectionCard from "./collectionCard";
 import LoadingSpinner from "./loadingSpinner";
@@ -17,20 +17,38 @@ export default function CollectionsSection({
   const collectionsSection = useRef<HTMLDivElement>(null);
   const [numItems, setNumItens] = useState(0);
   const [startDisplay, setStartDisplay] = useState(0);
+  const startDisplayRef = useRef(startDisplay);
 
-  // Function to handle arrow movement
+  // Overall function to trigger the collections movement
   const handleCollectionMovement = (moveTo: "left" | "right") => {
-    if (moveTo === "left" && startDisplay > 0) {
-      setStartDisplay((t) => t - 1);
-    } else if (
-      moveTo === "right" &&
-      startDisplay + numItems < collections.length
-    ) {
-      setStartDisplay((t) => t + 1);
-    }
+    setStartDisplay((prevStartDisplay) => {
+      if (moveTo === "left" && prevStartDisplay > 0) {
+        return prevStartDisplay - 1;
+      } else if (
+        moveTo === "right" &&
+        prevStartDisplay + numItems < collections.length
+      ) {
+        return prevStartDisplay + 1;
+      }
+      return prevStartDisplay;
+    });
   };
 
-  const { start, stop } = useArrowMovement(handleCollectionMovement);
+  // Track latest startDisplay with a ref
+  useEffect(() => {
+    startDisplayRef.current = startDisplay;
+  }, [startDisplay]);
+
+  // Use updated useArrowMovement with bounds checking
+  const { start, stop } = useArrowMovement((direction) => {
+    const currentDisplay = startDisplayRef.current;
+    if (
+      (direction === "left" && currentDisplay > 0) ||
+      (direction === "right" && currentDisplay + numItems < collections.length)
+    ) {
+      handleCollectionMovement(direction);
+    }
+  });
 
   // Dynamically update `numItems` based on container size
   useResizeObserver(collectionsSection, (entry) => {
@@ -62,7 +80,7 @@ export default function CollectionsSection({
       </svg>
       <div
         ref={collectionsSection}
-        className="flex items-center w-full justify-evenly flex-1 gap-1"
+        className="flex items-center w-full justify-evenly flex-1 gap-1 overflow-hidden"
       >
         {collections.length > 0 && numItems !== 0 ? (
           collections.map((collection, index) => {
@@ -72,6 +90,7 @@ export default function CollectionsSection({
                   key={crypto.randomUUID()}
                   collection={collection}
                   handleOpenEditSection={onEditCollection}
+                  index={index}
                 />
               );
             }

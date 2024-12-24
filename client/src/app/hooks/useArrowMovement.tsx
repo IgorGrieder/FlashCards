@@ -1,23 +1,38 @@
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
+import { Direction } from "../types/types";
 
 export function useArrowMovement(
-  onMove: (direction: "left" | "right") => void,
+  onMove: (direction: Direction) => void,
+  throttleTime: number = 400,
 ) {
-  const frameId = useRef<number | null>(null);
+  const animationFrameId = useRef<number | null>(null);
+  const lastMoveTime = useRef(0);
 
-  const start = (direction: "left" | "right") => {
-    const move = () => {
-      onMove(direction);
-      frameId.current = requestAnimationFrame(move); // Schedule the next move
+  const start = (direction: Direction) => {
+    const step = (time: number) => {
+      if (
+        !lastMoveTime.current ||
+        time - lastMoveTime.current >= throttleTime
+      ) {
+        onMove(direction); // Trigger movement
+        lastMoveTime.current = time;
+      }
+      animationFrameId.current = requestAnimationFrame(step); // Schedule next frame
     };
-    move(); // Start the loop
+
+    animationFrameId.current = requestAnimationFrame(step); // Start the animation loop
   };
 
   const stop = () => {
-    if (frameId.current) {
-      cancelAnimationFrame(frameId.current);
-    } // Stop the loop
+    if (animationFrameId.current !== null) {
+      cancelAnimationFrame(animationFrameId.current); // Stop the animation loop
+      animationFrameId.current = null;
+    }
   };
+
+  useEffect(() => {
+    return () => stop(); // Cleanup on unmount
+  }, []);
 
   return { start, stop };
 }
