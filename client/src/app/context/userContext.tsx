@@ -53,7 +53,9 @@ export default function UserProvider({
 
   // Handle authentication redirects
   useEffect(() => {
-    if (!isLoading && !user) {
+    const currentURL = window.location.href;
+    const isCreateAccount = currentURL.endsWith("/create-account");
+    if (!isLoading && !user && !isCreateAccount) {
       router.push("/");
     }
   }, [user, isLoading, router]);

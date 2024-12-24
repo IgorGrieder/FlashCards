@@ -5,11 +5,13 @@ import { Collection } from "../types/types";
 type CollectionProps = {
   collection: Collection;
   handleOpenEditSection: (collection: Collection) => void;
+  index: number;
 };
 
 export default function CollectionCard({
   collection,
   handleOpenEditSection,
+  index,
 }: CollectionProps) {
   const router = useRouter();
   const hasCards = collection.cards.length > 0;
@@ -28,7 +30,10 @@ export default function CollectionCard({
 
   return (
     <div
-      className="border border-black flex flex-col gap-2 bg-green-300 relative w-[300px] py-5 px-2 rounded-xl text-black text-center cursor-pointer"
+      className="border border-black flex flex-col gap-2 relative min-w-[300px] py-5 px-2 rounded-xl text-black text-center cursor-pointer bg-neutral-100 opacity-0 animate-fadeIn"
+      style={{
+        animation: `fadeIn 0.5s forwards ${index * 0.1}s`, // Delayed animation
+      }}
       onClick={handleClick}
     >
       <div className="mx-auto">
@@ -45,7 +50,7 @@ export default function CollectionCard({
       </div>
       <h1 className="text-2xl font-bold">{collection.name}</h1>
       <div>
-        <span className="font-semibold">Categoria:</span>
+        <span className="font-semibold">Categoria</span>
         <h2>{collection.category}</h2>
         {!hasCards && <h2>Você não possui cards na sua coleção!</h2>}
         <div className="h-4 w-4 bg-black" ref={editRef}></div>
