@@ -126,24 +126,11 @@ export default function MainUserPage() {
 
       {/* Edit collection section */}
       {editSectionCollection && (
-        <section
-          className="mt-[100px] bg-white h-[400px] py-10 px-5 border border-black rounded-2xl relative"
-          ref={editSection}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            height="24px"
-            viewBox="0 -960 960 960"
-            width="24px"
-            fill="#000000"
-            className="absolute top-[24px] right-[24px] cursor-pointer"
-            onClick={handleCloseEditSection}
-          >
-            <path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z" />
-          </svg>
-          <h1 className="text-2xl text-center">Editar coleção</h1>
-          <EditCollection collection={editSectionCollection}></EditCollection>
-        </section>
+        <EditCollection
+          editSection={editSection}
+          handleCloseEditSection={handleCloseEditSection}
+          collection={editSectionCollection}
+        ></EditCollection>
       )}
     </main>
   );
