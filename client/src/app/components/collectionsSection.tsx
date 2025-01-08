@@ -51,7 +51,7 @@ export default function CollectionsSection({
   });
 
   return (
-    <section className="flex items-center border border-black px-5 py-10 bg-white h-full gap-1">
+    <section className="flex items-center rounded-2xl border border-black px-5 py-10 bg-white h-full gap-1">
       {/* Left arrow pagination*/}
       <svg
         xmlns="http://www.w3.org/2000/svg"

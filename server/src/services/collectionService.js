@@ -65,6 +65,50 @@ class CollectionService {
   }
 
   /**
+ * Deletes a collection identified by its ID.
+ *
+ * This method removes a specified collection from the database by its unique identifier.
+ * If the operation is successful, it returns a confirmation; otherwise, it handles various failure scenarios.
+ *
+ * @async
+ * @function
+ * @param {string} collectionId - The unique identifier of the collection to be deleted.
+ * @returns {Promise<Object>} The result of the operation.
+ * @returns {boolean} result.success - Indicates whether the collection was successfully deleted.
+ * @returns {number} result.code - The HTTP-like status code representing the outcome.
+ *
+ * - `201`: Collection successfully deleted.
+ * - `500`: An unexpected server error occurred during the operation.
+ *
+ * @example
+ * // Call the function
+ * const result = await CollectionService.deleteCollection("60d21b4667d0d8992e610c85");
+ *
+ * // Success response
+ * {
+ *   success: true,
+ *   code: 204
+ * }
+ *
+ * // Failure response (server error)
+ * {
+ *   success: false,
+ *   code: 500
+ * }
+ */
+  static async deleteCollection(collectionId) {
+    try {
+      await collectionModel.deleteOne({
+        _id: collectionId
+      });
+
+      return { success: true, code: 204 };
+    } catch (error) {
+      return { success: false, code: 500 };
+    }
+  }
+
+  /**
    * Adds a new card to a specified collection owned by a user.
    *
    * This method creates a new card object based on the provided details (answer, question, category, and optional image)
@@ -192,7 +236,7 @@ class CollectionService {
     collectionName,
   ) {
     try {
-      const deleted = await collectionModel.findOneAndUpdate(
+      await collectionModel.findOneAndUpdate(
         {
           owner: userId,
           name: collectionName,

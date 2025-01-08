@@ -2,6 +2,7 @@ import { RefObject, useState } from "react";
 import { Collection } from "../types/types";
 import { useArrowMovement } from "../hooks/useArrowMovement";
 import Button from "./button";
+import { useMutation } from "react-query";
 
 type EditCollectionProps = {
   collection: Collection;
@@ -45,8 +46,47 @@ export default function EditCollection({
     }
   });
 
+  const deleteCollection = async (
+  ): AxiosPromise<LoginResponse> => {
+    const result = await api.post("/users/login", {
+      login: credentials.login,
+      password: credentials.password,
+    });
+    return result;
+  };
+
+
+  const mutation = useMutation(
+    { mutationFn: deleteCollection }
+  );
+
+  // Set the deletion action to the backend
   const handleCollectionDeletion = () => {
 
+    // onSubmit method
+    const onSubmit = async () => {
+      try {
+        // Making the post request to our api to login the user
+        const request = await mutation.mutateAsync(formData);
+
+        // If the login was authorized we will change to the home page with the user logged on
+        if (request.status === 200 && request.data.logged) {
+          if (request.data.username) {
+            userCtx?.dispatch({
+              type: "LOGIN",
+              payload: {
+                username: request.data.username,
+                collections: request.data.collections || [],
+              },
+            });
+            router.push("/home");
+          }
+        }
+      } catch (e) {
+        setLoginFailed(true);
+        console.log(e);
+      }
+    };
   }
 
   return (
@@ -93,6 +133,8 @@ export default function EditCollection({
           </svg>
         </Button>
       </div>
+
+      {/* Modal for user to delete a collection */}
       {modalDeletingCollection && (
         <div className="w-2/3 mx-auto mt-5 rounded-lg px-4 py-5 border border-gray-400 animate-fadeIn">
           <h1 className="text-xl text-center">Voce tem certeza de que quer excluir a colecao?</h1>
