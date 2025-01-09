@@ -86,8 +86,6 @@ export default function EditCollection({
     catch (e) {
       console.log(e);
     }
-
-
   }
 
   // Set the deletion action to the backend

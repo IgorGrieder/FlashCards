@@ -19,9 +19,10 @@ export default function CollectionCard({
 
   // Handle click to redirect to the collection card section
   const handleClick = (e: React.MouseEvent<HTMLElement>) => {
-    // If the number of cards of the collection is greater than zero we will display the game
     e.preventDefault();
-    if (e.target === editRef.current) {
+
+    // Check if the clicked element matches the editRef
+    if (editRef.current && editRef.current.contains(e.target as Node)) {
       handleOpenEditSection(collection);
     } else if (hasCards) {
       router.push(`home/collection?name=${collection.name}`);
