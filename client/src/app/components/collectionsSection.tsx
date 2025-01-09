@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Collection } from "../types/types";
 import CollectionCard from "./collectionCard";
 import LoadingSpinner from "./loadingSpinner";
@@ -17,7 +17,6 @@ export default function CollectionsSection({
   const collectionsSection = useRef<HTMLDivElement>(null);
   const [numItems, setNumItens] = useState(0);
   const [startDisplay, setStartDisplay] = useState(0);
-  const startDisplayRef = useRef(startDisplay);
 
   // Overall function to trigger the collections movement
   const handleCollectionMovement = (moveTo: "left" | "right") => {
@@ -34,14 +33,9 @@ export default function CollectionsSection({
     });
   };
 
-  // Track latest startDisplay with a ref
-  useEffect(() => {
-    startDisplayRef.current = startDisplay;
-  }, [startDisplay]);
-
   // Use updated useArrowMovement with bounds checking
   const { start, stop } = useArrowMovement((direction) => {
-    const currentDisplay = startDisplayRef.current;
+    const currentDisplay = startDisplay;
     if (
       (direction === "left" && currentDisplay > 0) ||
       (direction === "right" && currentDisplay + numItems < collections.length)
@@ -57,7 +51,7 @@ export default function CollectionsSection({
   });
 
   return (
-    <section className="flex items-center border border-black px-5 py-10 bg-white h-full gap-1">
+    <section className="flex items-center rounded-2xl border border-black px-5 py-10 bg-white h-full gap-1">
       {/* Left arrow pagination*/}
       <svg
         xmlns="http://www.w3.org/2000/svg"

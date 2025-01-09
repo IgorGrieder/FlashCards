@@ -382,6 +382,81 @@ cardRoutes.get(
 );
 
 /**
+ * Endpoint to delete a collection for an authenticated user.
+ *
+ * This route deletes a specified collection for the authenticated user based on the provided collection ID.
+ * It uses middleware to validate the JWT token. On success, it responds with a confirmation of the deletion.
+ *
+ * @route DELETE /cards/delete-collection
+ * @middleware {function} Utils.validateJWTMiddlewear - Validates the JWT token from the request headers.
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} req.body - The body of the request.
+ * @param {string} req.body.collectionId - The ID of the collection to be deleted.
+ * @param {Object} res - The HTTP response object.
+ * @returns {Object} 204 - Confirmation that the collection was deleted successfully.
+ * @returns {Object} 400 - If the collection deletion fails due to a client error.
+ * @returns {Object} 500 - If an unexpected server error occurs.
+ *
+ * @example
+ * // Request headers
+ * {
+ *   "Authorization": "Bearer <JWT>"
+ * }
+ *
+ * // Example request body
+ * {
+ *   "collectionId": "60d21b4667d0d8992e610c85"
+ * }
+ *
+ * // Example success response (204 - No Content)
+ * {
+ *   "collectionDeleted": true,
+ *   "message": "Your collection was deleted successfully."
+ * }
+ *
+ * // Example error response (400)
+ * {
+ *   "collectionDeleted": false,
+ *   "message": "We couldn't delete your collection."
+ * }
+ *
+ * // Example error response (500)
+ * {
+ *   "collectionDeleted": false,
+ *   "message": "An unexpected error occurred."
+ * }
+ */
+cardRoutes.post(
+  "/delete-collection",
+  Utils.validateJWTMiddlewear,
+  async (req, res) => {
+    const { collectionId } = req.body;
+    const result = await CollectionService.deleteCollection(collectionId);
+
+    if (result.success) {
+      return res.status(204).json({
+        collectionDeleted: true,
+        message: "Your collection was deleted successfully.",
+      });
+    }
+
+    // Internal server error
+    if (result.code === 500) {
+      return res.status(500).json({
+        collectionDeleted: true,
+        message: "An unexpected error occurred.",
+      });
+    }
+
+    return res.status(400).json({
+      collectionDeleted: true,
+      message: "We couldn't create your card collection.",
+    });
+
+  }
+)
+
+/**
  * Endpoint to create a new collection for an authenticated user.
  *
  * This route creates a new collection for the authenticated user based on the provided

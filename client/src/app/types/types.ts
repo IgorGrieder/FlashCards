@@ -1,10 +1,15 @@
 import { Dispatch, SetStateAction } from "react";
 
+export type DeletionResponse = {
+  collectionDeleted: number,
+  message: string
+}
+
 export type LoginResponse = {
   logged: boolean;
   message?: string;
   username?: string;
-  collections?: [Collection];
+  collections?: Collection[];
 };
 
 export type Direction = "left" | "right";
@@ -17,7 +22,7 @@ export type FlashCardContextType = {
 
 export type User = {
   username: string;
-  collections: [Collection] | [];
+  collections: Collection[] | [];
 };
 
 export type CreateAccountResponse = {
@@ -61,8 +66,9 @@ export type Card = {
 };
 
 export type Collection = {
+  _id: string,
   name: string;
   owner: string;
   category: string;
-  cards: [Card];
+  cards: Card[];
 };
