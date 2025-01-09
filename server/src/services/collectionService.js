@@ -1,4 +1,5 @@
 import collectionModel from "../models/collectionModel.js";
+import mongoose from "mongoose";
 
 class CollectionService {
   /**
@@ -98,13 +99,14 @@ class CollectionService {
  */
   static async deleteCollection(collectionId) {
     try {
-      await collectionModel.deleteOne({
-        _id: collectionId
-      });
+      const result = await collectionModel.findByIdAndDelete(collectionId)
+      if (result.deletedCount === 0) {
+        return { success: false, code: 404, message: "Collection not found" };
+      }
 
       return { success: true, code: 204 };
     } catch (error) {
-      return { success: false, code: 500 };
+      return { success: false, code: 500, message: "Internal server error" };
     }
   }
 

@@ -380,6 +380,7 @@ cardRoutes.get(
     }
   },
 );
+
 /**
  * Endpoint to delete a collection for an authenticated user.
  *
@@ -425,11 +426,11 @@ cardRoutes.get(
  *   "message": "An unexpected error occurred."
  * }
  */
-cardRoutes.delete(
-  "delete-collection",
+cardRoutes.post(
+  "/delete-collection",
   Utils.validateJWTMiddlewear,
   async (req, res) => {
-    const collectionId = req.body;
+    const { collectionId } = req.body;
     const result = await CollectionService.deleteCollection(collectionId);
 
     if (result.success) {
