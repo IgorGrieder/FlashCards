@@ -6,7 +6,7 @@ import confetti from "canvas-confetti";
 import { useRouter } from "next/navigation";
 
 type CardsSectionProps = {
-  collection: [Card] | [];
+  collection: Card[] | [];
   collectionName: string;
 };
 
@@ -373,3 +373,4 @@ export default function CardsSection({
     </section>
   );
 }
+
