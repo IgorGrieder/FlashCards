@@ -59,7 +59,7 @@ export type CollectionsRespose = {
 };
 
 export type CardImage = {
-  data: Buffer;
+  data: Uint8Array; // Use Uint8Array instead of Buffer
   contentType: string;
   filename: string;
   size: number;

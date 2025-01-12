@@ -2,8 +2,9 @@
 import { useState } from "react"
 import Button from "./button"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
+import { Controller, useForm } from "react-hook-form"
 import { CardSchemaType, cardSchema } from "../schemas/cardSchema"
+import { ACCEPTED_IMAGE_TYPES } from "../constants/constants"
 
 export default function CollectionChanges({ collection }: CollectionChangesProps) {
   const [currentCard, setCurrentCard] = useState(0);
@@ -14,16 +15,47 @@ export default function CollectionChanges({ collection }: CollectionChangesProps
     register,
     handleSubmit,
     formState: { errors },
-    reset
+    control,
   } = useForm<CardSchemaType>({
     resolver: zodResolver(cardSchema),
     defaultValues: collectionCards[currentCard]
   });
 
-  const handleSaveEdits = () => {
-    // saveing
+  const onSubmit = async (data: CardSchemaType) => {
+    try {
+      if (data.img) {
+        const file = data.img;
+        // Convert image to Base64
+        const base64Image = await convertToBase64(file);
 
-  }
+        // Process other fields
+        console.log("Category:", data.category);
+        console.log("Base64 Image:", base64Image);
+
+      }
+    } catch (error) {
+      console.log(error)
+    }
+
+
+    return { register, handleSubmit, onSubmit };
+  };
+
+  // Function to convert to base 64
+  const convertToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (reader.result) {
+          resolve(reader.result.toString());
+        } else {
+          reject("Failed to read file.");
+        }
+      };
+      reader.onerror = () => reject("Error reading file.");
+      reader.readAsDataURL(file);
+    });
+  };
 
   // Function to handle moving to next/previous card
   const handleCardNavigation = (direction: 'next' | 'prev') => {
@@ -44,9 +76,9 @@ export default function CollectionChanges({ collection }: CollectionChangesProps
     >
       <h2 className="text-2xl font-bold text-center mb-6">Entrar</h2>
 
-      {/* Email Field */}
+      {/* Question field */}
       <div className="mb-4">
-        <label htmlFor="login" className="block text-sm font-medium mb-2">
+        <label htmlFor="question" className="block text-sm font-medium mb-2">
           Email/usuário
         </label>
         <input
@@ -59,20 +91,69 @@ export default function CollectionChanges({ collection }: CollectionChangesProps
             }`}
         />
         {errors.question && (
-          <p className="text-red-500 text-sm mt-1">{errors.login.message}</p>
+          <p className="text-red-500 text-sm mt-1">{errors.question.message}</p>
         )}
       </div>
 
-      {/* Submit Button */}
-      <Button text="Salvar edicao" onClick={handleSaveEdits}></Button>
+      {/* Answer field */}
+      <div className="mb-4">
+        <label htmlFor="answer" className="block text-sm font-medium mb-2">
+          Email/usuário
+        </label>
+        <input
+          id="answer"
+          type="text"
+          {...register("answer", {
+            onChange: () => setChangedCollection(true),
+          })}
+          className={`w-full px-3 py-2 border rounded ${errors.answer ? "border-red-500" : "border-gray-300"
+            }`}
+        />
+        {errors.answer && (
+          <p className="text-red-500 text-sm mt-1">{errors.answer.message}</p>
+        )}
+      </div>
 
-      <button
-        type="submit"
-        disabled={mutation.isPending}
-        className="px-3 py-4 items-center text-sm transition-colors hover:text-white border-gray-300 border hover:bg-black sm:text-base rounded-lg cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed w-full justify-center flex`}"
-      >
-        {mutation.isPending ? "Entrando..." : "Entrar"}
-      </button>
+      {/* Category field */}
+      <div className="mb-4">
+        <label htmlFor="category" className="block text-sm font-medium mb-2">
+          Email/usuário
+        </label>
+        <input
+          id="category"
+          type="text"
+          {...register("category", {
+            onChange: () => setChangedCollection(true),
+          })}
+          className={`w-full px-3 py-2 border rounded ${errors.category ? "border-red-500" : "border-gray-300"
+            }`}
+        />
+        {errors.category && (
+          <p className="text-red-500 text-sm mt-1">{errors.category.message}</p>
+        )}
+      </div>
+
+      {/* Image Upload Field */}
+      <div>
+        <label>Image Upload</label>
+        <Controller
+          name="img"
+          control={control}
+          render={({ field }) => (
+            <input
+              {...field}
+              type="file"
+              accept={ACCEPTED_IMAGE_TYPES.join(",")}
+              onChange={(e) => field.onChange(e.target.files ? e.target.files[0] : null)}
+              value={undefined}
+            />
+          )}
+        />
+        {errors.img && <p>{errors.img.message}</p>}
+      </div>
+
+      {/* Submit Button */}
+      <Button type="submit" disable={mutation.isPending} text={mutation.isPending ? "Salvando..." : "Salvar edicao"} onClick={handleSaveEdits}></Button>
     </form>
 
     <Button text="Voltar" onClick={() => handleCardNavigation("prev")}></Button>
