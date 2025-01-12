@@ -58,11 +58,18 @@ export type CollectionsRespose = {
   message?: string;
 };
 
+export type CardImage = {
+  data: Buffer;
+  contentType: string;
+  filename: string;
+  size: number;
+};
+
 export type Card = {
   category: string;
   question: string;
   answer: string;
-  img?: string;
+  img?: CardImage;
 };
 
 export type Collection = {
