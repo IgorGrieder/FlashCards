@@ -79,3 +79,8 @@ export type Collection = {
   category: string;
   cards: Card[];
 };
+
+export type CollectionUpdateResponse = {
+  collectionUpdated: true;
+  message: string;
+}

@@ -1,16 +1,27 @@
 "use client"
-import { useState } from "react"
+import { useContext, useState } from "react"
 import Button from "./button"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Controller, useForm } from "react-hook-form"
 import { CardSchemaType, cardSchema } from "../schemas/cardSchema"
 import { ACCEPTED_IMAGE_TYPES } from "../constants/constants"
+import { useMutation } from "react-query"
+import { AxiosPromise } from "axios"
+import { Collection, CollectionUpdateResponse } from "../types/types"
+import { api } from "../libs/axios"
+import { UserContext } from "../context/userContext"
+
+type CollectionChangesProps = {
+  collection: Collection
+}
 
 export default function CollectionChanges({ collection }: CollectionChangesProps) {
   const [currentCard, setCurrentCard] = useState(0);
   const [changedCollection, setChangedCollection] = useState(false);
   const collectionCards = collection.cards;
+  const userCtx = useContext(UserContext);
 
+  // React hook forms usage
   const {
     register,
     handleSubmit,
@@ -18,19 +29,24 @@ export default function CollectionChanges({ collection }: CollectionChangesProps
     control,
   } = useForm<CardSchemaType>({
     resolver: zodResolver(cardSchema),
-    defaultValues: collectionCards[currentCard]
+    defaultValues: {
+      answer: collectionCards[currentCard].answer,
+      category: collectionCards[currentCard].question,
+      question: collectionCards[currentCard].question,
+    }
+
   });
 
+  // On submit function 
   const onSubmit = async (data: CardSchemaType) => {
     try {
       if (data.img) {
+
+        const response = mutation.mutateAsync(data);
+
         const file = data.img;
         // Convert image to Base64
         const base64Image = await convertToBase64(file);
-
-        // Process other fields
-        console.log("Category:", data.category);
-        console.log("Base64 Image:", base64Image);
 
       }
     } catch (error) {
@@ -40,6 +56,17 @@ export default function CollectionChanges({ collection }: CollectionChangesProps
 
     return { register, handleSubmit, onSubmit };
   };
+
+  // Function to proceed the request to the backend 
+  const updateCollection = (credentials: Collection): AxiosPromise<CollectionUpdateResponse> => {
+    const result = api.post("/cards/update-collection", {
+      collectionId: collection._id,
+      cards: collectionCards
+    })
+  }
+
+  // Tan Stack query mutation
+  const mutation = useMutation({ mutationFn: onSubmit })
 
   // Function to convert to base 64
   const convertToBase64 = (file: File): Promise<string> => {
@@ -71,7 +98,7 @@ export default function CollectionChanges({ collection }: CollectionChangesProps
 
     {/* Form to edit the current card */}
     <form
-      onSubmit={handleSubmit(handleSaveEdits)}
+      onSubmit={handleSubmit(onSubmit)}
       className="bg-white p-6 rounded-xl shadow-md w-full max-w-md"
     >
       <h2 className="text-2xl font-bold text-center mb-6">Entrar</h2>
