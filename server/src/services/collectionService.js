@@ -1,5 +1,4 @@
 import collectionModel from "../models/collectionModel.js";
-import mongoose from "mongoose";
 
 class CollectionService {
   /**
@@ -261,23 +260,19 @@ class CollectionService {
     answer,
     category,
     question,
-    userId,
     img,
-    collectionName,
-    cardQuestion,
-    cardCategory,
+    collectionId,
+    cardId
   ) {
     try {
-      const collection = await collectionModel.findOne({
-        owner: userId,
-        name: collectionName,
+      const collection = await collectionModel.findByIdAndUpdate({
+        _id: collectionId
       });
       let wasFound = false;
 
       collection.cards.forEach((card) => {
-        if (card.question === cardQuestion && card.category === cardCategory) {
+        if (card._id === cardId) {
           wasFound = true;
-
           answer && (card.answer = answer);
           img && (card.img = img);
           question && (card.question = question);

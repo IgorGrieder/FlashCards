@@ -3,7 +3,7 @@ type ButtonProps = {
   type?: "button" | "submit" | "reset";
   textColor?: string;
   bgColor?: string;
-  onClick: () => void;
+  onClick?: () => void;
   disable?: boolean;
   additionalClasses?: string;
   children?: React.ReactNode;

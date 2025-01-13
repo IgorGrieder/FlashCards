@@ -59,21 +59,25 @@ export type CollectionsRespose = {
 };
 
 export type CardImage = {
-  data: Uint8Array; // Use Uint8Array instead of Buffer
+  data: string;
   contentType: string;
-  filename: string;
-  size: number;
 };
+
+export type ImageRef = {
+  base64: string | null;
+  contentType: string | null;
+}
 
 export type Card = {
   category: string;
   question: string;
   answer: string;
-  img?: CardImage;
+  img?: CardImage | null;
+  _id: string;
 };
 
 export type Collection = {
-  _id: string,
+  _id: string;
   name: string;
   owner: string;
   category: string;
@@ -81,6 +85,5 @@ export type Collection = {
 };
 
 export type CollectionUpdateResponse = {
-  collectionUpdated: true;
-  message: string;
+  cardUpdated: boolean;
 }

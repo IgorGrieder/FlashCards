@@ -1,13 +1,13 @@
 "use client"
-import { useContext, useState } from "react"
+import { useContext, useRef, useState } from "react"
 import Button from "./button"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Controller, useForm } from "react-hook-form"
 import { CardSchemaType, cardSchema } from "../schemas/cardSchema"
 import { ACCEPTED_IMAGE_TYPES } from "../constants/constants"
-import { useMutation } from "react-query"
+import { useMutation } from "@tanstack/react-query";
 import { AxiosPromise } from "axios"
-import { Collection, CollectionUpdateResponse } from "../types/types"
+import { Collection, CollectionUpdateResponse, ImageRef } from "../types/types"
 import { api } from "../libs/axios"
 import { UserContext } from "../context/userContext"
 
@@ -17,9 +17,9 @@ type CollectionChangesProps = {
 
 export default function CollectionChanges({ collection }: CollectionChangesProps) {
   const [currentCard, setCurrentCard] = useState(0);
-  const [changedCollection, setChangedCollection] = useState(false);
   const collectionCards = collection.cards;
   const userCtx = useContext(UserContext);
+  const imageRef = useRef<ImageRef>({ base64: null, contentType: null })
 
   // React hook forms usage
   const {
@@ -40,41 +40,83 @@ export default function CollectionChanges({ collection }: CollectionChangesProps
   // On submit function 
   const onSubmit = async (data: CardSchemaType) => {
     try {
-      if (data.img) {
+      const request = await mutation.mutateAsync(data);
+      const newCollections = userCtx?.user?.collections;
 
-        const response = mutation.mutateAsync(data);
-
-        const file = data.img;
-        // Convert image to Base64
-        const base64Image = await convertToBase64(file);
-
+      if (newCollections) {
+        for (const cols of newCollections) {
+          if (cols._id === collection._id) {
+            if (cols.cards) {
+              for (const card of cols.cards) {
+                card.category = data.category;
+                card.question = data.question;
+                card.answer = data.answer;
+                if (imageRef.current.base64 && imageRef.current.contentType) {
+                  card.img = {
+                    data: imageRef.current.base64,
+                    contentType: imageRef.current.contentType
+                  }
+                } else {
+                  card.img = null
+                }
+              }
+            }
+          }
+        }
       }
+      // Now we need to udpate the context
+      if (request.status === 204 && request.data.cardUpdated) {
+        userCtx?.dispatch({
+          type: "UPDATE",
+          payload: {
+            collections: newCollections
+          }
+        })
+      }
+
+
     } catch (error) {
       console.log(error)
     }
-
-
-    return { register, handleSubmit, onSubmit };
   };
 
   // Function to proceed the request to the backend 
-  const updateCollection = (credentials: Collection): AxiosPromise<CollectionUpdateResponse> => {
-    const result = api.post("/cards/update-collection", {
-      collectionId: collection._id,
-      cards: collectionCards
+  const updateCard = async (credentials: CardSchemaType): AxiosPromise<CollectionUpdateResponse> => {
+    // We need to convert the image to base64 to store in mongoDB
+    if (credentials.img) {
+      const file = credentials.img;
+      const { base64, type } = await convertToBase64(file);
+      imageRef.current.base64 = base64;
+      imageRef.current.contentType = type;
+    }
+
+    const cardToUpdate = collectionCards[currentCard];
+    const result = api.post("/cards/update-card", {
+      card: {
+        cardId: cardToUpdate._id,
+        collectionId: collection._id
+      },
+      newCard: {
+        img: imageRef.current.base64 ? { base64: imageRef.current.base64, type: imageRef.current.contentType } : null,
+        question: credentials.question,
+        answer: credentials.answer,
+        category: credentials.category,
+      }
     })
+
+    return result;
   }
 
   // Tan Stack query mutation
-  const mutation = useMutation({ mutationFn: onSubmit })
+  const mutation = useMutation({ mutationFn: updateCard })
 
   // Function to convert to base 64
-  const convertToBase64 = (file: File): Promise<string> => {
+  const convertToBase64 = (file: File): Promise<{ base64: string, type: string }> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => {
         if (reader.result) {
-          resolve(reader.result.toString());
+          resolve({ base64: reader.result.toString(), type: file.type });
         } else {
           reject("Failed to read file.");
         }
@@ -111,9 +153,7 @@ export default function CollectionChanges({ collection }: CollectionChangesProps
         <input
           id="question"
           type="text"
-          {...register("question", {
-            onChange: () => setChangedCollection(true),
-          })}
+          {...register("question")}
           className={`w-full px-3 py-2 border rounded ${errors.question ? "border-red-500" : "border-gray-300"
             }`}
         />
@@ -130,9 +170,7 @@ export default function CollectionChanges({ collection }: CollectionChangesProps
         <input
           id="answer"
           type="text"
-          {...register("answer", {
-            onChange: () => setChangedCollection(true),
-          })}
+          {...register("answer")}
           className={`w-full px-3 py-2 border rounded ${errors.answer ? "border-red-500" : "border-gray-300"
             }`}
         />
@@ -149,9 +187,7 @@ export default function CollectionChanges({ collection }: CollectionChangesProps
         <input
           id="category"
           type="text"
-          {...register("category", {
-            onChange: () => setChangedCollection(true),
-          })}
+          {...register("category")}
           className={`w-full px-3 py-2 border rounded ${errors.category ? "border-red-500" : "border-gray-300"
             }`}
         />
@@ -180,7 +216,7 @@ export default function CollectionChanges({ collection }: CollectionChangesProps
       </div>
 
       {/* Submit Button */}
-      <Button type="submit" disable={mutation.isPending} text={mutation.isPending ? "Salvando..." : "Salvar edicao"} onClick={handleSaveEdits}></Button>
+      <Button type="submit" disable={mutation.isPending} text={mutation.isPending ? "Salvando..." : "Salvar edicao"} ></Button>
     </form>
 
     <Button text="Voltar" onClick={() => handleCardNavigation("prev")}></Button>
