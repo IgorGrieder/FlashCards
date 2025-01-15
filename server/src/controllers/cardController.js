@@ -682,16 +682,15 @@ cardRoutes.patch(
 cardRoutes.patch(
   "/update-card",
   Utils.validateJWTMiddlewear,
-  validateCardInTheCollection,
   async (req, res) => {
     const { cardId, collectionId } = req.body.card;
-    const { newQuestion, newCategory, newImg, newAnswer } = req.body.newCard;
+    const { question, category, img, answer } = req.body.newCard;
 
     const result = await CollectionService.updateCardFromCollection(
-      newAnswer,
-      newCategory,
-      newQuestion,
-      newImg,
+      answer,
+      category,
+      question,
+      img,
       collectionId,
       cardId
     );

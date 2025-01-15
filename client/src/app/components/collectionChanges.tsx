@@ -41,41 +41,45 @@ export default function CollectionChanges({ collection }: CollectionChangesProps
   const onSubmit = async (data: CardSchemaType) => {
     try {
       const request = await mutation.mutateAsync(data);
-      const newCollections = userCtx?.user?.collections;
 
-      if (newCollections) {
-        for (const cols of newCollections) {
-          if (cols._id === collection._id) {
-            if (cols.cards) {
-              for (const card of cols.cards) {
-                card.category = data.category;
-                card.question = data.question;
-                card.answer = data.answer;
-                if (imageRef.current.base64 && imageRef.current.contentType) {
-                  card.img = {
-                    data: imageRef.current.base64,
-                    contentType: imageRef.current.contentType
+      // If the request was successfull we proceed updating the context
+      if (request.status === 204) {
+        const newCollection = userCtx?.user?.collections;
+
+        // Updating the card in the context
+        if (newCollection) {
+          for (const cols of newCollection) {
+            if (cols._id === collection._id) {
+              if (cols.cards) {
+                for (const card of cols.cards) {
+                  if (card._id === collection.cards[currentCard]._id.toString()) {
+                    card.category = data.category;
+                    card.question = data.question;
+                    card.answer = data.answer;
+                    if (imageRef.current.base64 && imageRef.current.contentType) {
+                      card.img = {
+                        data: imageRef.current.base64,
+                        contentType: imageRef.current.contentType
+                      }
+                    } else {
+                      card.img = null
+                    }
+
                   }
-                } else {
-                  card.img = null
                 }
               }
             }
           }
         }
-      }
-      // Now we need to udpate the context
-      if (request.status === 204 && request.data.cardUpdated) {
         userCtx?.dispatch({
           type: "UPDATE",
           payload: {
-            collections: newCollections
+            collections: newCollection
           }
         })
       }
-
-
     } catch (error) {
+      alert("Um erro ocorreu, tente novamente.")
       console.log(error)
     }
   };
@@ -91,7 +95,7 @@ export default function CollectionChanges({ collection }: CollectionChangesProps
     }
 
     const cardToUpdate = collectionCards[currentCard];
-    const result = api.post("/cards/update-card", {
+    const result = api.patch("/cards/update-card", {
       card: {
         cardId: cardToUpdate._id,
         collectionId: collection._id
