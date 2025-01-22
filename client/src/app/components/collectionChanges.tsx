@@ -139,91 +139,92 @@ export default function CollectionChanges({ collection }: CollectionChangesProps
     }
   };
 
-  return <div className="">
-    <h1 className="text-3xl ">{collection.name}</h1>
+  return (
+    <div className="flex flex-col items-center mt-5 transition-transform duration-200 ease-in-out">
+      < h1 className="text-3xl " > {collection.name}</h1 >
 
-    {/* Form to edit the current card */}
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      className="bg-white p-6 rounded-xl shadow-md w-full max-w-md"
-    >
-      <h2 className="text-2xl font-bold text-center mb-6">Entrar</h2>
+      {/* Form to edit the current card */}
+      < form
+        onSubmit={handleSubmit(onSubmit)}
+        className="bg-white p-6 rounded-xl shadow-md w-full max-w-md"
+      >
+        <h2 className="text-2xl font-bold text-center mb-6">Entrar</h2>
 
-      {/* Question field */}
-      <div className="mb-4">
-        <label htmlFor="question" className="block text-sm font-medium mb-2">
-          Email/usuário
-        </label>
-        <input
-          id="question"
-          type="text"
-          {...register("question")}
-          className={`w-full px-3 py-2 border rounded ${errors.question ? "border-red-500" : "border-gray-300"
-            }`}
-        />
-        {errors.question && (
-          <p className="text-red-500 text-sm mt-1">{errors.question.message}</p>
-        )}
-      </div>
-
-      {/* Answer field */}
-      <div className="mb-4">
-        <label htmlFor="answer" className="block text-sm font-medium mb-2">
-          Email/usuário
-        </label>
-        <input
-          id="answer"
-          type="text"
-          {...register("answer")}
-          className={`w-full px-3 py-2 border rounded ${errors.answer ? "border-red-500" : "border-gray-300"
-            }`}
-        />
-        {errors.answer && (
-          <p className="text-red-500 text-sm mt-1">{errors.answer.message}</p>
-        )}
-      </div>
-
-      {/* Category field */}
-      <div className="mb-4">
-        <label htmlFor="category" className="block text-sm font-medium mb-2">
-          Email/usuário
-        </label>
-        <input
-          id="category"
-          type="text"
-          {...register("category")}
-          className={`w-full px-3 py-2 border rounded ${errors.category ? "border-red-500" : "border-gray-300"
-            }`}
-        />
-        {errors.category && (
-          <p className="text-red-500 text-sm mt-1">{errors.category.message}</p>
-        )}
-      </div>
-
-      {/* Image Upload Field */}
-      <div>
-        <label>Image Upload</label>
-        <Controller
-          name="img"
-          control={control}
-          render={({ field }) => (
-            <input
-              {...field}
-              type="file"
-              accept={ACCEPTED_IMAGE_TYPES.join(",")}
-              onChange={(e) => field.onChange(e.target.files ? e.target.files[0] : null)}
-              value={undefined}
-            />
+        {/* Question field */}
+        <div className="mb-4">
+          <label htmlFor="question" className="block text-sm font-medium mb-2">
+            Email/usuário
+          </label>
+          <input
+            id="question"
+            type="text"
+            {...register("question")}
+            className={`w-full px-3 py-2 border rounded ${errors.question ? "border-red-500" : "border-gray-300"
+              }`}
+          />
+          {errors.question && (
+            <p className="text-red-500 text-sm mt-1">{errors.question.message}</p>
           )}
-        />
-        {errors.img && <p>{errors.img.message}</p>}
-      </div>
+        </div>
 
-      {/* Submit Button */}
-      <Button type="submit" disable={mutation.isPending} text={mutation.isPending ? "Salvando..." : "Salvar edicao"} ></Button>
-    </form>
+        {/* Answer field */}
+        <div className="mb-4">
+          <label htmlFor="answer" className="block text-sm font-medium mb-2">
+            Email/usuário
+          </label>
+          <input
+            id="answer"
+            type="text"
+            {...register("answer")}
+            className={`w-full px-3 py-2 border rounded ${errors.answer ? "border-red-500" : "border-gray-300"
+              }`}
+          />
+          {errors.answer && (
+            <p className="text-red-500 text-sm mt-1">{errors.answer.message}</p>
+          )}
+        </div>
 
-    <Button text="Voltar" onClick={() => handleCardNavigation("prev")}></Button>
-    <Button text="Proxima" onClick={() => handleCardNavigation("next")}></Button>
-  </div >
+        {/* Category field */}
+        <div className="mb-4">
+          <label htmlFor="category" className="block text-sm font-medium mb-2">
+            Email/usuário
+          </label>
+          <input
+            id="category"
+            type="text"
+            {...register("category")}
+            className={`w-full px-3 py-2 border rounded ${errors.category ? "border-red-500" : "border-gray-300"
+              }`}
+          />
+          {errors.category && (
+            <p className="text-red-500 text-sm mt-1">{errors.category.message}</p>
+          )}
+        </div>
+
+        {/* Image Upload Field */}
+        <div>
+          <label>Image Upload</label>
+          <Controller
+            name="img"
+            control={control}
+            render={({ field }) => (
+              <input
+                {...field}
+                type="file"
+                accept={ACCEPTED_IMAGE_TYPES.join(",")}
+                onChange={(e) => field.onChange(e.target.files ? e.target.files[0] : null)}
+                value={undefined}
+              />
+            )}
+          />
+          {errors.img && <p>{errors.img.message}</p>}
+        </div>
+
+        {/* Submit Button */}
+        <Button type="submit" disable={mutation.isPending} text={mutation.isPending ? "Salvando..." : "Salvar edicao"} ></Button>
+      </form >
+
+      <Button text="Voltar" onClick={() => handleCardNavigation("prev")}></Button>
+      <Button text="Proxima" onClick={() => handleCardNavigation("next")}></Button>
+    </div >)
 }
