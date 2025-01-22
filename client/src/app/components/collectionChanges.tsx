@@ -224,8 +224,8 @@ export default function CollectionChanges({ collection }: CollectionChangesProps
 
         {/* Submit Button */}
         <div className="flex gap-2 items-center justify-center mt-2">
-          <Button text="Voltar" onClick={() => handleCardNavigation("prev")}></Button>
-          <Button text="Proxima" onClick={() => handleCardNavigation("next")}></Button>
+          <Button text="Voltar" disable={currentCard <= 0} onClick={() => handleCardNavigation("prev")}></Button>
+          <Button text="Proxima" disable={currentCard + 1 >= collectionCards.length} onClick={() => handleCardNavigation("next")}></Button>
         </div>
         <Button type="submit" additionalClasses="my-5 ml-auto" disable={mutation.isPending} text={mutation.isPending ? "Salvando..." : "Salvar edicao"} ></Button>
       </form >
