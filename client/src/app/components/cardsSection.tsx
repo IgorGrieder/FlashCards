@@ -4,7 +4,6 @@ import { Card } from "../types/types";
 import Button from "./button";
 import confetti from "canvas-confetti";
 import { useRouter } from "next/navigation";
-import ResponsiveImage from "./responsiveImage";
 import ImageModal from "./imageModal";
 
 type CardsSectionProps =
@@ -27,6 +26,7 @@ export default function CardsSection({
   const [wrongAnswers, setWrongAnswers] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
   const [disableButtons, setDisableButtons] = useState(false);
+  const [imageModal, setImageModal] = useState(false);
   const answer = collection[currentCard].answer;
   const question = collection[currentCard].question;
   const category = collection[currentCard].category;
@@ -271,107 +271,110 @@ export default function CardsSection({
       </div>
 
       {/* Flash card body */}
-      <div className="border border-gray-300 rounded-lg px-2 py-5 bg-white flex items-center justify-center relative h-[400px] text-center flex-col">
+      <div className="border border-gray-300 rounded-lg px-2 py-5 bg-white flex items-center justify-center relative min-h-[400px] text-center flex-col">
         <div className="text-gray-400 absolute top-[20px] text-center">
           <span>{category}</span>
           <span className="mx-2">·</span>
           <span>{collectionName}</span>
         </div>
         <p className="font-semibold text-xl">{question}</p>
-        {img && (
-          <ImageModal src={img.data} alt="Card Image"></ImageModal>
-        )}
-      </div>
-      <button
-        className="cursor-pointer text-sm text-gray-500 underline underline-offset-4 transition-colors hover:text-black sm:text-base absolute bottom-[20px] z-10"
-        onClick={handleFeedback}
-      >
-        {!showAnswer ? "Mostrar a resposta" : "Esconder a resposta"}
-      </button>
+        <div>
+          {img && (
+            imageModal ?
+              <ImageModal alt="Card Image" closeModal={() => { setImageModal(false) }} src={img.data}></ImageModal>
+              : <Button text="Abrir imagem" additionalClasses="mt-5" onClick={() => setImageModal(true)}></Button>
+          )}
+        </div>
+        <button
+          className="cursor-pointer text-sm text-gray-500 underline underline-offset-4 transition-colors hover:text-black sm:text-base absolute bottom-[20px] z-10"
+          onClick={handleFeedback}
+        >
+          {!showAnswer ? "Mostrar a resposta" : "Esconder a resposta"}
+        </button>
 
-      {/* Answer field*/}
-      <div
-        className={`
+        {/* Answer field*/}
+        <div
+          className={`
             w-full
             absolute left-0 bottom-0
             transition-[height] duration-300 ease-in-out
             ${showAnswer ? "h-full px-2 py-5" : "h-0"}
             bg-neutral-100 rounded-lg flex items-center justify-center
           `}
-      >
-        <p
-          className={`${showAnswer ? "inline-block" : "hidden"} font-semibold text-xl`}
         >
-          {answer}
-        </p>
+          <p
+            className={`${showAnswer ? "inline-block" : "hidden"} font-semibold text-xl`}
+          >
+            {answer}
+          </p>
+        </div>
       </div>
-    </div>
 
-      {/* Feedback section */ }
-  <div className="grid grid-cols-3 gap-2">
-    <Button
-      text="Resposta correta"
-      additionalClasses="group w-full"
-      onClick={() => {
-        handleAnswer(true);
-      }}
-      disable={disableButtons}
-    >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        height="24px"
-        viewBox="0 -960 960 960"
-        width="24px"
-        fill="currentColor"
-        className="text-black mr-2 group-hover:text-white"
-      >
-        <path d="M480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q65 0 123 19t107 53l-58 59q-38-24-81-37.5T480-800q-133 0-226.5 93.5T160-480q0 133 93.5 226.5T480-160q133 0 226.5-93.5T800-480q0-18-2-36t-6-35l65-65q11 32 17 66t6 70q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm-56-216L254-466l56-56 114 114 400-401 56 56-456 457Z" />
-      </svg>
-    </Button>
-    <Button
-      text="Não sabia a resposta"
-      additionalClasses="group w-full"
-      onClick={() => {
-        handleAnswer(false);
-      }}
-      disable={disableButtons}
-    >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="lucide lucide-sparkles mr-1 h-4"
-      >
-        <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"></path>
-        <path d="M20 3v4"></path>
-        <path d="M22 5h-4"></path>
-        <path d="M4 17v2"></path>
-        <path d="M5 18H3"></path>
-      </svg>
-    </Button>
-    <Button
-      text="Sair"
-      additionalClasses="group w-full"
-      onClick={handleQuit}
-    >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        height="24px"
-        viewBox="0 -960 960 960"
-        width="24px"
-        fill="currentColor"
-        className="text-black group-hover:text-red-400 mr-2"
-      >
-        <path d="M873-88 609-352 495-238 269-464l56-58 170 170 56-56-414-414 56-58 736 736-56 56ZM269-238 43-464l56-56 170 170 56 56-56 56Zm452-226-56-56 196-196 58 54-198 198ZM607-578l-56-56 86-86 56 56-86 86Z" />
-      </svg>
-    </Button>
-  </div>
+      {/* Feedback section */}
+      <div className="grid grid-cols-3 gap-2">
+        <Button
+          text="Resposta correta"
+          additionalClasses="group w-full"
+          onClick={() => {
+            handleAnswer(true);
+          }}
+          disable={disableButtons}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            height="24px"
+            viewBox="0 -960 960 960"
+            width="24px"
+            fill="currentColor"
+            className="text-black mr-2 group-hover:text-white"
+          >
+            <path d="M480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q65 0 123 19t107 53l-58 59q-38-24-81-37.5T480-800q-133 0-226.5 93.5T160-480q0 133 93.5 226.5T480-160q133 0 226.5-93.5T800-480q0-18-2-36t-6-35l65-65q11 32 17 66t6 70q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm-56-216L254-466l56-56 114 114 400-401 56 56-456 457Z" />
+          </svg>
+        </Button>
+        <Button
+          text="Não sabia a resposta"
+          additionalClasses="group w-full"
+          onClick={() => {
+            handleAnswer(false);
+          }}
+          disable={disableButtons}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="lucide lucide-sparkles mr-1 h-4"
+          >
+            <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"></path>
+            <path d="M20 3v4"></path>
+            <path d="M22 5h-4"></path>
+            <path d="M4 17v2"></path>
+            <path d="M5 18H3"></path>
+          </svg>
+        </Button>
+        <Button
+          text="Sair"
+          additionalClasses="group w-full"
+          onClick={handleQuit}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            height="24px"
+            viewBox="0 -960 960 960"
+            width="24px"
+            fill="currentColor"
+            className="text-black group-hover:text-red-400 mr-2"
+          >
+            <path d="M873-88 609-352 495-238 269-464l56-58 170 170 56-56-414-414 56-58 736 736-56 56ZM269-238 43-464l56-56 170 170 56 56-56 56Zm452-226-56-56 196-196 58 54-198 198ZM607-578l-56-56 86-86 56 56-86 86Z" />
+          </svg>
+        </Button>
+      </div>
     </section >
   );
 }
