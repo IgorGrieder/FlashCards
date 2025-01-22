@@ -10,6 +10,7 @@ import { AxiosPromise } from "axios"
 import { Collection, CollectionUpdateResponse, ImageRef } from "../types/types"
 import { api } from "../libs/axios"
 import { UserContext } from "../context/userContext"
+import CustomFileInput from "./customFileFiled"
 
 type CollectionChangesProps = {
   collection: Collection
@@ -146,14 +147,14 @@ export default function CollectionChanges({ collection }: CollectionChangesProps
       {/* Form to edit the current card */}
       < form
         onSubmit={handleSubmit(onSubmit)}
-        className="bg-white p-6 rounded-xl shadow-md w-full max-w-md"
+        className="bg-white p-6 rounded-xl shadow-md w-full max-w-[700px] mt-4"
       >
-        <h2 className="text-2xl font-bold text-center mb-6">Entrar</h2>
+        <h2 className="text-2xl font-bold text-center mb-6">Flash Card</h2>
 
         {/* Question field */}
         <div className="mb-4">
           <label htmlFor="question" className="block text-sm font-medium mb-2">
-            Email/usuário
+            Questäo
           </label>
           <input
             id="question"
@@ -170,7 +171,7 @@ export default function CollectionChanges({ collection }: CollectionChangesProps
         {/* Answer field */}
         <div className="mb-4">
           <label htmlFor="answer" className="block text-sm font-medium mb-2">
-            Email/usuário
+            Resposta
           </label>
           <input
             id="answer"
@@ -187,7 +188,7 @@ export default function CollectionChanges({ collection }: CollectionChangesProps
         {/* Category field */}
         <div className="mb-4">
           <label htmlFor="category" className="block text-sm font-medium mb-2">
-            Email/usuário
+            Categoria
           </label>
           <input
             id="category"
@@ -203,28 +204,31 @@ export default function CollectionChanges({ collection }: CollectionChangesProps
 
         {/* Image Upload Field */}
         <div>
-          <label>Image Upload</label>
+          <label>Imagem</label>
           <Controller
             name="img"
             control={control}
             render={({ field }) => (
-              <input
-                {...field}
-                type="file"
+              < CustomFileInput
+                field={field}
                 accept={ACCEPTED_IMAGE_TYPES.join(",")}
-                onChange={(e) => field.onChange(e.target.files ? e.target.files[0] : null)}
-                value={undefined}
-              />
+                buttonText="Upload"
+                buttonTextColor="text-black"
+                buttonBgColor="bg-white"
+              >
+              </CustomFileInput>
             )}
           />
           {errors.img && <p>{errors.img.message}</p>}
         </div>
 
         {/* Submit Button */}
-        <Button type="submit" disable={mutation.isPending} text={mutation.isPending ? "Salvando..." : "Salvar edicao"} ></Button>
+        <div className="flex gap-2 items-center justify-center mt-2">
+          <Button text="Voltar" onClick={() => handleCardNavigation("prev")}></Button>
+          <Button text="Proxima" onClick={() => handleCardNavigation("next")}></Button>
+        </div>
+        <Button type="submit" additionalClasses="my-5 ml-auto" disable={mutation.isPending} text={mutation.isPending ? "Salvando..." : "Salvar edicao"} ></Button>
       </form >
 
-      <Button text="Voltar" onClick={() => handleCardNavigation("prev")}></Button>
-      <Button text="Proxima" onClick={() => handleCardNavigation("next")}></Button>
     </div >)
 }
