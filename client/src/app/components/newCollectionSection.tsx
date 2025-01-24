@@ -1,28 +1,21 @@
-"use client"
-import { useContext, useRef, useState } from "react"
-import Button from "./button"
 import { Controller } from "react-hook-form"
-import { CardSchemaType } from "../schemas/cardSchema"
 import { ACCEPTED_IMAGE_TYPES } from "../constants/constants"
-import { useMutation } from "@tanstack/react-query";
-import { AxiosPromise } from "axios"
-import { Collection, CollectionUpdateResponse, ImageRef } from "../types/types"
-import { api } from "../libs/axios"
-import { UserContext } from "../context/userContext"
+import Button from "./button"
 import CustomFileInput from "./customFileFiled"
 import useFormCollection from "../hooks/useFormCollection"
+import { useContext, useRef } from "react"
+import { UserContext } from "../context/userContext"
+import { AxiosPromise } from "axios"
+import { useMutation } from "react-query"
+import { api } from "../libs/axios"
+import { CardSchemaType } from "../schemas/cardSchema"
+import { ImageRef, CollectionUpdateResponse } from "../types/types"
 import convertToBase64 from "../utils/convertBase64"
 
-type CollectionChangesProps = {
-  collection: Collection
-}
+export default function NewCollectionSection() {
 
-export default function CollectionChanges({ collection }: CollectionChangesProps) {
-  const [currentCard, setCurrentCard] = useState(0);
-  const collectionCards = collection.cards;
-  const userCtx = useContext(UserContext);
   const imageRef = useRef<ImageRef>({ base64: null, contentType: null })
-
+  const userCtx = useContext(UserContext)
   // React hook forms usage
   const {
     register,
@@ -31,55 +24,8 @@ export default function CollectionChanges({ collection }: CollectionChangesProps
     control,
   } = useFormCollection()
 
-  // On submit function 
-  const onSubmit = async (data: CardSchemaType) => {
-    try {
-      const request = await mutation.mutateAsync(data);
-
-      // If the request was successfull we proceed updating the context
-      if (request.status === 204) {
-        const newCollection = userCtx?.user?.collections;
-
-        // Updating the card in the context
-        if (newCollection) {
-          for (const cols of newCollection) {
-            if (cols._id === collection._id) {
-              if (cols.cards) {
-                for (const card of cols.cards) {
-                  if (card._id === collection.cards[currentCard]._id.toString()) {
-                    card.category = data.category;
-                    card.question = data.question;
-                    card.answer = data.answer;
-                    if (imageRef.current.base64 && imageRef.current.contentType) {
-                      card.img = {
-                        data: imageRef.current.base64,
-                        contentType: imageRef.current.contentType
-                      }
-                    } else {
-                      card.img = null
-                    }
-
-                  }
-                }
-              }
-            }
-          }
-        }
-        userCtx?.dispatch({
-          type: "UPDATE",
-          payload: {
-            collections: newCollection
-          }
-        })
-      }
-    } catch (error) {
-      alert("Um erro ocorreu, tente novamente.")
-      console.log(error)
-    }
-  };
-
   // Function to proceed the request to the backend 
-  const updateCard = async (credentials: CardSchemaType): AxiosPromise<CollectionUpdateResponse> => {
+  const createCard = async (credentials: CardSchemaType): AxiosPromise<CollectionUpdateResponse> => {
     // We need to convert the image to base64 to store in mongoDB
     if (credentials.img) {
       const file = credentials.img;
@@ -106,21 +52,10 @@ export default function CollectionChanges({ collection }: CollectionChangesProps
   }
 
   // Tan Stack query mutation
-  const mutation = useMutation({ mutationFn: updateCard })
-
-  // Function to handle moving to next/previous card
-  const handleCardNavigation = (direction: 'next' | 'prev') => {
-    if (direction === 'next' && currentCard < collectionCards.length - 1) {
-      setCurrentCard(prev => prev + 1);
-    } else if (direction === 'prev' && currentCard > 0) {
-      setCurrentCard(prev => prev - 1);
-    }
-  };
+  const mutation = useMutation({ mutationFn: createCard })
 
   return (
-    <div className="flex flex-col items-center mt-5 transition-transform duration-200 ease-in-out">
-      <h1 className="text-3xl">{collection.name}</h1>
-
+    <div className="inset-0 flex fixed justify-center items-center">
       {/* Form to edit the current card */}
       <form
         onSubmit={handleSubmit(onSubmit)}
@@ -206,6 +141,7 @@ export default function CollectionChanges({ collection }: CollectionChangesProps
         </div>
         <Button type="submit" additionalClasses="my-5 ml-auto" disable={mutation.isPending} text={mutation.isPending ? "Salvando..." : "Salvar edicao"} ></Button>
       </form >
+    </div>
 
-    </div >)
+  )
 }

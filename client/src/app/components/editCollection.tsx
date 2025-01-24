@@ -81,11 +81,6 @@ export default function EditCollection({
     deletion();
   };
 
-  // Function to hide the edit section
-  const handleCloseCollectionEdit = () => {
-    setEditCollection(false)
-  }
-
   return (
     <section
       className="mt-[100px] bg-white py-10 px-5 justify-center flex flex-col border border-black rounded-2xl relative"
