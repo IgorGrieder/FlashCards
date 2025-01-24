@@ -1,5 +1,5 @@
 "use client";
-import { RefObject, useContext, useState } from "react";
+import { RefObject, useContext, useEffect, useRef, useState } from "react";
 import { Collection, DeletionResponse } from "../types/types";
 import Button from "./button";
 import { useMutation } from "@tanstack/react-query";
@@ -21,7 +21,22 @@ export default function EditCollection({
 }: EditCollectionProps) {
   const [editCollection, setEditCollection] = useState(false);
   const [modalDeletingCollection, setModalDeletingColection] = useState(false);
+  const collectionRef = useRef<HTMLDivElement>(null);
   const userCtx = useContext(UserContext);
+
+
+  // Handle collection edit 
+  const handleEditCollection = () => {
+    setEditCollection(true);
+  }
+
+  // Use useEffect to perform actions after the DOM updates
+  useEffect(() => {
+    if (editCollection && collectionRef.current) {
+      // Scroll the div into view after it's rendered
+      collectionRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [editCollection]);
 
   const deleteCollection = async (): AxiosPromise<DeletionResponse> => {
     const result = await api.post("/cards/delete-collection", {
@@ -66,11 +81,6 @@ export default function EditCollection({
     deletion();
   };
 
-  // Function to hide the edit section
-  const handleCloseCollectionEdit = () => {
-    setEditCollection(false)
-  }
-
   return (
     <section
       className="mt-[100px] bg-white py-10 px-5 justify-center flex flex-col border border-black rounded-2xl relative"
@@ -104,7 +114,7 @@ export default function EditCollection({
             <path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z" />
           </svg>
         </Button>
-        <Button text="Editar colecao" onClick={() => setEditCollection(true)}>
+        <Button text="Editar colecao" onClick={handleEditCollection}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             height="24px"
@@ -118,11 +128,15 @@ export default function EditCollection({
         </Button>
       </div>
 
-      {editCollection && (<CollectionChanges
-        collection={collection}
-      ></CollectionChanges>
-      )
-      }
+      <div
+        ref={collectionRef}
+      >
+        {editCollection && (<CollectionChanges
+          collection={collection}
+        ></CollectionChanges>
+        )
+        }
+      </div>
 
       {/* Modal for user to delete a collection */}
       {

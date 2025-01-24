@@ -58,17 +58,32 @@ export type CollectionsRespose = {
   message?: string;
 };
 
+export type CardImage = {
+  data: string;
+  contentType: string;
+};
+
+export type ImageRef = {
+  base64: string | null;
+  contentType: string | null;
+}
+
 export type Card = {
   category: string;
   question: string;
   answer: string;
-  img?: string;
+  img?: CardImage | null;
+  _id: string;
 };
 
 export type Collection = {
-  _id: string,
+  _id: string;
   name: string;
   owner: string;
   category: string;
   cards: Card[];
 };
+
+export type CollectionUpdateResponse = {
+  cardUpdated: boolean;
+}

@@ -9,6 +9,7 @@ import { api } from "../libs/axios";
 import LoadingPage from "../components/loadingPage";
 import EditCollection from "../components/editCollection";
 import CollectionsSection from "../components/collectionsSection";
+import NewCollectionSection from "../components/newCollectionSection";
 
 export default function MainUserPage() {
   const userCtx = useContext(UserContext);
@@ -17,6 +18,7 @@ export default function MainUserPage() {
   const [editSectionCollection, setEditSectionCollection] =
     useState<Collection | null>(null);
   const editSection = useRef<HTMLElement>(null);
+  const [newCollection, setNewCollection] = useState(false);
 
   // Set client-side flag after mount
   useEffect(() => {
@@ -123,6 +125,11 @@ export default function MainUserPage() {
         collections={cardsCollection}
         onEditCollection={handleOpenEditSection}
       ></CollectionsSection>
+
+      {/* New collection section*/}
+      {newCollection && <NewCollectionSection
+      >
+      </NewCollectionSection>}
 
       {/* Edit collection section */}
       {editSectionCollection && (

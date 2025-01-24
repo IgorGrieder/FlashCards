@@ -4,11 +4,13 @@ import { Card } from "../types/types";
 import Button from "./button";
 import confetti from "canvas-confetti";
 import { useRouter } from "next/navigation";
+import ImageModal from "./imageModal";
 
-type CardsSectionProps = {
-  collection: Card[] | [];
-  collectionName: string;
-};
+type CardsSectionProps =
+  {
+    collection: Card[] | [];
+    collectionName: string;
+  };
 
 export default function CardsSection({
   collection,
@@ -24,11 +26,12 @@ export default function CardsSection({
   const [wrongAnswers, setWrongAnswers] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
   const [disableButtons, setDisableButtons] = useState(false);
+  const [imageModal, setImageModal] = useState(false);
   const answer = collection[currentCard].answer;
   const question = collection[currentCard].question;
-  const img = collection[currentCard].img;
   const category = collection[currentCard].category;
   const progressBar = useRef<HTMLDivElement>(null);
+  const img = collection[currentCard].img;
 
   // Next question updates on the bar and the current card
   const handleNextQuestion = () => {
@@ -268,18 +271,20 @@ export default function CardsSection({
       </div>
 
       {/* Flash card body */}
-      <div className="border border-gray-300 rounded-lg px-2 py-5 bg-white flex items-center justify-center relative h-[400px] text-center flex-col">
+      <div className="border border-gray-300 rounded-lg px-2 py-5 bg-white flex items-center justify-center relative min-h-[400px] text-center flex-col">
         <div className="text-gray-400 absolute top-[20px] text-center">
           <span>{category}</span>
           <span className="mx-2">·</span>
           <span>{collectionName}</span>
         </div>
         <p className="font-semibold text-xl">{question}</p>
-        {img && (
-          <div>
-            <img src={img} alt="Question image" className="mt-5" />
-          </div>
-        )}
+        <div>
+          {img && (
+            imageModal ?
+              <ImageModal alt="Card Image" closeModal={() => { setImageModal(false) }} src={img.data}></ImageModal>
+              : <Button text="Abrir imagem" additionalClasses="mt-5" onClick={() => setImageModal(true)}></Button>
+          )}
+        </div>
         <button
           className="cursor-pointer text-sm text-gray-500 underline underline-offset-4 transition-colors hover:text-black sm:text-base absolute bottom-[20px] z-10"
           onClick={handleFeedback}
@@ -370,7 +375,7 @@ export default function CardsSection({
           </svg>
         </Button>
       </div>
-    </section>
+    </section >
   );
 }
 

@@ -1,5 +1,4 @@
 import collectionModel from "../models/collectionModel.js";
-import mongoose from "mongoose";
 
 class CollectionService {
   /**
@@ -261,40 +260,49 @@ class CollectionService {
     answer,
     category,
     question,
-    userId,
     img,
-    collectionName,
-    cardQuestion,
-    cardCategory,
+    collectionId,
+    cardId
   ) {
     try {
-      const collection = await collectionModel.findOne({
-        owner: userId,
-        name: collectionName,
-      });
+      // Find the collection by ID
+      const collection = await collectionModel.findById(collectionId);
+      if (!collection) {
+        return { success: false, code: 404, message: 'Collection not found' };
+      }
+
       let wasFound = false;
 
+      // Iterate through the cards array to find the specific card
       collection.cards.forEach((card) => {
-        if (card.question === cardQuestion && card.category === cardCategory) {
+        if (card._id.toString() === cardId.toString()) {
           wasFound = true;
-
-          answer && (card.answer = answer);
-          img && (card.img = img);
-          question && (card.question = question);
-          category && (card.category = category);
+          if (answer) {
+            card.answer = answer;
+          }
+          if (img) {
+            card.img = { data: img.base64, contentType: img.type };
+          }
+          if (question) {
+            card.question = question;
+          }
+          if (category) {
+            card.category = category;
+          }
         }
       });
 
-      await collection.save();
-      if (wasFound) {
-        return { success: true, code: 204 };
-      } else {
-        return { success: false, code: 400 };
+      if (!wasFound) {
+        return { success: false, code: 404, message: 'Card not found' };
       }
+
+      // Save the updated collection
+      await collection.save();
+      return { success: true, code: 204 };
     } catch (error) {
-      return { success: false, code: 500 };
+      console.error('Error updating card:', error);
+      return { success: false, code: 500, message: 'Internal server error' };
     }
   }
 }
-
 export default CollectionService;
