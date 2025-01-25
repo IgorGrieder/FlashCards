@@ -39,16 +39,31 @@ export default function NewCardSection({ collection }: NewCardSectionProps) {
 
         // Updating the context
         if (collectionIdx !== -1 && request?.data.card) {
+          const collections = userCtx.user.collections.map((collection, index) => {
 
-          const collections = userCtx.user.collections;
-          collections[collectionIdx].cards.push(request?.data.card)
+            if (index === collectionIdx) {
 
-          userCtx.dispatch({
-            type: "UPDATE",
-            payload: {
-              collections: collections
+              // Create a new collection object with the updated cards array
+              if (request.data.card) {
+
+                return {
+                  ...collection,
+                  cards: [...collection.cards, request.data.card]
+                };
+              }
             }
-          })
+            return collection;
+          });
+
+          if (collections) {
+
+            userCtx.dispatch({
+              type: "UPDATE",
+              payload: {
+                collections: collections
+              }
+            })
+          }
         }
       }
     } catch (e) {
