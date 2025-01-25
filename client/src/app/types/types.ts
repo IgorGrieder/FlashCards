@@ -87,3 +87,9 @@ export type Collection = {
 export type CollectionUpdateResponse = {
   cardUpdated: boolean;
 }
+
+export type AddCardToCollectionResponse = {
+  cardAdded: boolean;
+  message: string;
+  card?: Card
+}

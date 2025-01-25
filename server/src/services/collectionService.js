@@ -165,9 +165,8 @@ class CollectionService {
     answer,
     category,
     question,
-    userId,
     img,
-    collectionName,
+    collectionId,
   ) {
     try {
       const newCard = { answer, category, question };
@@ -177,22 +176,19 @@ class CollectionService {
         newCard.img = img;
       }
 
-      const added = await collectionModel.findOneAndUpdate(
-        {
-          owner: userId,
-          name: collectionName,
-        },
-        {
-          $push: { cards: newCard },
-        },
-        { new: true },
-      );
+      const collectionToAdd = await collectionModel.findById(collectionId);
 
-      if (added) {
+      if (collectionToAdd) {
+        collectionToAdd.cards.push(newCard);
+
+        await collectionToAdd.save();
+
+        const cardAdded = collectionToAdd.cards(collectionToAdd.cards.length - 1)
         return {
           success: true,
           code: 203,
-        };
+          cardAdded
+        }
       }
 
       return { success: false, code: 400 };

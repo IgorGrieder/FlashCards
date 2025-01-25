@@ -773,36 +773,35 @@ cardRoutes.patch(
   Utils.validateJWTMiddlewear,
   validateCardToCollection,
   async (req, res) => {
-    const { userId } = req.body.decoded;
     const { answer, category, question, img } = req.body.card;
-    const { collectionName } = req.body;
+    const { collectionId } = req.body;
 
     const result = await CollectionService.addCardToCollection(
       answer,
       category,
       question,
-      userId,
       img,
-      collectionName,
+      collectionId,
     );
 
     if (result.success) {
       return res.status(201).json({
         cardAdded: true,
         message: "Card added to your collection",
+        card: result.cardAdded
       });
     }
 
     // Internal server error
     if (result.code === 500) {
       return res.status(500).json({
-        collectionCreated: false,
+        cardAdded: false,
         message: "An unexpected error occurred.",
       });
     }
 
     return res.status(400).json({
-      collectionCreated: false,
+      cardAdded: false,
       message: "We couldn't add your card to the collection",
     });
   },

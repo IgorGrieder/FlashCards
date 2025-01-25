@@ -9,13 +9,18 @@ import { AxiosPromise } from "axios"
 import { useMutation } from "react-query"
 import { api } from "../libs/axios"
 import { CardSchemaType } from "../schemas/cardSchema"
-import { ImageRef, CollectionUpdateResponse } from "../types/types"
+import { ImageRef, AddCardToCollectionResponse, Collection } from "../types/types"
 import convertToBase64 from "../utils/convertBase64"
 
-export default function NewCollectionSection() {
+type NewCardSectionProps = {
+  collection: Collection
+}
+
+export default function NewCardSection({ collection }: NewCardSectionProps) {
 
   const imageRef = useRef<ImageRef>({ base64: null, contentType: null })
   const userCtx = useContext(UserContext)
+
   // React hook forms usage
   const {
     register,
@@ -24,8 +29,25 @@ export default function NewCollectionSection() {
     control,
   } = useFormCollection()
 
+  const onSubmit = async (data: CardSchemaType) => {
+    try {
+      const request = await mutation.mutateAsync(data);
+
+      // If the request was successful we will update the context
+      if (request.status === 201 && userCtx?.user?.collections) {
+        const collection = userCtx.user.collections.find((item) => item._id === collection._id)
+        if (collection) {
+          collection.cards.push(request.card)
+        }
+      }
+    } catch (e) {
+      alert("Um erro ocorreu, tente novamente.")
+      console.log(e)
+    }
+  }
+
   // Function to proceed the request to the backend 
-  const createCard = async (credentials: CardSchemaType): AxiosPromise<CollectionUpdateResponse> => {
+  const createCard = async (credentials: CardSchemaType): AxiosPromise<AddCardToCollectionResponse> => {
     // We need to convert the image to base64 to store in mongoDB
     if (credentials.img) {
       const file = credentials.img;
@@ -34,18 +56,14 @@ export default function NewCollectionSection() {
       imageRef.current.contentType = type;
     }
 
-    const cardToUpdate = collectionCards[currentCard];
-    const result = api.patch("/cards/update-card", {
+    const result = api.patch("/cards/add-card", {
       card: {
-        cardId: cardToUpdate._id,
-        collectionId: collection._id
-      },
-      newCard: {
         img: imageRef.current.base64 ? { base64: imageRef.current.base64, type: imageRef.current.contentType } : null,
         question: credentials.question,
         answer: credentials.answer,
         category: credentials.category,
-      }
+      },
+      collectionId: collection._id
     })
 
     return result;

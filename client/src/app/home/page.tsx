@@ -9,7 +9,7 @@ import { api } from "../libs/axios";
 import LoadingPage from "../components/loadingPage";
 import EditCollection from "../components/editCollection";
 import CollectionsSection from "../components/collectionsSection";
-import NewCollectionSection from "../components/newCollectionSection";
+import NewCollectionSection from "../components/newCardSection";
 
 export default function MainUserPage() {
   const userCtx = useContext(UserContext);
