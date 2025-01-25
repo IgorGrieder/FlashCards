@@ -35,9 +35,20 @@ export default function NewCardSection({ collection }: NewCardSectionProps) {
 
       // If the request was successful we will update the context
       if (request.status === 201 && userCtx?.user?.collections) {
-        const collection = userCtx.user.collections.find((item) => item._id === collection._id)
-        if (collection) {
-          collection.cards.push(request.card)
+        const collectionIdx = userCtx.user.collections.findIndex((item) => item._id === collection._id)
+
+        // Updating the context
+        if (collectionIdx !== -1 && request?.data.card) {
+
+          const collections = userCtx.user.collections;
+          collections[collectionIdx].cards.push(request?.data.card)
+
+          userCtx.dispatch({
+            type: "UPDATE",
+            payload: {
+              collections: collections
+            }
+          })
         }
       }
     } catch (e) {
