@@ -73,10 +73,11 @@ export default function NewCollectionSection({ handleClose }: NewCollectionSecti
   const mutation = useMutation({ mutationFn: createCollection })
 
   return (
-    <div className="inset-0 flex fixed justify-center items-center bg-black/60">
+    <div className="inset-0 flex fixed justify-center items-center bg-black/60" onClick={handleClose}>
       {/* Form to edit the current card */}
       <form
         onSubmit={handleSubmit(onSubmit)}
+        onClick={e => e.stopPropagation()}
         className="bg-white p-6 rounded-xl shadow-md w-full max-w-[700px] mt-4"
       >
         <h2 className="text-2xl font-bold text-center mb-6">Colecao Nova</h2>
