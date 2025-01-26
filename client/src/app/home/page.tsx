@@ -9,7 +9,8 @@ import { api } from "../libs/axios";
 import LoadingPage from "../components/loadingPage";
 import EditCollection from "../components/editCollection";
 import CollectionsSection from "../components/collectionsSection";
-import NewCollectionSection from "../components/newCardSection";
+import NewCollectionSection from "../components/newCollectionSection";
+import Button from "../components/button";
 
 export default function MainUserPage() {
   const userCtx = useContext(UserContext);
@@ -120,6 +121,11 @@ export default function MainUserPage() {
         </div>
       </section>
 
+      {/* New collection button */}
+      <Button
+        text="Nova Colecao" additionalClasses="mb-5" onClick={() => setNewCollection(true)}>
+      </Button>
+
       {/* Cards collections section */}
       <CollectionsSection
         collections={cardsCollection}
@@ -127,9 +133,7 @@ export default function MainUserPage() {
       ></CollectionsSection>
 
       {/* New collection section*/}
-      {newCollection && <NewCollectionSection
-      >
-      </NewCollectionSection>}
+      {newCollection && <NewCollectionSection></NewCollectionSection>}
 
       {/* Edit collection section */}
       {editSectionCollection && (

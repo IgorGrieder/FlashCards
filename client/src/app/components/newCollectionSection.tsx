@@ -67,7 +67,7 @@ export default function NewCollectionSection() {
   const mutation = useMutation({ mutationFn: createCollection })
 
   return (
-    <div className="inset-0 flex fixed justify-center items-center">
+    <div className="inset-0 flex fixed justify-center items-center bg-black/60">
       {/* Form to edit the current card */}
       <form
         onSubmit={handleSubmit(onSubmit)}
@@ -78,7 +78,7 @@ export default function NewCollectionSection() {
         {/* Name field */}
         <div className="mb-4">
           <label htmlFor="question" className="block text-sm font-medium mb-2">
-            Questäo
+            Nome
           </label>
           <input
             id="name"
@@ -111,7 +111,7 @@ export default function NewCollectionSection() {
 
 
         {/* Submit Button */}
-        <Button type="submit" additionalClasses="my-5 ml-auto" disable={mutation.isPending} text={mutation.isPending ? "Salvando..." : "Salvar"} ></Button>
+        <Button type="submit" additionalClasses="my-5 ml-auto" disable={mutation.isPending} text={mutation.isPending ? "Criando..." : "Criar"} ></Button>
       </form >
     </div>
 
