@@ -1,5 +1,4 @@
-import { Controller } from "react-hook-form"
-import { ACCEPTED_IMAGE_TYPES } from "../constants/constants"
+import { Controller } from "react-hook-form" import { ACCEPTED_IMAGE_TYPES } from "../constants/constants"
 import Button from "./button"
 import CustomFileInput from "./customFileFiled"
 import useFormCollection from "../hooks/useFormCollection"
@@ -9,16 +8,17 @@ import { AxiosPromise } from "axios"
 import { useMutation } from "react-query"
 import { api } from "../libs/axios"
 import { CardSchemaType } from "../schemas/cardSchema"
-import { ImageRef, AddCardToCollectionResponse, Collection } from "../types/types"
-import convertToBase64 from "../utils/convertBase64"
+import { ImageRef, AddCardToCollectionResponse, Collection, CreateCollectionResponse } from "../types/types"
+import { z } from "zod"
 
-type NewCardSectionProps = {
-  collection: Collection
-}
+const cardSchema = z.object({
+  name: z.string().min(1, "Preencha o nome"),
+  category: z.string().min(1, "Preencha a categoria"),
+})
 
-export default function NewCardSection({ collection }: NewCardSectionProps) {
+type CollectionSchemaType = z.infer<typeof cardSchema>;
 
-  const imageRef = useRef<ImageRef>({ base64: null, contentType: null })
+export default function NewCollectionSection() {
   const userCtx = useContext(UserContext)
 
   // React hook forms usage
@@ -26,10 +26,9 @@ export default function NewCardSection({ collection }: NewCardSectionProps) {
     register,
     handleSubmit,
     formState: { errors },
-    control,
   } = useFormCollection()
 
-  const onSubmit = async (data: CardSchemaType) => {
+  const onSubmit = async (data: CollectionSchemaType) => {
     try {
       const request = await mutation.mutateAsync(data);
 
@@ -73,30 +72,18 @@ export default function NewCardSection({ collection }: NewCardSectionProps) {
   }
 
   // Function to proceed the request to the backend 
-  const createCard = async (credentials: CardSchemaType): AxiosPromise<AddCardToCollectionResponse> => {
-    // We need to convert the image to base64 to store in mongoDB
-    if (credentials.img) {
-      const file = credentials.img;
-      const { base64, type } = await convertToBase64(file);
-      imageRef.current.base64 = base64;
-      imageRef.current.contentType = type;
-    }
+  const createCollection = async (credentials: CollectionSchemaType): AxiosPromise<CreateCollectionResponse> => {
 
-    const result = api.patch("/cards/add-card", {
-      card: {
-        img: imageRef.current.base64 ? { base64: imageRef.current.base64, type: imageRef.current.contentType } : null,
-        question: credentials.question,
-        answer: credentials.answer,
-        category: credentials.category,
-      },
-      collectionId: collection._id
+    const result = api.patch("/cards/create-collection", {
+      name: credentials.name,
+      category: credentials.category,
     })
 
     return result;
   }
 
   // Tan Stack query mutation
-  const mutation = useMutation({ mutationFn: createCard })
+  const mutation = useMutation({ mutationFn: createCollection })
 
   return (
     <div className="inset-0 flex fixed justify-center items-center">
@@ -107,37 +94,20 @@ export default function NewCardSection({ collection }: NewCardSectionProps) {
       >
         <h2 className="text-2xl font-bold text-center mb-6">Flash Card</h2>
 
-        {/* Question field */}
+        {/* Name field */}
         <div className="mb-4">
           <label htmlFor="question" className="block text-sm font-medium mb-2">
             Questäo
           </label>
           <input
-            id="question"
+            id="name"
             type="text"
-            {...register("question")}
+            {...register("name")}
             className={`w-full px-3 py-2 border rounded ${errors.question ? "border-red-500" : "border-gray-300"
               }`}
           />
           {errors.question && (
-            <p className="text-red-500 text-sm mt-1">{errors.question.message}</p>
-          )}
-        </div>
-
-        {/* Answer field */}
-        <div className="mb-4">
-          <label htmlFor="answer" className="block text-sm font-medium mb-2">
-            Resposta
-          </label>
-          <input
-            id="answer"
-            type="text"
-            {...register("answer")}
-            className={`w-full px-3 py-2 border rounded ${errors.answer ? "border-red-500" : "border-gray-300"
-              }`}
-          />
-          {errors.answer && (
-            <p className="text-red-500 text-sm mt-1">{errors.answer.message}</p>
+            <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
           )}
         </div>
 
@@ -158,25 +128,6 @@ export default function NewCardSection({ collection }: NewCardSectionProps) {
           )}
         </div>
 
-        {/* Image Upload Field */}
-        <div>
-          <label>Imagem</label>
-          <Controller
-            name="img"
-            control={control}
-            render={({ field }) => (
-              < CustomFileInput
-                field={field}
-                accept={ACCEPTED_IMAGE_TYPES.join(",")}
-                buttonText="Upload"
-                buttonTextColor="text-black"
-                buttonBgColor="bg-white"
-              >
-              </CustomFileInput>
-            )}
-          />
-          {errors.img && <p>{errors.img.message}</p>}
-        </div>
 
         {/* Submit Button */}
         <Button type="submit" additionalClasses="my-5 ml-auto" disable={mutation.isPending} text={mutation.isPending ? "Salvando..." : "Salvar"} ></Button>
@@ -185,3 +136,4 @@ export default function NewCardSection({ collection }: NewCardSectionProps) {
 
   )
 }
+

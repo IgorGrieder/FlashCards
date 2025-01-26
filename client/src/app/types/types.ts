@@ -93,3 +93,8 @@ export type AddCardToCollectionResponse = {
   message: string;
   card?: Card
 }
+
+export type CreateCollectionResponse = {
+  collectionCreated: boolean;
+  message: string;
+}

@@ -508,6 +508,7 @@ cardRoutes.post(
   async (req, res) => {
     const { userId } = req.body.decoded;
     const { name, category } = req.body;
+
     const result = await CollectionService.createCollection(
       category,
       name,
