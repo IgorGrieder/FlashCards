@@ -55,7 +55,7 @@ class CollectionService {
       });
 
       if (!newCollection) {
-        return { success: false, code: 500 };
+        return { success: false, code: 500, collection: newCollection };
       }
 
       return { success: true, code: 201 };

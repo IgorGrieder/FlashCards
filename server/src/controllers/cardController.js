@@ -519,6 +519,7 @@ cardRoutes.post(
       return res.status(201).json({
         collectionCreated: true,
         message: "Your collection was created successfully.",
+        collection: result.collection
       });
     }
 
