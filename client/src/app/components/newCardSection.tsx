@@ -6,7 +6,7 @@ import useFormCollection from "../hooks/useFormCollection"
 import { useContext, useRef } from "react"
 import { UserContext } from "../context/userContext"
 import { AxiosPromise } from "axios"
-import { useMutation } from "react-query"
+import { useMutation } from "@tanstack/react-query";
 import { api } from "../libs/axios"
 import { CardSchemaType } from "../schemas/cardSchema"
 import { ImageRef, AddCardToCollectionResponse, Collection } from "../types/types"

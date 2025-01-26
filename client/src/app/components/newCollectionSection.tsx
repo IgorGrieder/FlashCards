@@ -1,22 +1,20 @@
-import { Controller } from "react-hook-form" import { ACCEPTED_IMAGE_TYPES } from "../constants/constants"
 import Button from "./button"
-import CustomFileInput from "./customFileFiled"
-import useFormCollection from "../hooks/useFormCollection"
-import { useContext, useRef } from "react"
+import { useContext } from "react"
 import { UserContext } from "../context/userContext"
 import { AxiosPromise } from "axios"
-import { useMutation } from "react-query"
+import { useMutation } from "@tanstack/react-query";
 import { api } from "../libs/axios"
-import { CardSchemaType } from "../schemas/cardSchema"
-import { ImageRef, AddCardToCollectionResponse, Collection, CreateCollectionResponse } from "../types/types"
+import { CreateCollectionResponse } from "../types/types"
 import { z } from "zod"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useForm } from "react-hook-form"
 
-const cardSchema = z.object({
+const collectionSchema = z.object({
   name: z.string().min(1, "Preencha o nome"),
   category: z.string().min(1, "Preencha a categoria"),
 })
 
-type CollectionSchemaType = z.infer<typeof cardSchema>;
+type CollectionSchemaType = z.infer<typeof collectionSchema>;
 
 export default function NewCollectionSection() {
   const userCtx = useContext(UserContext)
@@ -26,7 +24,7 @@ export default function NewCollectionSection() {
     register,
     handleSubmit,
     formState: { errors },
-  } = useFormCollection()
+  } = useForm<CollectionSchemaType>({ resolver: zodResolver(collectionSchema) })
 
   const onSubmit = async (data: CollectionSchemaType) => {
     try {
@@ -34,28 +32,11 @@ export default function NewCollectionSection() {
 
       // If the request was successful we will update the context
       if (request.status === 201 && userCtx?.user?.collections) {
-        const collectionIdx = userCtx.user.collections.findIndex((item) => item._id === collection._id)
-
         // Updating the context
-        if (collectionIdx !== -1 && request?.data.card) {
-          const collections = userCtx.user.collections.map((collection, index) => {
-
-            if (index === collectionIdx) {
-
-              // Create a new collection object with the updated cards array
-              if (request.data.card) {
-
-                return {
-                  ...collection,
-                  cards: [...collection.cards, request.data.card]
-                };
-              }
-            }
-            return collection;
-          });
+        if (request?.data.collection) {
+          const collections = [...userCtx?.user.collections, request.data.collection]
 
           if (collections) {
-
             userCtx.dispatch({
               type: "UPDATE",
               payload: {
@@ -103,10 +84,10 @@ export default function NewCollectionSection() {
             id="name"
             type="text"
             {...register("name")}
-            className={`w-full px-3 py-2 border rounded ${errors.question ? "border-red-500" : "border-gray-300"
+            className={`w-full px-3 py-2 border rounded ${errors.name ? "border-red-500" : "border-gray-300"
               }`}
           />
-          {errors.question && (
+          {errors.name && (
             <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
           )}
         </div>
