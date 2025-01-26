@@ -55,10 +55,11 @@ class CollectionService {
       });
 
       if (!newCollection) {
-        return { success: false, code: 500, collection: newCollection };
+        return { success: false, code: 500 };
       }
 
-      return { success: true, code: 201 };
+      return { success: true, code: 201, collection: newCollection };
+
     } catch (error) {
       return { success: false, code: 500 };
     }

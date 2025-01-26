@@ -89,7 +89,7 @@ export default function CollectionChanges({ collection }: CollectionChangesProps
     }
 
     const cardToUpdate = collectionCards[currentCard];
-    const result = api.patch("/cards/update-card", {
+    const result = await api.patch("/cards/update-card", {
       card: {
         cardId: cardToUpdate._id,
         collectionId: collection._id

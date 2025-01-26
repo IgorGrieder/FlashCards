@@ -16,7 +16,11 @@ const collectionSchema = z.object({
 
 type CollectionSchemaType = z.infer<typeof collectionSchema>;
 
-export default function NewCollectionSection() {
+type NewCollectionSectionProps = {
+  handleClose: VoidFunction
+}
+
+export default function NewCollectionSection({ handleClose }: NewCollectionSectionProps) {
   const userCtx = useContext(UserContext)
 
   // React hook forms usage
@@ -46,6 +50,9 @@ export default function NewCollectionSection() {
           }
         }
       }
+
+      // Closing the section
+      handleClose();
     } catch (e) {
       alert("Um erro ocorreu, tente novamente.")
       console.log(e)
@@ -54,8 +61,7 @@ export default function NewCollectionSection() {
 
   // Function to proceed the request to the backend 
   const createCollection = async (credentials: CollectionSchemaType): AxiosPromise<CreateCollectionResponse> => {
-
-    const result = api.patch("/cards/create-collection", {
+    const result = await api.post("cards/create-collection", {
       name: credentials.name,
       category: credentials.category,
     })

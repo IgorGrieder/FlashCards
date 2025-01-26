@@ -82,7 +82,7 @@ export default function NewCardSection({ collection }: NewCardSectionProps) {
       imageRef.current.contentType = type;
     }
 
-    const result = api.patch("/cards/add-card", {
+    const result = await api.patch("/cards/add-card", {
       card: {
         img: imageRef.current.base64 ? { base64: imageRef.current.base64, type: imageRef.current.contentType } : null,
         question: credentials.question,

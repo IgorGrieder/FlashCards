@@ -133,7 +133,7 @@ export default function MainUserPage() {
       ></CollectionsSection>
 
       {/* New collection section*/}
-      {newCollection && <NewCollectionSection></NewCollectionSection>}
+      {newCollection && <NewCollectionSection handleClose={() => setNewCollection(false)}></NewCollectionSection>}
 
       {/* Edit collection section */}
       {editSectionCollection && (

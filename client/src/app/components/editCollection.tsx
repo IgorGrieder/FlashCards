@@ -22,6 +22,7 @@ export default function EditCollection({
   const [editCollection, setEditCollection] = useState(false);
   const [modalDeletingCollection, setModalDeletingColection] = useState(false);
   const collectionRef = useRef<HTMLDivElement>(null);
+  const deleteCollectionModal = useRef<HTMLDivElement>(null);
   const userCtx = useContext(UserContext);
 
 
@@ -37,6 +38,14 @@ export default function EditCollection({
       collectionRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [editCollection]);
+
+  // Use useEffect to perform actions after the DOM updates
+  useEffect(() => {
+    if (deleteCollectionModal && deleteCollectionModal.current) {
+      // Scroll the div into view after it's rendered
+      deleteCollectionModal.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [modalDeletingCollection]);
 
   const deleteCollection = async (): AxiosPromise<DeletionResponse> => {
     const result = await api.post("/cards/delete-collection", {
@@ -141,7 +150,7 @@ export default function EditCollection({
       {/* Modal for user to delete a collection */}
       {
         modalDeletingCollection && (
-          <div className="w-2/3 mx-auto mt-5 rounded-lg px-4 py-5 border border-black animate-fadeIn">
+          <div ref={deleteCollectionModal} className="w-2/3 mx-auto mt-5 rounded-lg px-4 py-5 border border-black animate-fadeIn">
             <h1 className="text-xl text-center">
               Voce tem certeza de que quer excluir a colecao?
             </h1>
