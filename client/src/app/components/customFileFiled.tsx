@@ -3,8 +3,8 @@ import Button from "./button";
 
 type CustomFileInputProps = {
   field: {
-    value: File | undefined; // Change `null` to `undefined`
-    onChange: (file: File | undefined) => void; // Change `null` to `undefined`
+    value: File | undefined;
+    onChange: (file: File | undefined) => void;
   };
   accept?: string;
   buttonText: string;

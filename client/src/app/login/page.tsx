@@ -114,9 +114,8 @@ export default function Login() {
             {...register("login", {
               onChange: () => setLoginFailed(false),
             })}
-            className={`w-full px-3 py-2 border rounded ${
-              errors.login ? "border-red-500" : "border-gray-300"
-            }`}
+            className={`w-full px-3 py-2 border rounded ${errors.login ? "border-red-500" : "border-gray-300"
+              }`}
           />
           {errors.login && (
             <p className="text-red-500 text-sm mt-1">{errors.login.message}</p>
@@ -134,9 +133,8 @@ export default function Login() {
             {...register("password", {
               onChange: () => setLoginFailed(false),
             })}
-            className={`w-full px-3 py-2 border rounded ${
-              errors.password ? "border-red-500" : "border-gray-300"
-            }`}
+            className={`w-full px-3 py-2 border rounded ${errors.password ? "border-red-500" : "border-gray-300"
+              }`}
           />
           {errors.password && (
             <p className="text-red-500 text-sm mt-1">

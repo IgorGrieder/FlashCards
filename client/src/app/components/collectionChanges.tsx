@@ -29,7 +29,7 @@ export default function CollectionChanges({ collection }: CollectionChangesProps
     handleSubmit,
     formState: { errors },
     control,
-  } = useFormCollection()
+  } = useFormCollection({ card: collectionCards[currentCard] });
 
   // On submit function 
   const onSubmit = async (data: CardSchemaType) => {
@@ -118,7 +118,7 @@ export default function CollectionChanges({ collection }: CollectionChangesProps
   };
 
   return (
-    <div className="flex flex-col items-center mt-5 transition-transform duration-200 ease-in-out">
+    <div className="flex flex-col items-center mt-5 transition-transform duration-200 ease-in-out" >
       <h1 className="text-3xl">{collection.name}</h1>
 
       {/* Form to edit the current card */}
@@ -129,7 +129,7 @@ export default function CollectionChanges({ collection }: CollectionChangesProps
         <h2 className="text-2xl font-bold text-center mb-6">Flash Card</h2>
 
         {/* Question field */}
-        <div className="mb-4">
+        <div className="mb-4" >
           <label htmlFor="question" className="block text-sm font-medium mb-2">
             Questäo
           </label>
@@ -142,11 +142,12 @@ export default function CollectionChanges({ collection }: CollectionChangesProps
           />
           {errors.question && (
             <p className="text-red-500 text-sm mt-1">{errors.question.message}</p>
-          )}
-        </div>
+          )
+          }
+        </div >
 
         {/* Answer field */}
-        <div className="mb-4">
+        < div className="mb-4" >
           <label htmlFor="answer" className="block text-sm font-medium mb-2">
             Resposta
           </label>
@@ -157,13 +158,15 @@ export default function CollectionChanges({ collection }: CollectionChangesProps
             className={`w-full px-3 py-2 border rounded ${errors.answer ? "border-red-500" : "border-gray-300"
               }`}
           />
-          {errors.answer && (
-            <p className="text-red-500 text-sm mt-1">{errors.answer.message}</p>
-          )}
-        </div>
+          {
+            errors.answer && (
+              <p className="text-red-500 text-sm mt-1">{errors.answer.message}</p>
+            )
+          }
+        </div >
 
         {/* Category field */}
-        <div className="mb-4">
+        < div className="mb-4" >
           <label htmlFor="category" className="block text-sm font-medium mb-2">
             Categoria
           </label>
@@ -174,19 +177,21 @@ export default function CollectionChanges({ collection }: CollectionChangesProps
             className={`w-full px-3 py-2 border rounded ${errors.category ? "border-red-500" : "border-gray-300"
               }`}
           />
-          {errors.category && (
-            <p className="text-red-500 text-sm mt-1">{errors.category.message}</p>
-          )}
-        </div>
+          {
+            errors.category && (
+              <p className="text-red-500 text-sm mt-1">{errors.category.message}</p>
+            )
+          }
+        </div >
 
         {/* Image Upload Field */}
-        <div>
+        < div >
           <label>Imagem</label>
           <Controller
             name="img"
             control={control}
             render={({ field }) => (
-              < CustomFileInput
+              <CustomFileInput
                 field={field}
                 accept={ACCEPTED_IMAGE_TYPES.join(",")}
                 buttonText="Upload"
@@ -197,13 +202,13 @@ export default function CollectionChanges({ collection }: CollectionChangesProps
             )}
           />
           {errors.img && <p>{errors.img.message}</p>}
-        </div>
+        </div >
 
         {/* Submit Button */}
-        <div className="flex gap-2 items-center justify-center mt-2">
+        < div className="flex gap-2 items-center justify-center mt-2" >
           <Button text="Voltar" disable={currentCard <= 0} onClick={() => handleCardNavigation("prev")}></Button>
           <Button text="Proxima" disable={currentCard + 1 >= collectionCards.length} onClick={() => handleCardNavigation("next")}></Button>
-        </div>
+        </div >
         <Button type="submit" additionalClasses="my-5 ml-auto" disable={mutation.isPending} text={mutation.isPending ? "Salvando..." : "Salvar edicao"} ></Button>
       </form >
 

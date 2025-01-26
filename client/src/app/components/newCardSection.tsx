@@ -27,7 +27,7 @@ export default function NewCardSection({ collection }: NewCardSectionProps) {
     handleSubmit,
     formState: { errors },
     control,
-  } = useFormCollection()
+  } = useFormCollection({ card: null })
 
   const onSubmit = async (data: CardSchemaType) => {
     try {

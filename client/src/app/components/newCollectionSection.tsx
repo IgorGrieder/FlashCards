@@ -73,7 +73,7 @@ export default function NewCollectionSection() {
         onSubmit={handleSubmit(onSubmit)}
         className="bg-white p-6 rounded-xl shadow-md w-full max-w-[700px] mt-4"
       >
-        <h2 className="text-2xl font-bold text-center mb-6">Flash Card</h2>
+        <h2 className="text-2xl font-bold text-center mb-6">Colecao Nova</h2>
 
         {/* Name field */}
         <div className="mb-4">
