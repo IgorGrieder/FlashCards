@@ -73,7 +73,7 @@ export default function NewCollectionSection({ handleClose }: NewCollectionSecti
   const mutation = useMutation({ mutationFn: createCollection })
 
   return (
-    <div className="inset-0 flex fixed justify-center items-center bg-black/60" onClick={handleClose}>
+    <div className="inset-0 flex fixed justify-center items-center bg-black/60 z-50" onClick={handleClose}>
       {/* Form to edit the current card */}
       <form
         onSubmit={handleSubmit(onSubmit)}

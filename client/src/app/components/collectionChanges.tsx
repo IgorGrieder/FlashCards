@@ -15,9 +15,10 @@ import convertToBase64 from "../utils/convertBase64"
 
 type CollectionChangesProps = {
   collection: Collection
+  handleClose: VoidFunction
 }
 
-export default function CollectionChanges({ collection }: CollectionChangesProps) {
+export default function CollectionChanges({ collection, handleClose }: CollectionChangesProps) {
   const [currentCard, setCurrentCard] = useState(0);
   const collectionCards = collection.cards;
   const userCtx = useContext(UserContext);
@@ -72,6 +73,9 @@ export default function CollectionChanges({ collection }: CollectionChangesProps
           }
         })
       }
+
+      // Closing the section
+      handleClose();
     } catch (error) {
       alert("Um erro ocorreu, tente novamente.")
       console.log(error)
@@ -119,8 +123,6 @@ export default function CollectionChanges({ collection }: CollectionChangesProps
 
   return (
     <div className="flex flex-col items-center mt-5 transition-transform duration-200 ease-in-out" >
-      <h1 className="text-3xl">{collection.name}</h1>
-
       {/* Form to edit the current card */}
       <form
         onSubmit={handleSubmit(onSubmit)}

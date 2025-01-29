@@ -99,7 +99,7 @@ export default function NewCardSection({ collection }: NewCardSectionProps) {
   const mutation = useMutation({ mutationFn: createCard })
 
   return (
-    <div className="inset-0 flex fixed justify-center items-center">
+    <div className="flex justify-center items-center">
       {/* Form to edit the current card */}
       <form
         onSubmit={handleSubmit(onSubmit)}

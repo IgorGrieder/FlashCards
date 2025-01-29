@@ -142,6 +142,7 @@ export default function EditCollection({
       >
         {editCollection && (<CollectionChanges
           collection={collection}
+          handleClose={() => handleCloseEditSection()}
         ></CollectionChanges>
         )
         }
