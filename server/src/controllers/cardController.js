@@ -772,7 +772,7 @@ cardRoutes.patch(
  *   "message": "An unexpected error occurred."
  * }
  */
-cardRoutes.patch(
+cardRoutes.post(
   "/add-card",
   Utils.validateJWTMiddlewear,
   validateCardToCollection,
