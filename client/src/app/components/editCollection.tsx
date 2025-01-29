@@ -25,6 +25,7 @@ export default function EditCollection({
   const [newCardSection, setNewCardSection] = useState(false);
   const collectionRef = useRef<HTMLDivElement>(null);
   const deleteCollectionModal = useRef<HTMLDivElement>(null);
+  const newCardRef = useRef<HTMLDivElement>(null);
   const userCtx = useContext(UserContext);
 
 
@@ -36,6 +37,14 @@ export default function EditCollection({
   const handleAddCardSection = () => {
     setNewCardSection(true);
   }
+
+  // Use useEffect to perform actions after the DOM updates
+  useEffect(() => {
+    if (newCardSection && newCardRef.current) {
+      // Scroll the div into view after it's rendered
+      newCardRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [newCardSection]);
 
   // Use useEffect to perform actions after the DOM updates
   useEffect(() => {
@@ -159,7 +168,9 @@ export default function EditCollection({
       </div>
 
       {/* New card section*/}
-      {newCardSection && <NewCardSection collection={collection}></NewCardSection>}
+      {newCardSection && <div ref={newCardRef}>
+        <NewCardSection collection={collection}></NewCardSection>
+      </div>}
 
       {/* Modal for user to delete a collection */}
       {
