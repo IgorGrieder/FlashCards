@@ -1,5 +1,5 @@
 "use client";
-import { RefObject, useContext, useEffect, useRef, useState } from "react";
+import { RefObject, useContext, useRef, useState } from "react";
 import { Collection, DeletionResponse } from "../types/types";
 import Button from "./button";
 import { useMutation } from "@tanstack/react-query";
@@ -8,6 +8,7 @@ import { api } from "../libs/axios";
 import { UserContext } from "../context/userContext";
 import CollectionChanges from "./collectionChanges";
 import NewCardSection from "./newCardSection";
+import { useScrollIntoView } from "../hooks/useScrollIntoView";
 
 type EditCollectionProps = {
   collection: Collection;
@@ -24,7 +25,7 @@ export default function EditCollection({
   const [modalDeletingCollection, setModalDeletingColection] = useState(false);
   const [newCardSection, setNewCardSection] = useState(false);
   const collectionRef = useRef<HTMLDivElement>(null);
-  const deleteCollectionModal = useRef<HTMLDivElement>(null);
+  const deleteCollectionRef = useRef<HTMLDivElement>(null);
   const newCardRef = useRef<HTMLDivElement>(null);
   const userCtx = useContext(UserContext);
 
@@ -38,29 +39,10 @@ export default function EditCollection({
     setNewCardSection(true);
   }
 
-  // Use useEffect to perform actions after the DOM updates
-  useEffect(() => {
-    if (newCardSection && newCardRef.current) {
-      // Scroll the div into view after it's rendered
-      newCardRef.current.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [newCardSection]);
-
-  // Use useEffect to perform actions after the DOM updates
-  useEffect(() => {
-    if (editCollection && collectionRef.current) {
-      // Scroll the div into view after it's rendered
-      collectionRef.current.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [editCollection]);
-
-  // Use useEffect to perform actions after the DOM updates
-  useEffect(() => {
-    if (deleteCollectionModal && deleteCollectionModal.current) {
-      // Scroll the div into view after it's rendered
-      deleteCollectionModal.current.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [modalDeletingCollection]);
+  // Using the scroll into view hook to perform the scroll action when interacting with the elements
+  useScrollIntoView(newCardRef, newCardSection);
+  useScrollIntoView(collectionRef, editCollection);
+  useScrollIntoView(deleteCollectionRef, modalDeletingCollection);
 
   const deleteCollection = async (): AxiosPromise<DeletionResponse> => {
     const result = await api.post("/cards/delete-collection", {
@@ -175,7 +157,7 @@ export default function EditCollection({
       {/* Modal for user to delete a collection */}
       {
         modalDeletingCollection && (
-          <div ref={deleteCollectionModal} className="w-2/3 mx-auto mt-5 rounded-lg px-4 py-5 border border-black animate-fadeIn">
+          <div ref={deleteCollectionRef} className="w-2/3 mx-auto mt-5 rounded-lg px-4 py-5 border border-black animate-fadeIn">
             <h1 className="text-xl text-center">
               Voce tem certeza de que quer excluir a colecao?
             </h1>
