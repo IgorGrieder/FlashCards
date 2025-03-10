@@ -1,12 +1,11 @@
 import dotenv from "dotenv";
-dotenv.config({ path: "../.env" });
-
 import express from "express";
 import DB from "./database/config.js"
 import setUpRoutes from "./controllers/routes.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 
+dotenv.config({ path: "../.env" });
 const app = express();
 const PORT = process.env.PORT;
 
