@@ -720,9 +720,8 @@ cardRoutes.patch(
  * The user must provide the card details (answer, category, question, and optional image)
  * and the name of the collection where the card should be added.
  *
- * @route PATCH /add-card
+ * @route POST /add-card
  * @middleware Utils.validateJWTMiddlewear - Validates the JWT token to authenticate the user.
- * @middleware validateCardToCollection - Validates the request payload for card and collection details.
  * @access Protected
  *
  * @requestBody {Object} req.body - The request payload.
@@ -775,7 +774,6 @@ cardRoutes.patch(
 cardRoutes.post(
   "/add-card",
   Utils.validateJWTMiddlewear,
-  validateCardToCollection,
   async (req, res) => {
     const { answer, category, question, img } = req.body.card;
     const { collectionId } = req.body;
