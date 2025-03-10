@@ -1,13 +1,13 @@
 import dotenv from "dotenv";
+dotenv.config({ path: "../.env" });
+
 import express from "express";
+import DB from "./database/config.js"
 import setUpRoutes from "./controllers/routes.js";
-import connectDB from "./database/config.js";
-import mongoose from "mongoose";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 
 const app = express();
-dotenv.config({ path: "../.env" });
 const PORT = process.env.PORT;
 
 /**
@@ -26,7 +26,7 @@ const PORT = process.env.PORT;
  */
 const startServer = async () => {
   try {
-    await connectDB(); // Ensure the DB connection is successful before proceeding
+    await DB.connectDB(); // Ensure the DB connection is successful before proceeding
     app.use(
       cors({
         origin: "http://localhost:3000",
@@ -38,17 +38,6 @@ const startServer = async () => {
     app.use(express.json({ limit: "50mb" }));
     app.use(express.urlencoded({ limit: "50mb", extended: true }));
     app.use(cookieParser());
-
-    // Middleware to check DB connection status
-    app.use((req, res, next) => {
-      if (mongoose.connection.readyState !== 1) {
-        return res.status(503).json({
-          success: false,
-          message: "Service unavailable. Database is not connected.",
-        });
-      }
-      next();
-    });
 
     // Set up routes
     setUpRoutes(app);
