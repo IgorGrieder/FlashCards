@@ -8,7 +8,7 @@ async function connectDB() {
     const client = new MongoClient(uri);
 
     await client.connect();
-    db = client.db('FlashCards');
+    db = client.db(process.env.DB_NAME);
 
     console.log('Connected to MongoDB');
   } catch (err) {
@@ -17,11 +17,11 @@ async function connectDB() {
   }
 }
 
-function getDB() {
+function getDB(col) {
   if (!db) {
     throw new Error('Database not connected. Call connectDB() first.');
   }
-  return db;
+  return db.collection(col);
 }
 
 export default { connectDB, getDB }
