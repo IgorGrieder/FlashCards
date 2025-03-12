@@ -1,4 +1,5 @@
-import collectionModel from "../models/collectionModel.js";
+import { DBCollections } from "../database/collectionsInstances.js"
+import { internalServerErrorCode, noContentCode, notFoundCode, okCode } from "../constants/codeConstants.js";
 
 class CollectionService {
   /**
@@ -33,26 +34,28 @@ class CollectionService {
    */
   static async getUserCollections(userId) {
     try {
-      const collections = await collectionModel.find({ owner: userId });
+      const collections = await DBCollections.find({ owner: userId })
 
+      console.log(collections)
       if (!collections.length > 0) {
-        return { success: false, code: 204 };
+        return { success: false, code: noContentCode };
       }
 
-      return { success: true, collections };
+      return { success: true, code: okCode };
     } catch (error) {
-      return { success: false, code: 500 };
+      console.log(error);
+      return { success: false, code: internalServerErrorCode };
     }
   }
 
   static async createCollection(category, name, userId) {
     try {
-      const newCollection = await collectionModel.create({
-        name,
-        owner: userId,
-        category,
-        cards: [],
-      });
+      // const newCollection = await collectionModel.create({
+      //   name,
+      //   owner: userId,
+      //   category,
+      //   cards: [],
+      // });
 
       if (!newCollection) {
         return { success: false, code: 500 };
@@ -99,10 +102,10 @@ class CollectionService {
  */
   static async deleteCollection(collectionId) {
     try {
-      const result = await collectionModel.findByIdAndDelete(collectionId)
-      if (result.deletedCount === 0) {
-        return { success: false, code: 404, message: "Collection not found" };
-      }
+      // const result = await collectionModel.findByIdAndDelete(collectionId)
+      // if (result.deletedCount === 0) {
+      //   return { success: false, code: 404, message: "Collection not found" };
+      // }
 
       return { success: true, code: 204 };
     } catch (error) {
@@ -177,21 +180,21 @@ class CollectionService {
         newCard.img = img;
       }
 
-      const collectionToAdd = await collectionModel.findById(collectionId);
-
-      if (collectionToAdd) {
-        collectionToAdd.cards.push(newCard);
-
-        await collectionToAdd.save();
-
-        const cardAdded = collectionToAdd.cards(collectionToAdd.cards.length - 1)
-        return {
-          success: true,
-          code: 203,
-          cardAdded
-        }
-      }
-
+      // const collectionToAdd = await collectionModel.findById(collectionId);
+      //
+      // if (collectionToAdd) {
+      //   collectionToAdd.cards.push(newCard);
+      //
+      //   await collectionToAdd.save();
+      //
+      //   const cardAdded = collectionToAdd.cards(collectionToAdd.cards.length - 1)
+      //   return {
+      //     success: true,
+      //     code: 203,
+      //     cardAdded
+      //   }
+      // }
+      //
       return { success: false, code: 400 };
     } catch (error) {
       return { success: false, code: 500 };
@@ -234,15 +237,15 @@ class CollectionService {
     collectionName,
   ) {
     try {
-      await collectionModel.findOneAndUpdate(
-        {
-          owner: userId,
-          name: collectionName,
-        },
-        {
-          $pull: { cards: { category, question } },
-        },
-      );
+      // await collectionModel.findOneAndUpdate(
+      //   {
+      //     owner: userId,
+      //     name: collectionName,
+      //   },
+      //   {
+      //     $pull: { cards: { category, question } },
+      //   },
+      // );
 
       return {
         success: true,
@@ -263,38 +266,38 @@ class CollectionService {
   ) {
     try {
       // Find the collection by ID
-      const collection = await collectionModel.findById(collectionId);
-      if (!collection) {
-        return { success: false, code: 404, message: 'Collection not found' };
-      }
-
-      let wasFound = false;
-
-      // Iterate through the cards array to find the specific card
-      collection.cards.forEach((card) => {
-        if (card._id.toString() === cardId.toString()) {
-          wasFound = true;
-          if (answer) {
-            card.answer = answer;
-          }
-          if (img) {
-            card.img = { data: img.base64, contentType: img.type };
-          }
-          if (question) {
-            card.question = question;
-          }
-          if (category) {
-            card.category = category;
-          }
-        }
-      });
-
-      if (!wasFound) {
-        return { success: false, code: 404, message: 'Card not found' };
-      }
-
-      // Save the updated collection
-      await collection.save();
+      // const collection = await collectionModel.findById(collectionId);
+      // if (!collection) {
+      //   return { success: false, code: 404, message: 'Collection not found' };
+      // }
+      //
+      // let wasFound = false;
+      //
+      // // Iterate through the cards array to find the specific card
+      // collection.cards.forEach((card) => {
+      //   if (card._id.toString() === cardId.toString()) {
+      //     wasFound = true;
+      //     if (answer) {
+      //       card.answer = answer;
+      //     }
+      //     if (img) {
+      //       card.img = { data: img.base64, contentType: img.type };
+      //     }
+      //     if (question) {
+      //       card.question = question;
+      //     }
+      //     if (category) {
+      //       card.category = category;
+      //     }
+      //   }
+      // });
+      //
+      // if (!wasFound) {
+      //   return { success: false, code: 404, message: 'Card not found' };
+      // }
+      //
+      // // Save the updated collection
+      // await collection.save();
       return { success: true, code: 204 };
     } catch (error) {
       console.error('Error updating card:', error);

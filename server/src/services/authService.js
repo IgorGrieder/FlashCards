@@ -1,50 +1,39 @@
-import bcrypt from "bcryptjs/dist/bcrypt.js";
-import userModel from "../models/userModel.js";
+import bcrypt from "bcrypt";
 import jsonwebtoken from "jsonwebtoken";
+import { DBUsers } from "../database/collectionsInstances.js";
+import { internalServerErrorCode, notFoundCode, okCode } from "../constants/codeConstants.js";
 
 class AuthService {
-  /**
-   * Logs in a user by verifying their credentials.
-   *
-   * This function accepts a login identifier (email or username) and a password.
-   * It first determines whether the login is an email or a username, searches for
-   * the corresponding user in the database, and then validates the provided password.
-   * If the credentials are valid, it generates an authentication token.
-   * @function
-   * @async
-   * @param {string} login - The user's login identifier (email or username).
-   * @param {string} password - The user's plaintext password.
-   * @returns {Promise<object>} A promise that resolves to an object with the following structure:
-   *   - `success` {boolean}: Indicates if the login attempt was successful.
-   *   - `code` {number}: Indicates the respective HTTP status that will be returned.
-   *   - `message` {string}: A descriptive message (e.g., "User not found", "Invalid password").
-   *   - `token` {string} [optional]: The authentication token, provided if login is successful.
-   *
-   * @example
-   * // Example usage:
-   * const response = await logIn('user@example.com', 'password123');
-   * if (response.success) {
-   *   console.log('Login successful:', response.token);
-   * } else {
-   *   console.error('Login failed:', response.message);
-   * }
-   */
   static async logIn(login, password) {
-    const result = await AuthService.findUser(login);
-    if (!result.success) {
-      return { success: false, code: result.code };
-    }
 
-    const isPasswordValid = await bcrypt.compare(
-      password,
-      result.user.password,
-    );
-    if (!isPasswordValid) {
-      return { success: false, code: 401 };
-    }
+    // Since the user can login with username or email we need to check for both
+    try {
 
-    const token = AuthService.generateJWT(result.user);
-    return { success: true, code: 200, token, user: result.user };
+      const result = await DBUsers.findOne({ $or: [{ username: login }, { email: login }] });
+
+      // result will be null if it doesn't match
+      if (!result) {
+        return { success: false, code: notFoundCode };
+      }
+
+      // Defining if the password is valid
+      const isPasswordValid = await bcrypt.compare(
+        password,
+        result.user.password,
+      );
+
+      if (!isPasswordValid) {
+        return { success: false, code: unauthorizedCode };
+      }
+
+      // If the login is valid a token is created and sent back
+      const token = AuthService.generateJWT(result.user);
+      return { success: true, code: okCode, token, user: result.user };
+
+    } catch (error) {
+      console.log(error);
+      return { success: false, code: internalServerErrorCode }
+    }
   }
 
   /**
@@ -134,11 +123,11 @@ class AuthService {
   static async createAccount(email, username, password) {
     try {
       const hashedPassword = await AuthService.hashPassword(password);
-      const newUser = await userModel.create({
-        username,
-        email,
-        password: hashedPassword,
-      });
+      // const newUser = await userModel.create({
+      //   username,
+      //   email,
+      //   password: hashedPassword,
+      // });
 
       if (!newUser) {
         return { accountCreated: false, code: 400 };
@@ -281,7 +270,6 @@ class AuthService {
    */
   static async deleteUser(userId) {
     try {
-      await userModel.deleteOne({ _id: userId });
       return { deleted: true, code: 204 };
     } catch (error) {
       return { deleted: false, code: 500 };
@@ -310,9 +298,9 @@ class AuthService {
 
     try {
       if (isEmail) {
-        user = await userModel.findOne({ email: login });
+        /* u */ser = await userModel.findOne({ email: login });
       } else {
-        user = await userModel.findOne({ username: login });
+        /* u */ser = await userModel.findOne({ username: login });
       }
 
       if (!user) {
