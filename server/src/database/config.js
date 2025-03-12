@@ -1,11 +1,12 @@
 import { MongoClient } from 'mongodb';
 
 let db;
+let client;
 
 async function connectDB() {
   try {
     const uri = process.env.DB_STRING;
-    const client = new MongoClient(uri);
+    client = new MongoClient(uri);
 
     await client.connect();
     db = client.db(process.env.DB_NAME);
@@ -13,7 +14,7 @@ async function connectDB() {
     console.log('Connected to MongoDB');
   } catch (err) {
     console.error('Failed to connect to MongoDB', err);
-    process.exit(1); // Stop the app if the DB connection fails
+    process.exit(1);
   }
 }
 
@@ -24,4 +25,12 @@ function getDB(col) {
   return db.collection(col);
 }
 
-export default { connectDB, getDB }
+async function closeDB() {
+  if (client) {
+    await client.close();
+    console.log('MongoDB connection closed');
+  }
+}
+
+export default { connectDB, getDB, closeDB };
+

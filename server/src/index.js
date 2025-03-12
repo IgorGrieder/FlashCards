@@ -45,6 +45,21 @@ const startServer = async () => {
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });
+
+    // Graceful shutdown
+    process.on('SIGINT', async () => {
+      console.log('Shutting down server...');
+      try {
+        await DB.closeDB();
+        server.close(() => {
+          console.log('Server closed');
+          process.exit(0);
+        });
+      } catch (error) {
+        console.log("Error closing connection")
+        process.exit(1);
+      }
+    });
   } catch (error) {
     console.log(error.message);
     process.exit(1); // Exit the process if DB connection fails
