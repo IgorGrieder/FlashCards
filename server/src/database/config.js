@@ -32,5 +32,5 @@ async function closeDB() {
   }
 }
 
-export default { connectDB, getDB, closeDB };
+export default { connectDB, getDB, closeDB, client };
 
