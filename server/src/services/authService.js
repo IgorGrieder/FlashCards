@@ -1,9 +1,11 @@
 import bcrypt from "bcrypt";
 import jsonwebtoken from "jsonwebtoken";
+import { ObjectId } from "mongodb";
 import { DBUsers } from "../database/collectionsInstances.js";
-import { created, internalServerErrorCode, notFoundCode, okCode } from "../constants/codeConstants.js";
+import { created, internalServerErrorCode, noContentCode, notFoundCode, okCode } from "../constants/codeConstants.js";
 import { unauthorizedCode, badRequest } from "../constants/codeConstants.js";
-import { saltRounds } from "../constants/jwtConstants.js";
+import { expiresIn, saltRounds } from "../constants/jwtConstants.js";
+import { errorToken, expiredToken, userNotFound } from "../constants/messageConstants.js";
 
 class AuthService {
   static async logIn(login, password) {
@@ -95,7 +97,7 @@ class AuthService {
     };
 
     return jsonwebtoken.sign(payload, process.env.SECRET_KEY_JWT, {
-      expiresIn: "1h",
+      expiresIn
     });
   }
 
@@ -115,13 +117,13 @@ class AuthService {
     } catch (error) {
       // Log or handle specific error types if needed
       if (error.name === "TokenExpiredError") {
-        return { validated: false, message: "Token has expired" };
+        return { validated: false, message: expiredToken };
       } else if (error.name === "JsonWebTokenError") {
-        return { validated: false, message: "Invalid token" };
+        return { validated: false, message: errorToken };
       } else {
         return {
           validated: false,
-          message: "An error occurred while validating the token",
+          message: errorToken,
         };
       }
     }
@@ -129,12 +131,39 @@ class AuthService {
 
   static async deleteUser(userId) {
     try {
-      return { deleted: true, code: 204 };
+      const result = await DBUsers().deleteOne({ _id: new ObjectId(userId) });
+
+      if (result.deletedCount == 0) {
+        return {
+          deleted: false,
+          message: userNotFound
+        }
+      }
+
+      return { deleted: true, code: noContentCode };
     } catch (error) {
-      return { deleted: false, code: 500 };
+      return { deleted: false, code: internalServerErrorCode };
     }
   }
 
+  static async findUser(login, isEmail) {
+    try {
+      let result = null;
+
+      if (isEmail) {
+        result = await DBUsers().findOne({ email: login });
+      } else {
+        result = await DBUsers().findOne({ username: login });
+      }
+
+      if (!result) {
+        return false
+      }
+      return true
+    } catch (error) {
+      return false
+    }
+  }
 }
 
 export default AuthService;

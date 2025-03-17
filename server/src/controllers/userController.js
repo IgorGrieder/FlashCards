@@ -1,8 +1,8 @@
 import { Router } from "express";
 import AuthService from "../services/authService.js";
 import Utils from "../utils/utils.js";
-import { internalServerErrorCode, okCode } from "../constants/codeConstants.js";
-import { unauthorizedMessage, unexpectedError } from "../constants/messageConstants.js";
+import { badRequest, internalServerErrorCode, noContentCode, okCode } from "../constants/codeConstants.js";
+import { emailAlreadyUsed, invalidArguments, logoutMessage, passwordChanged, unauthorizedMessage, unexpectedError, usernameAlreadyUsed } from "../constants/messageConstants.js";
 import { jwt, maxAge, sameSite } from "../constants/jwtConstants.js";
 
 // Router instance
@@ -12,9 +12,9 @@ const userRoutes = new Router();
 const validateLogIn = (req, res, next) => {
   const { login, password } = req.body;
   if (!login || !password) {
-    return res.status(400).json({
+    return res.status(badRequest).json({
       logged: false,
-      message: "Email/username and password are required.",
+      message: invalidArguments,
     });
   }
 
@@ -24,9 +24,9 @@ const validateLogIn = (req, res, next) => {
 const validatePasswordChange = (req, res, next) => {
   const { login, oldPassword, newPassword } = req.body;
   if (!login || !oldPassword || !newPassword) {
-    return res.status(400).json({
+    return res.status(badRequest).json({
       logged: false,
-      message: "Email/username and passwords are required.",
+      message: invalidArguments,
     });
   }
 
@@ -35,28 +35,29 @@ const validatePasswordChange = (req, res, next) => {
 
 const validateCreateAccount = async (req, res, next) => {
   const { username, email, password } = req.body;
-  let user;
+  let result;
 
   if (!username || !email || !password) {
-    return res.status(400).json({
+    return res.status(badRequest).json({
       accountCreated: false,
-      message: "Email/username and password are required.",
+      message: invalidArguments,
     });
   }
 
-  user = await AuthService.findUser(username);
-  if (user.success) {
-    return res.status(400).json({
+  result = await AuthService.findUser(username, false);
+
+  if (result) {
+    return res.status(badRequest).json({
       accountCreated: false,
-      message: "Username already exists, try another one",
+      message: usernameAlreadyUsed,
     });
   }
 
-  user = await AuthService.findUser(email);
+  result = await AuthService.findUser(email, true);
   if (user.success) {
-    return res.status(400).json({
+    return res.status(badRequest).json({
       accountCreated: false,
-      message: "Email already exists, try another one",
+      message: emailAlreadyUsed,
     });
   }
 
@@ -124,10 +125,10 @@ userRoutes.post("/login", validateLogIn, async (req, res) => {
 
 userRoutes.post("/logout", (req, res) => {
   res.clearCookie("jwt");
-  res.json({ loggedOut: true, message: "Logged out successfully" });
+  res.json({ loggedOut: true, message: logoutMessage });
 });
 
-userRoutes.patch(
+userRoutes.post(
   "/change-password",
   validatePasswordChange,
   async (req, res) => {
@@ -138,18 +139,19 @@ userRoutes.patch(
       oldPassword,
       newPassword,
     );
+
     if (result.passwordUpdated) {
-      return res.status(200).json({
+      return res.status(okCode).json({
         passwordChanged: true,
-        message: "Your password was changed successfully",
+        message: passwordChanged,
       });
     }
 
     // Internal server error
-    if (result.code === 500) {
-      return res.status(500).json({
+    if (result.code === internalServerErrorCode) {
+      return res.status(result.code).json({
         passwordChanged: false,
-        message: "An unexpected error occurred.",
+        message: unexpectedError,
       });
     }
   },
@@ -159,19 +161,25 @@ userRoutes.delete(
   "/delete-account",
   Utils.validateJWTMiddlewear,
   async (req, res) => {
-    const { userId } = req.body.decoded;
+    const { userId } = req.body;
 
     const result = await AuthService.deleteUser(userId);
 
-    // Internal server error
-    if (result.code === 500) {
-      return res.status(500).json({
-        accountCreated: false,
-        message: "An unexpected error occurred.",
+    // In case of success
+    if (result.code = noContentCode) {
+      return res.status(result.code).json({
+        deleted: true
       });
     }
 
-    return res.status(204).send();
+    // Internal server error
+    if (result.code === internalServerErrorCode) {
+      return res.status(result.code).json({
+        deleted: false,
+        message: unexpectedError,
+      });
+    }
+
   },
 );
 
