@@ -72,20 +72,20 @@ userRoutes.post("/create-account", validateCreateAccount, async (req, res) => {
     res.cookie("jwt", result.token, {
       httpOnly: true,
       secure: process.env.ENVIROMENT === "DEV" ? false : true,
-      sameSite: "strict",
-      maxAge: 3600000,
+      sameSite,
+      maxAge,
     });
 
     return res
-      .status(200)
+      .status(okCode)
       .json({ accountCreated: true, username: result.username });
   }
 
   // Internal server error
-  if (result.code === 500) {
-    return res.status(500).json({
+  if (result.code === internalServerErrorCode) {
+    return res.status(result.code).json({
       accountCreated: false,
-      message: "An unexpected error occurred.",
+      message: unexpectedError,
     });
   }
 });
@@ -98,8 +98,8 @@ userRoutes.post("/login", validateLogIn, async (req, res) => {
     res.cookie(jwt, result.token, {
       httpOnly: true,
       secure: process.env.ENVIROMENT === "DEV" ? false : true,
-      sameSite: sameSite,
-      maxAge: maxAge,
+      sameSite,
+      maxAge,
     });
 
     return res

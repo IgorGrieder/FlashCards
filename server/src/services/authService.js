@@ -1,8 +1,8 @@
 import bcrypt from "bcrypt";
 import jsonwebtoken from "jsonwebtoken";
 import { DBUsers } from "../database/collectionsInstances.js";
-import { internalServerErrorCode, notFoundCode, okCode } from "../constants/codeConstants.js";
-import { unauthorizedCode } from "../constants/codeConstants.js";
+import { created, internalServerErrorCode, notFoundCode, okCode } from "../constants/codeConstants.js";
+import { unauthorizedCode, badRequest } from "../constants/codeConstants.js";
 
 class AuthService {
   static async logIn(login, password) {
@@ -64,21 +64,21 @@ class AuthService {
   static async createAccount(email, username, password) {
     try {
       const hashedPassword = await AuthService.hashPassword(password);
-      // const newUser = await userModel.create({
-      //   username,
-      //   email,
-      //   password: hashedPassword,
-      // });
+      const newUser = await DBUsers().insertOne({
+        username,
+        email,
+        password: hashedPassword,
+      });
 
       if (!newUser) {
-        return { accountCreated: false, code: 400 };
+        return { accountCreated: false, code: badRequest };
       }
 
       const token = AuthService.generateJWT(newUser);
 
-      return { accountCreated: true, code: 201, token, username };
+      return { accountCreated: true, code: created, token, username };
     } catch (error) {
-      return { accountCreated: false, code: 500 };
+      return { accountCreated: false, code: internalServerErrorCode };
     }
   }
 
