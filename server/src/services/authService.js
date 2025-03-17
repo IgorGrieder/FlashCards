@@ -3,6 +3,7 @@ import jsonwebtoken from "jsonwebtoken";
 import { DBUsers } from "../database/collectionsInstances.js";
 import { created, internalServerErrorCode, notFoundCode, okCode } from "../constants/codeConstants.js";
 import { unauthorizedCode, badRequest } from "../constants/codeConstants.js";
+import { saltRounds } from "../constants/jwtConstants.js";
 
 class AuthService {
   static async logIn(login, password) {
@@ -37,27 +38,31 @@ class AuthService {
   }
 
   static async updatePassword(login, oldPassword, newPassword) {
-    const result = await AuthService.findUser(login);
-
-    if (!result.success) {
-      return { passwordUpdated: false, code: result.code };
-    }
-
-    const isPasswordValid = await bcrypt.compare(
-      oldPassword,
-      result.user.password,
-    );
-    if (!isPasswordValid) {
-      return { passwordUpdated: false, code: 401 };
-    }
-
     try {
+      const result = await DBUsers().findOne({ $or: [{ username: login }, { email: login }] });
+
+      // We can return if we dont find a match
+      if (!result) {
+        return { passwordUpdated: false, code: notFoundCode };
+      }
+
+      const isPasswordValid = await bcrypt.compare(
+        oldPassword,
+        result.password,
+      );
+
+      if (!isPasswordValid) {
+        return { passwordUpdated: false, code: unauthorizedCode };
+      }
+
+      // Hashing the new password
       const hashedNewPassword = await AuthService.hashPassword(newPassword);
-      result.user.password = hashedNewPassword;
-      await result.user.save();
-      return { passwordUpdated: true, code: 200 };
+
+      await DBUsers().updateOne({ _id: result._id }, { $set: { password: hashedNewPassword } });
+      return { passwordUpdated: true, code: okCode };
     } catch (error) {
-      return { passwordUpdated: false, code: 500 };
+      console.log(error);
+      return { passwordUpdated: false, code: internalServerErrorCode };
     }
   }
 
@@ -96,7 +101,6 @@ class AuthService {
 
   static async hashPassword(password) {
     try {
-      const saltRounds = 10;
       const hashedPassword = await bcrypt.hash(password, saltRounds);
       return hashedPassword;
     } catch (error) {
@@ -131,32 +135,6 @@ class AuthService {
     }
   }
 
-  static async findUser(login) {
-    let isEmail = false;
-    let user;
-
-    if (login.includes("@")) {
-      isEmail = true;
-    }
-
-    try {
-      if (isEmail) {
-        /* u */ser = await userModel.findOne({ email: login });
-      } else {
-        /* u */ser = await userModel.findOne({ username: login });
-      }
-
-      if (!user) {
-        return { success: false, code: 400 };
-      }
-    } catch (error) {
-      return {
-        success: false,
-        code: 500,
-      };
-    }
-    return { success: true, user };
-  }
 }
 
 export default AuthService;
