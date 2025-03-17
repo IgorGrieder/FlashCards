@@ -123,7 +123,7 @@ userRoutes.post("/login", validateLogIn, async (req, res) => {
   });
 });
 
-userRoutes.post("/logout", (req, res) => {
+userRoutes.post("/logout", (_, res) => {
   res.clearCookie("jwt");
   res.json({ loggedOut: true, message: logoutMessage });
 });
