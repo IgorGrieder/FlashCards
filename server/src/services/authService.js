@@ -27,7 +27,7 @@ class AuthService {
       }
 
       // If the login is valid a token is created and sent back
-      const token = AuthService.generateJWT(result.user);
+      const token = AuthService.generateJWT(result);
       return { success: true, code: okCode, token, user: result };
 
     } catch (error) {
