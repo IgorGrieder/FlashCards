@@ -4,38 +4,20 @@ import { ObjectId } from "mongodb";
 
 class CardService {
   static async addCardToCollection(
-    answer,
-    category,
-    question,
-    img,
+    card,
     collectionId,
   ) {
     try {
-      const newCard = { answer, category, question };
+      const collectionModified = await DBCollections().findOneAndUpdate({ _id: new ObjectId(collectionId) }, { $push: { cards: card } });
 
-      // img's are not required for a flash card
-      if (img) {
-        newCard.img = img;
+      if (!collectionModified) {
+        return { success: false, code: 400 };
       }
 
-      // const collectionToAdd = await collectionModel.findById(collectionId);
-      //
-      // if (collectionToAdd) {
-      //   collectionToAdd.cards.push(newCard);
-      //
-      //   await collectionToAdd.save();
-      //
-      //   const cardAdded = collectionToAdd.cards(collectionToAdd.cards.length - 1)
-      //   return {
-      //     success: true,
-      //     code: 203,
-      //     cardAdded
-      //   }
-      // }
-      //
-      return { success: false, code: 400 };
+      return { success: true, code: noContentCode }
     } catch (error) {
-      return { success: false, code: 500 };
+      console.log(error);
+      return { success: false, code: internalServerErrorCode };
     }
   }
 
@@ -112,3 +94,5 @@ class CardService {
     }
   }
 }
+
+export default CardService

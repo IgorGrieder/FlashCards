@@ -86,34 +86,30 @@ cardRoutes.post(
   "/add-card",
   Utils.validateJWTMiddlewear,
   async (req, res) => {
-    const { answer, category, question, img } = req.body.card;
+    const card = req.body.card;
     const { collectionId } = req.body;
 
     const result = await CardService.addCardToCollection(
-      answer,
-      category,
-      question,
-      img,
+      card,
       collectionId,
     );
 
     if (result.success) {
-      return res.status(201).json({
+      return res.status(result.code).json({
         cardAdded: true,
         message: cardAdded,
-        card: result.cardAdded
       });
     }
 
     // Internal server error
-    if (result.code === 500) {
-      return res.status(500).json({
+    if (result.code === internalServerErrorCode) {
+      return res.status(result.code).json({
         cardAdded: false,
         message: unexpectedError,
       });
     }
 
-    return res.status(400).json({
+    return res.status(badRequest).json({
       cardAdded: false,
       message: errorAddCard,
     });
