@@ -1,20 +1,11 @@
 import cardRoutes from "./cardController.js";
 import userRoutes from "./userController.js";
+import collectionRoutes from "./collectionController.js";
 
-/**
- * setUpRoutes - This function sets up the application's routes by attaching route handlers
- * for various API endpoints. It configures the Express app to use the specified route files
- * for handling different types of requests, such as card-related operations and user login.
- *
- * 1. Attaches the routes defined in `cardRoutes` to handle requests related to flashcards.
- * 2. Attaches the routes defined in `logInRoutes` to handle requests related to user authentication.
- *
- * @param {Object} app - The Express app instance where the routes will be added.
- * @returns {void}
- */
 const setUpRoutes = (app) => {
   app.use("/api/cards", cardRoutes);
   app.use("/api/users", userRoutes);
+  app.use("/api/collections", collectionRoutes)
 };
 
 export default setUpRoutes;
