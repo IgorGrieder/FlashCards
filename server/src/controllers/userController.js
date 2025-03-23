@@ -1,5 +1,5 @@
 import { Router } from "express";
-import AuthService from "../services/authService.js";
+import LoginService from "../services/loginService.js";
 import Utils from "../utils/utils.js";
 import { badRequest, internalServerErrorCode, noContentCode, notFoundCode, okCode } from "../constants/codeConstants.js";
 import { emailAlreadyUsed, invalidArguments, logoutMessage, passwordChanged, unauthorizedMessage, unexpectedError, usernameAlreadyUsed, userNotFound } from "../constants/messageConstants.js";
@@ -44,7 +44,7 @@ const validateCreateAccount = async (req, res, next) => {
     });
   }
 
-  result = await AuthService.findUser(username, false);
+  result = await LoginService.findUser(username, false);
 
   if (result) {
     return res.status(badRequest).json({
@@ -53,7 +53,7 @@ const validateCreateAccount = async (req, res, next) => {
     });
   }
 
-  result = await AuthService.findUser(email, true);
+  result = await LoginService.findUser(email, true);
 
   if (result) {
     return res.status(badRequest).json({
@@ -68,7 +68,7 @@ const validateCreateAccount = async (req, res, next) => {
 // Routes ---------------------------------------------------------------------
 userRoutes.post("/create-account", validateCreateAccount, async (req, res) => {
   const { email, username, password } = req.body;
-  const result = await AuthService.createAccount(email, username, password);
+  const result = await LoginService.createAccount(email, username, password);
 
   if (result.accountCreated) {
     res.cookie("jwt", result.token, {
@@ -94,7 +94,7 @@ userRoutes.post("/create-account", validateCreateAccount, async (req, res) => {
 
 userRoutes.post("/login", validateLogIn, async (req, res) => {
   const { login, password } = req.body;
-  const result = await AuthService.logIn(login, password);
+  const result = await LoginService.logIn(login, password);
 
   if (result.success) {
     res.cookie(jwt, result.token, {
@@ -135,7 +135,7 @@ userRoutes.post(
   async (req, res) => {
     const { login, oldPassword, newPassword } = req.body;
 
-    const result = await AuthService.updatePassword(
+    const result = await LoginService.updatePassword(
       login,
       oldPassword,
       newPassword,
@@ -173,7 +173,7 @@ userRoutes.delete(
   async (req, res) => {
     const { userId } = req.body;
 
-    const result = await AuthService.deleteUser(userId);
+    const result = await LoginService.deleteUser(userId);
 
     // In case of success
     if (result.code = noContentCode) {

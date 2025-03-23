@@ -1,6 +1,6 @@
 import { unauthorizedCode } from "../constants/codeConstants.js";
 import { invalidToken } from "../constants/messageConstants.js";
-import AuthService from "../services/authService.js";
+import LoginService from "../services/loginService.js";
 
 class Utils {
   static validateJWTMiddlewear(req, res, next) {
@@ -12,7 +12,7 @@ class Utils {
         return res.status(unauthorizedCode).json({ message: "No token provided" });
       }
 
-      const result = AuthService.validateJWT(token);
+      const result = LoginService.validateJWT(token);
 
       if (!result.validated) {
         return res.status(unauthorizedCode).json({ message: result.message });
