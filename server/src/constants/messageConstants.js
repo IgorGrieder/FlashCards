@@ -11,6 +11,7 @@ export const expiredToken = "Token has expired";
 export const invalidToken = "Invalid token";
 export const errorToken = "An error occurred while validating the token";
 export const userNotFound = "User was not found";
+export const collectionNotFound = "Collection was not found";
 export const passwordChanged = "Your password was changed successfully";
 export const logoutMessage = "Logged out successfully";
 export const invalidArguments = "Email/username and password are required";

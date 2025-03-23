@@ -97,28 +97,26 @@ class CollectionService {
   }
 
   static async deleteCardFromCollection(
-    category,
-    question,
-    userId,
-    collectionName,
+    collectionId, cardId
   ) {
     try {
-      // await collectionModel.findOneAndUpdate(
-      //   {
-      //     owner: userId,
-      //     name: collectionName,
-      //   },
-      //   {
-      //     $pull: { cards: { category, question } },
-      //   },
-      // );
+      const updatedCollection = await DBCollections().findOneAndUpdate({ _id: new ObjectId(collectionId) }, { $pull: { cards: { _id: new ObjectId(cardId) } } })
+      console.log(updatedCollection);
+
+      if (!updatedCollection) {
+        return {
+          success: false,
+          code: badRequest,
+        };
+      }
 
       return {
         success: true,
-        code: 204,
+        code: noContentCode,
       };
     } catch (error) {
-      return { success: false, code: 500 };
+      console.log(error);
+      return { success: false, code: internalServerErrorCode };
     }
   }
 

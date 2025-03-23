@@ -1,7 +1,7 @@
 import { Router } from "express";
 import Utils from "../utils/utils.js";
 import CollectionService from "../services/collectionService.js";
-import { cardAdded, collectionCreated, deletedCollection, errorAddCard, errorCreateCollection, incompleteReqInfo, unexpectedError } from "../constants/messageConstants.js";
+import { cardAdded, collectionCreated, collectionNotFound, deletedCollection, errorAddCard, errorCreateCollection, incompleteReqInfo, unexpectedError } from "../constants/messageConstants.js";
 import { badRequest, created, internalServerErrorCode, noContentCode } from "../constants/codeConstants.js";
 
 // Router instance
@@ -9,10 +9,10 @@ const cardRoutes = new Router();
 
 // Middlewares ----------------------------------------------------------------
 const validateCardToDelete = (req, res, next) => {
-  const { question, category, collectionName } = req.body.card;
+  const { collectionId, cardId } = req.body.card;
 
   // if any of the given requirements aren't given we must return a bad call
-  if (!question || !category || !collectionName) {
+  if (!collectionId || !cardId) {
     return res.status(badRequest).json({
       collectionCreated: false,
       message: incompleteReqInfo,
@@ -25,6 +25,7 @@ const validateCardToDelete = (req, res, next) => {
 const validateCreateCollection = (req, res, next) => {
   const { name, category } = req.body;
 
+  // if any of the given requirements aren't given we must return a bad call
   if (!name || !category) {
     return res.status(badRequest).json({
       collectionCreated: false,
@@ -137,23 +138,23 @@ cardRoutes.patch(
   Utils.validateJWTMiddlewear,
   validateCardToDelete,
   async (req, res) => {
-    const { userId } = req.body.decoded;
-    const { category, question, collectionName } = req.body.card;
+    const { collectionId, cardId } = req.body.card;
 
-    const result = await CollectionService.deleteCardFromCollection(
-      category,
-      question,
-      userId,
-      collectionName,
-    );
+    const result = await CollectionService.deleteCardFromCollection(collectionId, cardId);
 
     if (result.success) {
-      return res.status(204);
+      return res.status(noContentCode);
     }
 
+    if (result.code === badRequest) {
+      return res.status(result.code).json({
+        collectionCreated: false,
+        message: collectionNotFound
+      })
+    }
     // Internal server error
-    if (result.code === 500) {
-      return res.status(500).json({
+    if (result.code === internalServerErrorCode) {
+      return res.status(result.code).json({
         collectionCreated: false,
         message: unexpectedError,
       });
