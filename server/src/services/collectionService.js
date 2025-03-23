@@ -1,6 +1,7 @@
 import { DBCollections } from "../database/collectionsInstances.js"
 import { internalServerErrorCode, created, noContentCode, okCode, badRequest } from "../constants/codeConstants.js";
 import { ObjectId } from "mongodb";
+import { unexpectedError } from "../constants/messageConstants.js";
 
 class CollectionService {
 
@@ -43,14 +44,19 @@ class CollectionService {
 
   static async deleteCollection(collectionId) {
     try {
-      // const result = await collectionModel.findByIdAndDelete(collectionId)
-      // if (result.deletedCount === 0) {
-      //   return { success: false, code: 404, message: "Collection not found" };
-      // }
+      const result = await DBCollections().deleteOne({ _id: new ObjectId(collectionId) })
 
-      return { success: true, code: 204 };
+      if (result.deletedCount == 0) {
+        return {
+          deleted: false,
+          message: userNotFound
+        }
+      }
+
+      return { success: true, code: noContentCode };
     } catch (error) {
-      return { success: false, code: 500, message: "Internal server error" };
+      console.log(error);
+      return { success: false, code: internalServerErrorCode, message: unexpectedError };
     }
   }
 

@@ -131,7 +131,7 @@ class AuthService {
 
   static async deleteUser(userId) {
     try {
-      const result = await DBUsers().deleteOne({ _id: ObjectId(userId) });
+      const result = await DBUsers().deleteOne({ _id: new ObjectId(userId) });
 
       if (result.deletedCount == 0) {
         return {

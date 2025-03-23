@@ -13,7 +13,7 @@ const validateCardToDelete = (req, res, next) => {
 
   // if any of the given requirements aren't given we must return a bad call
   if (!question || !category || !collectionName) {
-    return res.status(400).json({
+    return res.status(badRequest).json({
       collectionCreated: false,
       message: incompleteReqInfo,
     });
@@ -65,7 +65,7 @@ cardRoutes.get(
   },
 );
 
-cardRoutes.post(
+cardRoutes.delete(
   "/delete-collection",
   Utils.validateJWTMiddlewear,
   async (req, res) => {
@@ -73,21 +73,21 @@ cardRoutes.post(
     const result = await CollectionService.deleteCollection(collectionId);
 
     if (result.success) {
-      return res.status(204).json({
+      return res.status(result.code).json({
         collectionDeleted: true,
         message: deletedCollection,
       });
     }
 
     // Internal server error
-    if (result.code === 500) {
-      return res.status(500).json({
+    if (result.code === internalServerErrorCode) {
+      return res.status(result.code).json({
         collectionDeleted: true,
         message: unexpectedError,
       });
     }
 
-    return res.status(400).json({
+    return res.status(badRequest).json({
       collectionDeleted: true,
       message: errorCreateCollection,
     });
