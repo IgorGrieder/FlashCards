@@ -2,7 +2,7 @@ import { Router } from "express";
 import Utils from "../utils/utils.js";
 import CollectionService from "../services/collectionService.js";
 import { cardAdded, collectionCreated, deletedCollection, errorAddCard, errorCreateCollection, incompleteReqInfo, unexpectedError } from "../constants/messageConstants.js";
-import { internalServerErrorCode, noContentCode } from "../constants/codeConstants.js";
+import { badRequest, created, internalServerErrorCode, noContentCode } from "../constants/codeConstants.js";
 
 // Router instance
 const cardRoutes = new Router();
@@ -26,7 +26,7 @@ const validateCreateCollection = (req, res, next) => {
   const { name, category } = req.body;
 
   if (!name || !category) {
-    return res.status(400).json({
+    return res.status(badRequest).json({
       collectionCreated: false,
       message: incompleteReqInfo,
     });
@@ -110,7 +110,7 @@ cardRoutes.post(
     );
 
     if (result.success) {
-      return res.status(201).json({
+      return res.status(created).json({
         collectionCreated: true,
         message: collectionCreated,
         collection: result.collection
@@ -118,14 +118,14 @@ cardRoutes.post(
     }
 
     // Internal server error
-    if (result.code === 500) {
-      return res.status(500).json({
+    if (result.code === internalServerErrorCode) {
+      return res.status(result.code).json({
         collectionCreated: false,
         message: unexpectedError,
       });
     }
 
-    return res.status(400).json({
+    return res.status(badRequest).json({
       collectionCreated: false,
       message: errorCreateCollection,
     });
