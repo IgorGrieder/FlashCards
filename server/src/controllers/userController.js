@@ -1,8 +1,8 @@
 import { Router } from "express";
 import AuthService from "../services/authService.js";
 import Utils from "../utils/utils.js";
-import { badRequest, internalServerErrorCode, noContentCode, okCode } from "../constants/codeConstants.js";
-import { emailAlreadyUsed, invalidArguments, logoutMessage, passwordChanged, unauthorizedMessage, unexpectedError, usernameAlreadyUsed } from "../constants/messageConstants.js";
+import { badRequest, internalServerErrorCode, noContentCode, notFoundCode, okCode } from "../constants/codeConstants.js";
+import { emailAlreadyUsed, invalidArguments, logoutMessage, passwordChanged, unauthorizedMessage, unexpectedError, usernameAlreadyUsed, userNotFound } from "../constants/messageConstants.js";
 import { jwt, maxAge, sameSite } from "../constants/jwtConstants.js";
 
 // Router instance
@@ -54,7 +54,8 @@ const validateCreateAccount = async (req, res, next) => {
   }
 
   result = await AuthService.findUser(email, true);
-  if (user.success) {
+
+  if (result) {
     return res.status(badRequest).json({
       accountCreated: false,
       message: emailAlreadyUsed,
@@ -147,6 +148,14 @@ userRoutes.post(
       });
     }
 
+    // User Not Found
+    if (result.code === notFoundCode) {
+      return res.status(result.code).json({
+        passwordChanged: false,
+        message: userNotFound
+      })
+    }
+
     // Internal server error
     if (result.code === internalServerErrorCode) {
       return res.status(result.code).json({
@@ -154,6 +163,7 @@ userRoutes.post(
         message: unexpectedError,
       });
     }
+
   },
 );
 
