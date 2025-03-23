@@ -22,6 +22,22 @@ const validateCardToDelete = (req, res, next) => {
   next();
 };
 
+const validateCardToInsert = (req, res, next) => {
+  const { answer, topic, question } = req.body.card;
+  const collectionId = req.body.collectionId;
+
+  // if any of the given requirements aren't given we must return a bad call
+  if (!collectionId || !answer || !topic || !question) {
+    return res.status(badRequest).json({
+      collectionCreated: false,
+      message: incompleteReqInfo,
+    });
+  }
+
+  next();
+
+}
+
 // Routes ---------------------------------------------------------------------
 cardRoutes.patch(
   "/delete-card",
@@ -56,18 +72,22 @@ cardRoutes.patch(
   "/update-card",
   Utils.validateJWTMiddlewear,
   async (req, res) => {
-    const { cardId, collectionId } = req.body.card;
-    const { question, category, img, answer } = req.body.newCard;
+    const card = req.body.card;
+    const { collectionId } = req.body;
 
-    const result = await CardService.updateCardFromCollection(
-      answer,
-      category,
-      question,
-      img,
-      collectionId,
-      cardId
-    );
 
+    // const { cardId, collectionId } = req.body.card;
+    // const { question, category, img, answer } = req.body.newCard;
+    //
+    // const result = await CardService.updateCardFromCollection(
+    //   answer,
+    //   category,
+    //   question,
+    //   img,
+    //   collectionId,
+    //   cardId
+    // );
+    //
     if (result.success) {
       return res.status(204).json({ cardUpdated: true });
     }
@@ -85,6 +105,7 @@ cardRoutes.patch(
 cardRoutes.post(
   "/add-card",
   Utils.validateJWTMiddlewear,
+  validateCardToInsert,
   async (req, res) => {
     const card = req.body.card;
     const { collectionId } = req.body;

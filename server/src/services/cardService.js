@@ -8,7 +8,11 @@ class CardService {
     collectionId,
   ) {
     try {
-      const collectionModified = await DBCollections().findOneAndUpdate({ _id: new ObjectId(collectionId) }, { $push: { cards: card } });
+      // Adding an ObjectID for the card
+      card._id = new ObjectId();
+
+      const collectionModified = await DBCollections().findOneAndUpdate(
+        { _id: new ObjectId(collectionId) }, { $push: { cards: card } });
 
       if (!collectionModified) {
         return { success: false, code: 400 };
@@ -25,8 +29,8 @@ class CardService {
     collectionId, cardId
   ) {
     try {
-      const updatedCollection = await DBCollections().findOneAndUpdate({ _id: new ObjectId(collectionId) }, { $pull: { cards: { _id: new ObjectId(cardId) } } })
-      console.log(updatedCollection);
+      const updatedCollection = await DBCollections().findOneAndUpdate({ _id: new ObjectId(collectionId) },
+        { $pull: { cards: { _id: new ObjectId(cardId) } } })
 
       if (!updatedCollection) {
         return {
