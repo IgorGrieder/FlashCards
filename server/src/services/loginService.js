@@ -30,7 +30,7 @@ class LoginService {
       }
 
       // If the login is valid a token is created and sent back
-      const token = LoginService.generateJWT(result);
+      const token = await LoginService.generateJWT(result);
       return { success: true, code: okCode, token, user: result };
 
     } catch (error) {
@@ -81,7 +81,7 @@ class LoginService {
         return { accountCreated: false, code: badRequest };
       }
 
-      const token = LoginService.generateJWT(newUser);
+      const token = await LoginService.generateJWT(newUser);
 
       return { accountCreated: true, code: created, token, username };
     } catch (error) {
@@ -90,15 +90,22 @@ class LoginService {
   }
 
   static generateJWT(user) {
-    const payload = {
-      userId: user._id,
-      username: user.username,
-      email: user.email,
-    };
+    return new Promise((resolve) => {
+      const payload = {
+        userId: user._id,
+        username: user.username,
+        email: user.email,
+      };
 
-    return jsonwebtoken.sign(payload, process.env.SECRET_KEY_JWT, {
-      expiresIn
-    });
+      jsonwebtoken.sign(payload, process.env.SECRET_KEY_JWT, {
+        expiresIn
+      }, (err, token) => {
+        if (err) {
+          resolve({ generated: false, message: err.message });
+        }
+        resolve({ generated: true, token });
+      })
+    })
   }
 
   static async hashPassword(password) {
