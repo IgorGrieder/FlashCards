@@ -6,6 +6,7 @@ export const errorCreateCollection = "We couldn't create your card collection";
 export const collectionCreated = "Your collection was created successfully";
 export const cardAdded = "Card was added to your collection";
 export const errorAddCard = "We couldn't add your card to the collection";
+export const errorUpdateCard = "We couldn't update your card";
 export const unauthorizedMessage = "Invalid credentials";
 export const expiredToken = "Token has expired";
 export const invalidToken = "Invalid token";

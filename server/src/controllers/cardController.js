@@ -1,7 +1,7 @@
 import { Router } from "express";
 import Utils from "../utils/utils.js";
 import CardService from "../services/cardService.js";
-import { cardAdded, collectionNotFound, errorAddCard, incompleteReqInfo, unexpectedError } from "../constants/messageConstants.js";
+import { cardAdded, collectionNotFound, errorAddCard, errorUpdateCard, incompleteReqInfo, unexpectedError } from "../constants/messageConstants.js";
 import { badRequest, internalServerErrorCode, noContentCode } from "../constants/codeConstants.js";
 
 // Router instance
@@ -9,7 +9,7 @@ const cardRoutes = new Router();
 
 // Middlewares ----------------------------------------------------------------
 const validateCardToDelete = (req, res, next) => {
-  const { collectionId, cardId } = req.body.card;
+  const { collectionId, cardId } = req.body;
 
   // if any of the given requirements aren't given we must return a bad call
   if (!collectionId || !cardId) {
@@ -44,12 +44,12 @@ cardRoutes.patch(
   Utils.validateJWTMiddlewear,
   validateCardToDelete,
   async (req, res) => {
-    const { collectionId, cardId } = req.body.card;
+    const { collectionId, cardId } = req.body;
 
     const result = await CardService.deleteCardFromCollection(collectionId, cardId);
 
     if (result.success) {
-      return res.status(noContentCode);
+      return res.status(noContentCode).send();
     }
 
     if (result.code === badRequest) {
@@ -73,32 +73,27 @@ cardRoutes.patch(
   Utils.validateJWTMiddlewear,
   async (req, res) => {
     const card = req.body.card;
-    const { collectionId } = req.body;
+    const { cardId, collectionId } = req.body;
 
+    const result = await CardService.updateCard(card, cardId, collectionId);
 
-    // const { cardId, collectionId } = req.body.card;
-    // const { question, category, img, answer } = req.body.newCard;
-    //
-    // const result = await CardService.updateCardFromCollection(
-    //   answer,
-    //   category,
-    //   question,
-    //   img,
-    //   collectionId,
-    //   cardId
-    // );
-    //
     if (result.success) {
-      return res.status(204).json({ cardUpdated: true });
+      return res.status(noContentCode).send();
     }
 
     // Internal server error
-    if (result.code === 500) {
-      return res.status(500).json({
+    if (result.code === internalServerErrorCode) {
+      return res.status(result.code).json({
         cardUpdated: false,
         message: unexpectedError,
       });
     }
+
+    return res.status(badRequest).json({
+      cardAdded: false,
+      message: errorUpdateCard,
+    });
+
   },
 );
 
