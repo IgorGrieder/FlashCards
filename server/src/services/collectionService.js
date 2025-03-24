@@ -29,11 +29,13 @@ class CollectionService {
         cards: []
       })
 
-      if (!newCollection) {
+      if (!newCollection.acknowledged) {
         return { success: false, code: badRequest };
       }
 
-      return { success: true, code: created, collection: newCollection };
+      // Returning the new collection
+      const collection = await DBCollections().findOne({ _id: new ObjectId(newCollection.insertedId) })
+      return { success: true, code: created, collection };
 
     } catch (error) {
       console.log(error);
