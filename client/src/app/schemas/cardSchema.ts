@@ -12,7 +12,7 @@ const imageSchema = z
 export const cardSchema = z.object({
   question: z.string().min(1, "Preencha a sua pergunta"),
   answer: z.string().min(1, "Preencha a sua resposta"),
-  category: z.string().min(1, "Preencha a sua categoria"),
+  topic: z.string().min(1, "Preencha o seu conteudo"),
   img: imageSchema
 })
 

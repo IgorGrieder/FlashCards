@@ -14,9 +14,10 @@ import convertToBase64 from "../utils/convertBase64"
 
 type NewCardSectionProps = {
   collection: Collection
+  closeSection: VoidFunction
 }
 
-export default function NewCardSection({ collection }: NewCardSectionProps) {
+export default function NewCardSection({ collection, closeSection }: NewCardSectionProps) {
 
   const imageRef = useRef<ImageRef>({ base64: null, contentType: null })
   const userCtx = useContext(UserContext)
@@ -38,7 +39,7 @@ export default function NewCardSection({ collection }: NewCardSectionProps) {
         const collectionIdx = userCtx.user.collections.findIndex((item) => item._id === collection._id)
 
         // Updating the context
-        if (collectionIdx !== -1 && request?.data.card) {
+        if (collectionIdx !== -1) {
           const collections = userCtx.user.collections.map((collection, index) => {
 
             if (index === collectionIdx) {
@@ -48,7 +49,7 @@ export default function NewCardSection({ collection }: NewCardSectionProps) {
 
                 return {
                   ...collection,
-                  cards: [...collection.cards, request.data.card]
+                  cards: [...collection.cards, data]
                 };
               }
             }
@@ -63,6 +64,7 @@ export default function NewCardSection({ collection }: NewCardSectionProps) {
                 collections: collections
               }
             })
+            closeSection();
           }
         }
       }
@@ -87,7 +89,7 @@ export default function NewCardSection({ collection }: NewCardSectionProps) {
         img: imageRef.current.base64 ? { base64: imageRef.current.base64, type: imageRef.current.contentType } : null,
         question: credentials.question,
         answer: credentials.answer,
-        category: credentials.category,
+        topic: credentials.topic,
       },
       collectionId: collection._id
     })
@@ -147,14 +149,14 @@ export default function NewCardSection({ collection }: NewCardSectionProps) {
             Categoria
           </label>
           <input
-            id="category"
+            id="topic"
             type="text"
-            {...register("category")}
-            className={`w-full px-3 py-2 border rounded ${errors.category ? "border-red-500" : "border-gray-300"
+            {...register("topic")}
+            className={`w-full px-3 py-2 border rounded ${errors.topic ? "border-red-500" : "border-gray-300"
               }`}
           />
-          {errors.category && (
-            <p className="text-red-500 text-sm mt-1">{errors.category.message}</p>
+          {errors.topic && (
+            <p className="text-red-500 text-sm mt-1">{errors.topic.message}</p>
           )}
         </div>
 

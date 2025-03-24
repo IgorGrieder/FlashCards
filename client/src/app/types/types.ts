@@ -69,7 +69,7 @@ export type ImageRef = {
 }
 
 export type Card = {
-  category: string;
+  topic: string;
   question: string;
   answer: string;
   img?: CardImage | null;
