@@ -1,7 +1,6 @@
 import { DBCollections } from "../database/collectionsInstances.js"
 import { internalServerErrorCode, noContentCode, badRequest, notFoundCode } from "../constants/codeConstants.js";
 import { ObjectId } from "mongodb";
-import { console } from "node:inspector/promises";
 
 class CardService {
   static async addCardToCollection(
