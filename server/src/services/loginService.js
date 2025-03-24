@@ -117,9 +117,9 @@ class LoginService {
     }
   }
 
-  static validateJWT(token) {
+  static validateJWT(validate) {
     return new Promise((resolve) => {
-      jsonwebtoken.verify(token, process.env.SECRET_KEY_JWT, (err, decoded) => {
+      jsonwebtoken.verify(validate.token, process.env.SECRET_KEY_JWT, (err, decoded) => {
         if (err) {
           // Handle specific error types
           if (err.name === "TokenExpiredError") {
