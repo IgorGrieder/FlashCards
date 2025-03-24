@@ -45,7 +45,7 @@ export default function EditCollection({
   useScrollIntoView(deleteCollectionRef, modalDeletingCollection);
 
   const deleteCollection = async (): AxiosPromise<DeletionResponse> => {
-    const result = await api.post("/cards/delete-collection", {
+    const result = await api.post("/collections/delete-collection", {
       collectionId: collection._id,
     });
     return result;

@@ -50,7 +50,7 @@ collectionRoutes.get(
   },
 );
 
-collectionRoutes.delete(
+collectionRoutes.post(
   "/delete-collection",
   Utils.validateJWTMiddlewear,
   async (req, res) => {
