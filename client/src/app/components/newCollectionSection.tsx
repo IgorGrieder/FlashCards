@@ -61,7 +61,7 @@ export default function NewCollectionSection({ handleClose }: NewCollectionSecti
 
   // Function to proceed the request to the backend 
   const createCollection = async (credentials: CollectionSchemaType): AxiosPromise<CreateCollectionResponse> => {
-    const result = await api.post("cards/create-collection", {
+    const result = await api.post("collections/create-collection", {
       name: credentials.name,
       category: credentials.category,
     })

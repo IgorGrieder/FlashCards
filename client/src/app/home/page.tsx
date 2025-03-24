@@ -43,7 +43,7 @@ export default function MainUserPage() {
   const fetchCollectionsData = async (): Promise<CollectionsRespose> => {
     try {
       const result: AxiosResponse<CollectionsRespose> = await api.get(
-        "cards/get-collections",
+        "collections/get-collections",
       );
 
       if (result.data.collections && userCtx?.user) {
