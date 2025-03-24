@@ -7,7 +7,7 @@ import { unauthorizedCode, badRequest } from "../constants/codeConstants.js";
 import { expiresIn, saltRounds } from "../constants/jwtConstants.js";
 import { errorToken, expiredToken, userNotFound } from "../constants/messageConstants.js";
 
-class AuthService {
+class LoginService {
   static async logIn(login, password) {
 
     // Since the user can login with username or email we need to check for both
@@ -30,7 +30,7 @@ class AuthService {
       }
 
       // If the login is valid a token is created and sent back
-      const token = AuthService.generateJWT(result);
+      const token = LoginService.generateJWT(result);
       return { success: true, code: okCode, token, user: result };
 
     } catch (error) {
@@ -58,7 +58,7 @@ class AuthService {
       }
 
       // Hashing the new password
-      const hashedNewPassword = await AuthService.hashPassword(newPassword);
+      const hashedNewPassword = await LoginService.hashPassword(newPassword);
 
       await DBUsers().updateOne({ _id: result._id }, { $set: { password: hashedNewPassword } });
       return { passwordUpdated: true, code: okCode };
@@ -70,7 +70,7 @@ class AuthService {
 
   static async createAccount(email, username, password) {
     try {
-      const hashedPassword = await AuthService.hashPassword(password);
+      const hashedPassword = await LoginService.hashPassword(password);
       const newUser = await DBUsers().insertOne({
         username,
         email,
@@ -81,7 +81,7 @@ class AuthService {
         return { accountCreated: false, code: badRequest };
       }
 
-      const token = AuthService.generateJWT(newUser);
+      const token = LoginService.generateJWT(newUser);
 
       return { accountCreated: true, code: created, token, username };
     } catch (error) {
@@ -131,7 +131,7 @@ class AuthService {
 
   static async deleteUser(userId) {
     try {
-      const result = await DBUsers().deleteOne({ _id: ObjectId(userId) });
+      const result = await DBUsers().deleteOne({ _id: new ObjectId(userId) });
 
       if (result.deletedCount == 0) {
         return {
@@ -166,4 +166,4 @@ class AuthService {
   }
 }
 
-export default AuthService;
+export default LoginService;

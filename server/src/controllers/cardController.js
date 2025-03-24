@@ -1,19 +1,19 @@
 import { Router } from "express";
 import Utils from "../utils/utils.js";
-import CollectionService from "../services/collectionService.js";
-import { cardAdded, collectionCreated, deletedCollection, errorAddCard, errorCreateCollection, incompleteReqInfo, unexpectedError } from "../constants/messageConstants.js";
-import { internalServerErrorCode, noContentCode } from "../constants/codeConstants.js";
+import CardService from "../services/cardService.js";
+import { cardAdded, collectionNotFound, errorAddCard, errorUpdateCard, incompleteReqInfo, unexpectedError } from "../constants/messageConstants.js";
+import { badRequest, internalServerErrorCode, noContentCode } from "../constants/codeConstants.js";
 
 // Router instance
 const cardRoutes = new Router();
 
 // Middlewares ----------------------------------------------------------------
 const validateCardToDelete = (req, res, next) => {
-  const { question, category, collectionName } = req.body.card;
+  const { collectionId, cardId } = req.body;
 
   // if any of the given requirements aren't given we must return a bad call
-  if (!question || !category || !collectionName) {
-    return res.status(400).json({
+  if (!collectionId || !cardId) {
+    return res.status(badRequest).json({
       collectionCreated: false,
       message: incompleteReqInfo,
     });
@@ -22,138 +22,45 @@ const validateCardToDelete = (req, res, next) => {
   next();
 };
 
-const validateCreateCollection = (req, res, next) => {
-  const { name, category } = req.body;
+const validateCardToInsert = (req, res, next) => {
+  const { answer, topic, question } = req.body.card;
+  const collectionId = req.body.collectionId;
 
-  if (!name || !category) {
-    return res.status(400).json({
+  // if any of the given requirements aren't given we must return a bad call
+  if (!collectionId || !answer || !topic || !question) {
+    return res.status(badRequest).json({
       collectionCreated: false,
       message: incompleteReqInfo,
     });
   }
 
   next();
-};
+
+}
 
 // Routes ---------------------------------------------------------------------
-cardRoutes.get(
-  "/get-collections",
-  Utils.validateJWTMiddlewear,
-  async (req, res) => {
-    const { userId } = req.body.decoded;
-    const result = await CollectionService.getUserCollections(userId);
-
-    if (result.success) {
-      return res.status(result.code).json({
-        collectionsFound: true,
-        collections: result.collections,
-      });
-    }
-
-    // No content
-    if (result.code === noContentCode) {
-      return res.status(result.code).send();
-    }
-
-    // Internal server error
-    if (result.code === internalServerErrorCode) {
-      return res.status(result.code).json({
-        collectionsFound: false,
-        message: unexpectedError,
-      });
-    }
-  },
-);
-
-cardRoutes.post(
-  "/delete-collection",
-  Utils.validateJWTMiddlewear,
-  async (req, res) => {
-    const { collectionId } = req.body;
-    const result = await CollectionService.deleteCollection(collectionId);
-
-    if (result.success) {
-      return res.status(204).json({
-        collectionDeleted: true,
-        message: deletedCollection,
-      });
-    }
-
-    // Internal server error
-    if (result.code === 500) {
-      return res.status(500).json({
-        collectionDeleted: true,
-        message: unexpectedError,
-      });
-    }
-
-    return res.status(400).json({
-      collectionDeleted: true,
-      message: errorCreateCollection,
-    });
-
-  }
-)
-
-cardRoutes.post(
-  "/create-collection",
-  validateCreateCollection,
-  Utils.validateJWTMiddlewear,
-  async (req, res) => {
-    const { userId } = req.body.decoded;
-    const { name, category } = req.body;
-
-    const result = await CollectionService.createCollection(
-      category,
-      name,
-      userId,
-    );
-
-    if (result.success) {
-      return res.status(201).json({
-        collectionCreated: true,
-        message: collectionCreated,
-        collection: result.collection
-      });
-    }
-
-    // Internal server error
-    if (result.code === 500) {
-      return res.status(500).json({
-        collectionCreated: false,
-        message: unexpectedError,
-      });
-    }
-
-    return res.status(400).json({
-      collectionCreated: false,
-      message: errorCreateCollection,
-    });
-  },
-);
-
 cardRoutes.patch(
   "/delete-card",
   Utils.validateJWTMiddlewear,
   validateCardToDelete,
   async (req, res) => {
-    const { userId } = req.body.decoded;
-    const { category, question, collectionName } = req.body.card;
+    const { collectionId, cardId } = req.body;
 
-    const result = await CollectionService.deleteCardFromCollection(
-      category,
-      question,
-      userId,
-      collectionName,
-    );
+    const result = await CardService.deleteCardFromCollection(collectionId, cardId);
 
     if (result.success) {
-      return res.status(204);
+      return res.status(noContentCode).send();
     }
 
+    if (result.code === badRequest) {
+      return res.status(result.code).json({
+        collectionCreated: false,
+        message: collectionNotFound
+      })
+    }
     // Internal server error
-    if (result.code === 500) {
-      return res.status(500).json({
+    if (result.code === internalServerErrorCode) {
+      return res.status(result.code).json({
         collectionCreated: false,
         message: unexpectedError,
       });
@@ -165,64 +72,60 @@ cardRoutes.patch(
   "/update-card",
   Utils.validateJWTMiddlewear,
   async (req, res) => {
-    const { cardId, collectionId } = req.body.card;
-    const { question, category, img, answer } = req.body.newCard;
+    const card = req.body.card;
+    const { cardId, collectionId } = req.body;
 
-    const result = await CollectionService.updateCardFromCollection(
-      answer,
-      category,
-      question,
-      img,
-      collectionId,
-      cardId
-    );
+    const result = await CardService.updateCard(card, cardId, collectionId);
 
     if (result.success) {
-      return res.status(204).json({ cardUpdated: true });
+      return res.status(noContentCode).send();
     }
 
     // Internal server error
-    if (result.code === 500) {
-      return res.status(500).json({
+    if (result.code === internalServerErrorCode) {
+      return res.status(result.code).json({
         cardUpdated: false,
         message: unexpectedError,
       });
     }
+
+    return res.status(badRequest).json({
+      cardAdded: false,
+      message: errorUpdateCard,
+    });
+
   },
 );
 
 cardRoutes.post(
   "/add-card",
   Utils.validateJWTMiddlewear,
+  validateCardToInsert,
   async (req, res) => {
-    const { answer, category, question, img } = req.body.card;
+    const card = req.body.card;
     const { collectionId } = req.body;
 
-    const result = await CollectionService.addCardToCollection(
-      answer,
-      category,
-      question,
-      img,
+    const result = await CardService.addCardToCollection(
+      card,
       collectionId,
     );
 
     if (result.success) {
-      return res.status(201).json({
+      return res.status(result.code).json({
         cardAdded: true,
         message: cardAdded,
-        card: result.cardAdded
       });
     }
 
     // Internal server error
-    if (result.code === 500) {
-      return res.status(500).json({
+    if (result.code === internalServerErrorCode) {
+      return res.status(result.code).json({
         cardAdded: false,
         message: unexpectedError,
       });
     }
 
-    return res.status(400).json({
+    return res.status(badRequest).json({
       cardAdded: false,
       message: errorAddCard,
     });
