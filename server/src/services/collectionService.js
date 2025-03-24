@@ -7,13 +7,13 @@ class CollectionService {
 
   static async getUserCollections(userId) {
     try {
-      const collections = await DBCollections().find({ owner: new ObjectId(userId) })
+      const collections = (await DBCollections().find({ owner: new ObjectId(userId) }).toArray())
 
       if (!collections.length > 0) {
         return { success: false, code: noContentCode };
       }
 
-      return { success: true, code: okCode };
+      return { success: true, code: okCode, collections };
     } catch (error) {
       console.log(error);
       return { success: false, code: internalServerErrorCode };
