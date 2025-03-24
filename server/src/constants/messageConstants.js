@@ -9,6 +9,7 @@ export const errorAddCard = "We couldn't add your card to the collection";
 export const errorUpdateCard = "We couldn't update your card";
 export const unauthorizedMessage = "Invalid credentials";
 export const expiredToken = "Token has expired";
+export const noToken = "No token was provided";
 export const invalidToken = "Invalid token";
 export const errorToken = "An error occurred while validating the token";
 export const userNotFound = "User was not found";
