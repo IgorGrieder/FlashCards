@@ -5,7 +5,7 @@ import { DBUsers } from "../database/collectionsInstances.js";
 import { created, internalServerErrorCode, noContentCode, notFoundCode, okCode } from "../constants/codeConstants.js";
 import { unauthorizedCode, badRequest } from "../constants/codeConstants.js";
 import { expiresIn, saltRounds } from "../constants/jwtConstants.js";
-import { errorToken, expiredToken, userNotFound } from "../constants/messageConstants.js";
+import { errorToken, expiredToken, unauthorizedMessage, userNotFound } from "../constants/messageConstants.js";
 
 class LoginService {
   static async logIn(login, password) {
@@ -111,22 +111,22 @@ class LoginService {
   }
 
   static validateJWT(token) {
-    try {
-      const decoded = jsonwebtoken.verify(token, process.env.SECRET_KEY_JWT);
-      return { validated: true, decoded };
-    } catch (error) {
-      // Log or handle specific error types if needed
-      if (error.name === "TokenExpiredError") {
-        return { validated: false, message: expiredToken };
-      } else if (error.name === "JsonWebTokenError") {
-        return { validated: false, message: errorToken };
-      } else {
-        return {
-          validated: false,
-          message: errorToken,
-        };
-      }
-    }
+    return new Promise((resolve) => {
+      jsonwebtoken.verify(token, process.env.SECRET_KEY_JWT, (err, decoded) => {
+        if (err) {
+          // Handle specific error types
+          if (err.name === "TokenExpiredError") {
+            resolve({ validated: false, message: expiredToken });
+          } else if (err.name === "JsonWebTokenError") {
+            resolve({ validated: false, message: errorToken });
+          } else {
+            resolve({ validated: false, message: unauthorizedMessage });
+          }
+        } else {
+          resolve({ validated: true, decoded });
+        }
+      });
+    });
   }
 
   static async deleteUser(userId) {

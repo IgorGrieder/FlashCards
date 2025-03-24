@@ -3,7 +3,7 @@ import { invalidToken, noToken } from "../constants/messageConstants.js";
 import LoginService from "../services/loginService.js";
 
 class Utils {
-  static validateJWTMiddlewear(req, res, next) {
+  static async validateJWTMiddlewear(req, res, next) {
     try {
       const token = req.cookies.jwt;
 
@@ -12,7 +12,7 @@ class Utils {
         return res.status(unauthorizedCode).json({ message: noToken });
       }
 
-      const result = LoginService.validateJWT(token);
+      const result = await LoginService.validateJWT(token);
 
       if (!result.validated) {
         return res.status(unauthorizedCode).json({ message: result.message });
