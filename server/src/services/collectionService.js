@@ -7,7 +7,7 @@ class CollectionService {
 
   static async getUserCollections(userId) {
     try {
-      const collections = await DBCollections().find({ owner: userId })
+      const collections = await DBCollections().find({ owner: new ObjectId(userId) })
 
       if (!collections.length > 0) {
         return { success: false, code: noContentCode };
@@ -24,7 +24,7 @@ class CollectionService {
     try {
       const newCollection = await DBCollections().insertOne({
         name,
-        owner: userId,
+        owner: new ObjectId(userId),
         category,
         cards: []
       })
