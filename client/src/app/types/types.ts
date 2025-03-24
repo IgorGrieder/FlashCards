@@ -91,7 +91,7 @@ export type CollectionUpdateResponse = {
 export type AddCardToCollectionResponse = {
   cardAdded: boolean;
   message: string;
-  card?: Card
+  newCard?: Card
 }
 
 export type CreateCollectionResponse = {

@@ -45,11 +45,11 @@ export default function NewCardSection({ collection, closeSection }: NewCardSect
             if (index === collectionIdx) {
 
               // Create a new collection object with the updated cards array
-              if (request.data.card) {
+              if (request.data.newCard) {
 
                 return {
                   ...collection,
-                  cards: [...collection.cards, data]
+                  cards: [...collection.cards, request.data.newCard]
                 };
               }
             }

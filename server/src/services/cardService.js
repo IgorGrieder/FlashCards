@@ -20,7 +20,7 @@ class CardService {
         return { success: false, code: badRequest };
       }
 
-      return { success: true, code: created }
+      return { success: true, code: created, newCard: card }
     } catch (error) {
       console.log(error);
       return { success: false, code: internalServerErrorCode };
