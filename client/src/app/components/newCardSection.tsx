@@ -9,7 +9,7 @@ import { AxiosPromise } from "axios"
 import { useMutation } from "@tanstack/react-query";
 import { api } from "../libs/axios"
 import { CardSchemaType } from "../schemas/cardSchema"
-import { ImageRef, AddCardToCollectionResponse, Collection } from "../types/types"
+import { ImageRef, AddCardToCollectionResponse, Collection, Card } from "../types/types"
 import convertToBase64 from "../utils/convertBase64"
 
 type NewCardSectionProps = {
@@ -35,38 +35,30 @@ export default function NewCardSection({ collection, closeSection }: NewCardSect
       const request = await mutation.mutateAsync(data);
 
       // If the request was successful we will update the context
-      if (request.status === 201 && userCtx?.user?.collections) {
-        const collectionIdx = userCtx.user.collections.findIndex((item) => item._id === collection._id)
-
-        // Updating the context
-        if (collectionIdx !== -1) {
-          const collections = userCtx.user.collections.map((collection, index) => {
-
-            if (index === collectionIdx) {
-
-              // Create a new collection object with the updated cards array
-              if (request.data.newCard) {
-
-                return {
-                  ...collection,
-                  cards: [...collection.cards, request.data.newCard]
-                };
-              }
+      if (request.status === 201 && request.data.newCardId && userCtx?.user?.collections) {
+        const collectionsUpdated = userCtx.user.collections.map((col) => {
+          if (col._id === collection._id) {
+            // Create a new collection object with the updated cards array
+            const newCard: Card = {
+              answer: data.answer, question: data.question,
+              topic: data.topic, _id: request.data.newCardId
             }
-            return collection;
-          });
-
-          if (collections) {
-
-            userCtx.dispatch({
-              type: "UPDATE",
-              payload: {
-                collections: collections
-              }
-            })
-            closeSection();
+            return {
+              ...col,
+              cards: [...col.cards, newCard]
+            };
           }
-        }
+
+          return col;
+        });
+
+        userCtx.dispatch({
+          type: "UPDATE",
+          payload: {
+            collections: collectionsUpdated
+          }
+        })
+        closeSection();
       }
     } catch (e) {
       alert("Um erro ocorreu, tente novamente.")
