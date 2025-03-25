@@ -7,35 +7,9 @@ import { api } from "../libs/axios";
 import { LoginResponse } from "../types/types";
 import { useRouter } from "next/navigation";
 import { UserContext } from "../context/userContext";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import CreateAccountLink from "../components/createAccountLink";
-
-const loginSchema = z.object({
-  login: z
-    .string()
-    .min(3, "Login deve ter pelo menos 3 caracteres")
-    .max(50, "Login não pode ter mais de 50 caracteres")
-    .refine(
-      (value) => {
-        // Check if it's a valid email
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        // Check if it's a valid username (alphanumeric and underscores)
-        const usernameRegex = /^[a-zA-Z0-9_]+$/;
-
-        return emailRegex.test(value) || usernameRegex.test(value);
-      },
-      {
-        message: "Login deve ser um email válido ou um nome de usuário válido",
-      },
-    ),
-  password: z
-    .string()
-    .min(6, "Senha deve ter pelo menos 6 caracteres")
-    .max(50, "Senha não pode ter mais de 50 caracteres"),
-});
-
-type LoginSchemaType = z.infer<typeof loginSchema>;
+import { loginSchema, LoginSchemaType } from "../schemas/loginSchema";
 
 export default function Login() {
   const router = useRouter();
@@ -98,6 +72,7 @@ export default function Login() {
 
   return (
     <main className="min-h-screen flex items-center justify-center text-black">
+      {/*Login form*/}
       <form
         onSubmit={handleSubmit(onSubmit)}
         className="bg-white p-6 rounded-xl shadow-md w-full max-w-md"
