@@ -11,12 +11,12 @@ export default function Home() {
   };
 
   return (
-    <main className="h-screen text-black text-xl">
-      <section className="flex flex-col items-center justify-center h-full w-full">
-        <h1 className="text-5xl mb-32">Flash Cards</h1>
-        <div className="flex gap-5">
-          <div className="flex">
-            <p className="w-[200px]">
+    <main className="h-screen text-xl px-10">
+      <section className="flex flex-col h-full items-center justify-center">
+        <h1 className="text-8xl font-extrabold mb-10 sm:mb-20">Flash Cards</h1>
+        <div className="flex gap-5 sm:items-center">
+          <div className="flex items-center">
+            <p className="w-[300px]">
               &quot;O verdadeiro aprendizado não é sobre acumular conhecimento,
               mas lembrar dele quando for importante.&quot;
             </p>
@@ -30,7 +30,7 @@ export default function Home() {
               />
             </div>
           </div>
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 gap-4 font-semibold">
             <p>Venha fazer parte da melhor forma de estudar!</p>
             <div>
               <Button
@@ -41,7 +41,7 @@ export default function Home() {
               <div className="flex justify-center">
                 <a
                   href="/create-account"
-                  className="text-blue-400 mt-2 hover:text-blue-800 underline text-xl"
+                  className="text-foreground mt-2 hover:underline text-xl font-thin"
                 >
                   Ainda não tem uma conta? Crie agora!
                 </a>
