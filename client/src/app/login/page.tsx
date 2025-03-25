@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import { UserContext } from "../context/userContext";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import CreateAccountLink from "../components/createAccountLink";
 
 const loginSchema = z.object({
   login: z
@@ -162,14 +163,7 @@ export default function Login() {
         </button>
 
         {/* Create an account option*/}
-        <div className="flex justify-center">
-          <a
-            href="/create-account"
-            className="text-blue-400 mt-2 hover:text-blue-800 underline"
-          >
-            Ainda não tem uma conta? Crie agora!
-          </a>
-        </div>
+        <CreateAccountLink></CreateAccountLink>
       </form>
     </main>
   );
