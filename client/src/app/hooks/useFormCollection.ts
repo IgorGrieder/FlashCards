@@ -10,7 +10,7 @@ type Props = {
 export default function useFormCollection(props: Props) {
   const answer = props.card ? props.card.answer : "";
   const question = props.card ? props.card.question : "";
-  const category = props.card ? props.card.category : "";
+  const topic = props.card ? props.card.topic : "";
 
   const {
     register,
@@ -21,7 +21,7 @@ export default function useFormCollection(props: Props) {
     resolver: zodResolver(cardSchema),
     defaultValues: {
       answer: answer,
-      category: category,
+      topic: topic,
       question: question,
     }
 

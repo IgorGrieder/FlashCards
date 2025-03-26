@@ -35,13 +35,13 @@ export default function NewCardSection({ collection, handleClose }: NewCardSecti
       const request = await mutation.mutateAsync(data);
 
       // If the request was successful we will update the context
-      if (request.status === 201 && request.data.newCardId && userCtx?.user?.collections) {
+      if (request.status === 201 && request.data.newCard && userCtx?.user?.collections) {
         const collectionsUpdated = userCtx.user.collections.map((col) => {
           if (col._id === collection._id) {
             // Create a new collection object with the updated cards array
             const newCard: Card = {
               answer: data.answer, question: data.question,
-              topic: data.topic, _id: request.data.newCardId
+              topic: data.topic, _id: request.data.newCard
             }
             return {
               ...col,
