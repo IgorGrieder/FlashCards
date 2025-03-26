@@ -81,7 +81,7 @@ export default function Login() {
 
         {/* Email Field */}
         <div className="mb-4">
-          <label htmlFor="email" className="block text-sm sm:text-2xl font-semibold mb-2">
+          <label htmlFor="email" className="block text-sm sm:text-xl font-semibold mb-2">
             Email
           </label>
           <input
@@ -100,7 +100,7 @@ export default function Login() {
 
         {/* Username Field */}
         <div className="mb-4">
-          <label htmlFor="username" className="block text-sm sm:text-2xl font-semibold mb-2">
+          <label htmlFor="username" className="block text-sm sm:text-xl font-semibold mb-2">
             Usuário
           </label>
           <input
