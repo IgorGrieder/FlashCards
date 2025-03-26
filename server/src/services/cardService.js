@@ -1,5 +1,5 @@
 import { DBCollections } from "../database/collectionsInstances.js"
-import { internalServerErrorCode, noContentCode, badRequest, notFoundCode } from "../constants/codeConstants.js";
+import { internalServerErrorCode, noContentCode, badRequest, notFoundCode, created } from "../constants/codeConstants.js";
 import { ObjectId } from "mongodb";
 
 class CardService {
@@ -17,10 +17,10 @@ class CardService {
       });
 
       if (!collectionModified) {
-        return { success: false, code: 400 };
+        return { success: false, code: badRequest };
       }
 
-      return { success: true, code: noContentCode }
+      return { success: true, code: created, newCardId: card._id }
     } catch (error) {
       console.log(error);
       return { success: false, code: internalServerErrorCode };

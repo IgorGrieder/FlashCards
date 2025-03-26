@@ -7,13 +7,13 @@ class CollectionService {
 
   static async getUserCollections(userId) {
     try {
-      const collections = await DBCollections().find({ owner: new ObjectId(userId) })
+      const collections = (await DBCollections().find({ owner: new ObjectId(userId) }).toArray())
 
       if (!collections.length > 0) {
         return { success: false, code: noContentCode };
       }
 
-      return { success: true, code: okCode };
+      return { success: true, code: okCode, collections };
     } catch (error) {
       console.log(error);
       return { success: false, code: internalServerErrorCode };
@@ -29,11 +29,13 @@ class CollectionService {
         cards: []
       })
 
-      if (!newCollection) {
+      if (!newCollection.acknowledged) {
         return { success: false, code: badRequest };
       }
 
-      return { success: true, code: created, collection: newCollection };
+      // Returning the new collection
+      const collection = await DBCollections().findOne({ _id: new ObjectId(newCollection.insertedId) })
+      return { success: true, code: created, collection };
 
     } catch (error) {
       console.log(error);

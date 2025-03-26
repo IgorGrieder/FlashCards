@@ -1,50 +1,44 @@
-import { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 
 type ImageModalProps = {
+  isOpen: boolean;
+  onClose: VoidFunction;
   src: string;
   alt: string;
-  closeModal: VoidFunction;
 };
 
-export default function ImageModal({ src, alt, closeModal }: ImageModalProps) {
-  const [scale, setScale] = useState(1);
-  const [isHovered, setIsHovered] = useState(false);
-
-  const handleMouseEnter = () => {
-    setIsHovered(true);
-    setScale(1.2); // Set the zoom level when hovered
-  };
-
-  const handleMouseLeave = () => {
-    setIsHovered(false);
-    setScale(1); // Reset the zoom level when not hovered
-  };
-
+export default function ImageModal({ isOpen, onClose, src, alt }: ImageModalProps) {
   return (
-    <div
-      className="fixed inset-0 z-50 w-screen h-screen bg-black/80 flex items-center justify-center p-4"
-      onClick={closeModal}
-    >
-      <div
-        className="w-full max-w-4xl h-full max-h-[90vh] bg-white rounded-lg overflow-hidden flex flex-col items-center p-4"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div
-          className="flex-1 w-full relative flex items-center justify-center overflow-auto"
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
-          style={{ cursor: isHovered ? "zoom-in" : "auto" }}
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4"
+          onClick={onClose} // Fecha ao clicar fora
         >
-          <img
-            src={src}
-            alt={alt}
-            className="max-w-full max-h-full object-contain transition-transform duration-200 ease-in-out"
-            style={{
-              transform: `scale(${scale})`
-            }}
-          />
-        </div>
-      </div>
-    </div>
+          <div className="relative max-w-full max-h-[90vh]">
+            {/* Botão de fechar */}
+            <button
+              onClick={onClose}
+              className="absolute -top-8 -right-8 p-2 text-white hover:text-gray-300 transition-colors"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            {/* Imagem */}
+            <motion.img
+              src={src}
+              alt={alt}
+              className="max-w-full max-h-[90vh] object-contain rounded-lg"
+              onClick={(e) => e.stopPropagation()} // Impede fechamento ao clicar na imagem
+            />
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }

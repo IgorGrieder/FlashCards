@@ -7,34 +7,9 @@ import { api } from "../libs/axios";
 import { LoginResponse } from "../types/types";
 import { useRouter } from "next/navigation";
 import { UserContext } from "../context/userContext";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-
-const loginSchema = z.object({
-  login: z
-    .string()
-    .min(3, "Login deve ter pelo menos 3 caracteres")
-    .max(50, "Login não pode ter mais de 50 caracteres")
-    .refine(
-      (value) => {
-        // Check if it's a valid email
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        // Check if it's a valid username (alphanumeric and underscores)
-        const usernameRegex = /^[a-zA-Z0-9_]+$/;
-
-        return emailRegex.test(value) || usernameRegex.test(value);
-      },
-      {
-        message: "Login deve ser um email válido ou um nome de usuário válido",
-      },
-    ),
-  password: z
-    .string()
-    .min(6, "Senha deve ter pelo menos 6 caracteres")
-    .max(50, "Senha não pode ter mais de 50 caracteres"),
-});
-
-type LoginSchemaType = z.infer<typeof loginSchema>;
+import CreateAccountLink from "../components/createAccountLink";
+import { loginSchema, LoginSchemaType } from "../schemas/loginSchema";
 
 export default function Login() {
   const router = useRouter();
@@ -97,15 +72,16 @@ export default function Login() {
 
   return (
     <main className="min-h-screen flex items-center justify-center text-black">
+      {/*Login form*/}
       <form
         onSubmit={handleSubmit(onSubmit)}
         className="bg-white p-6 rounded-xl shadow-md w-full max-w-md"
       >
-        <h2 className="text-2xl font-bold text-center mb-6">Entrar</h2>
+        <h2 className="text-2xl sm:text-4xl font-extrabold text-center mb-6">Entrar</h2>
 
         {/* Email Field */}
         <div className="mb-4">
-          <label htmlFor="login" className="block text-sm font-medium mb-2">
+          <label htmlFor="login" className="block text-sm sm:text-xl font-semibold mb-2">
             Email/usuário
           </label>
           <input
@@ -114,17 +90,22 @@ export default function Login() {
             {...register("login", {
               onChange: () => setLoginFailed(false),
             })}
-            className={`w-full px-3 py-2 border rounded ${errors.login ? "border-red-500" : "border-gray-300"
+            className={`w-full px-4 py-3 rounded-lg border focus:ring-2 focus:outline-none transition-all ${errors.password
+              ? "border-red-300 focus:border-red-500 focus:ring-red-100"
+              : "border-gray-200 focus:border-blue-500 focus:ring-blue-100"
               }`}
           />
           {errors.login && (
-            <p className="text-red-500 text-sm mt-1">{errors.login.message}</p>
+            <p className="mt-1 text-sm text-red-500 flex items-center gap-1">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>{errors.login.message}</p>
           )}
         </div>
 
         {/* Password Field */}
         <div className="mb-6">
-          <label htmlFor="password" className="block text-sm font-medium mb-2">
+          <label htmlFor="password" className="block text-sm sm:text-xl font-semibold mb-2">
             Senha
           </label>
           <input
@@ -133,11 +114,16 @@ export default function Login() {
             {...register("password", {
               onChange: () => setLoginFailed(false),
             })}
-            className={`w-full px-3 py-2 border rounded ${errors.password ? "border-red-500" : "border-gray-300"
+            className={`w-full px-4 py-3 rounded-lg border focus:ring-2 focus:outline-none transition-all ${errors.password
+              ? "border-red-300 focus:border-red-500 focus:ring-red-100"
+              : "border-gray-200 focus:border-blue-500 focus:ring-blue-100"
               }`}
           />
           {errors.password && (
-            <p className="text-red-500 text-sm mt-1">
+            <p className="mt-1 text-sm text-red-500 flex items-center gap-1">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
               {errors.password.message}
             </p>
           )}
@@ -162,14 +148,7 @@ export default function Login() {
         </button>
 
         {/* Create an account option*/}
-        <div className="flex justify-center">
-          <a
-            href="/create-account"
-            className="text-blue-400 mt-2 hover:text-blue-800 underline"
-          >
-            Ainda não tem uma conta? Crie agora!
-          </a>
-        </div>
+        <CreateAccountLink></CreateAccountLink>
       </form>
     </main>
   );

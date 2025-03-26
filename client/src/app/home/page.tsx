@@ -43,7 +43,7 @@ export default function MainUserPage() {
   const fetchCollectionsData = async (): Promise<CollectionsRespose> => {
     try {
       const result: AxiosResponse<CollectionsRespose> = await api.get(
-        "cards/get-collections",
+        "collections/get-collections",
       );
 
       if (result.data.collections && userCtx?.user) {
@@ -99,25 +99,38 @@ export default function MainUserPage() {
 
   return (
     <main className="p-10">
-      <section className="px-5 py-10">
-        <h1 className="text-black text-4xl text-center">
-          Suas coleções, {userCtx.user.username}!
-        </h1>
-        <div className="px-4 py-5">
-          <h4 className="text-xl font-bold">📚 Como começar</h4>
-          <ol className="list-decimal px-10">
-            <li>Navegue pela lista de coleções disponíveis</li>
-            <li>Clique na coleção desejada para acessar os flashcards</li>
-            <li>
-              Use os cartões para revisar conceitos-chave e se preparar para
-              provas, trabalhos ou desafios pessoais
+      <section className="p-5">
+        {/* Title */}
+        <h1 className="sm:text-6xl text-center text-xl font-extrabold mb-10 sm:mb-20">Suas coleções, {userCtx.user.username}!</h1>
+
+        {/*How to use section*/}
+        <div className="p-6 bg-white rounded-xl shadow-sm space-y-2">
+          <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+            <span className="text-3xl">📚</span>
+            Como começar
+          </h2>
+
+          <ol className="space-y-3 list-decimal list-outside ml-5 marker:text-gray-400 marker:font-medium">
+            <li className="pl-3 text-gray-700 hover:text-indigo-600 transition-colors">
+              Navegue pela lista de coleções disponíveis
+            </li>
+            <li className="pl-3 text-gray-700 hover:text-indigo-600 transition-colors">
+              Clique na coleção desejada para acessar os flashcards
+            </li>
+            <li className="pl-3 text-gray-700 hover:text-indigo-600 transition-colors">
+              Use os cartões para revisar conceitos-chave e se preparar para provas, trabalhos ou desafios pessoais
             </li>
           </ol>
-          <h6>
-            <span className="font-semibold">Dica: </span>Crie o hábito de
-            revisar suas coleções regularmente para maximizar a retenção de
-            conteúdo. Vamos juntos rumo ao sucesso nos estudos!
-          </h6>
+
+          <div className="mt-4 p-4 bg-yellow-50 rounded-lg border border-yellow-100 flex gap-3">
+            <div className="text-yellow-500 text-xl">💡</div>
+            <div>
+              <p className="font-semibold text-yellow-700 mb-1">Dica de estudo</p>
+              <p className="text-sm text-yellow-600">
+                Crie o hábito de revisar suas coleções regularmente para maximizar a retenção de conteúdo.
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -138,7 +151,6 @@ export default function MainUserPage() {
       {/* Edit collection section */}
       {editSectionCollection && (
         <EditCollection
-          editSection={editSection}
           handleCloseEditSection={handleCloseEditSection}
           collection={editSectionCollection}
         ></EditCollection>

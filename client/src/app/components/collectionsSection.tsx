@@ -17,102 +17,118 @@ export default function CollectionsSection({
   const collectionsSection = useRef<HTMLDivElement>(null);
   const [numItems, setNumItens] = useState(0);
   const [startDisplay, setStartDisplay] = useState(0);
+  const [touchStart, setTouchStart] = useState(0); // Added touch state
 
-  // Overall function to trigger the collections movement
   const handleCollectionMovement = (moveTo: "left" | "right") => {
-    setStartDisplay((prevStartDisplay) => {
-      if (moveTo === "left" && prevStartDisplay > 0) {
-        return prevStartDisplay - 1;
-      } else if (
-        moveTo === "right" &&
-        prevStartDisplay + numItems < collections.length
-      ) {
-        return prevStartDisplay + 1;
-      }
-      return prevStartDisplay;
+    setStartDisplay((prev) => {
+      if (moveTo === "left" && prev > 0) return prev - 1;
+      if (moveTo === "right" && prev + numItems < collections.length) return prev + 1;
+      return prev;
     });
   };
 
-  // Use updated useArrowMovement with bounds checking
+  // Added touch handlers
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.touches[0].clientX);
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    const touchEnd = e.changedTouches[0].clientX;
+    const diff = touchStart - touchEnd;
+    const swipeThreshold = 50;
+
+    if (Math.abs(diff) > swipeThreshold) {
+      handleCollectionMovement(diff > 0 ? 'right' : 'left');
+    }
+  };
+
   const { start, stop } = useArrowMovement((direction) => {
-    const currentDisplay = startDisplay;
     if (
-      (direction === "left" && currentDisplay > 0) ||
-      (direction === "right" && currentDisplay + numItems < collections.length)
+      (direction === "left" && startDisplay > 0) ||
+      (direction === "right" && startDisplay + numItems < collections.length)
     ) {
       handleCollectionMovement(direction);
     }
   });
 
-  // Dynamically update `numItems` based on container size
   useResizeObserver(collectionsSection, (entry) => {
     const elementWidth = entry.contentRect.width;
     setNumItens(Math.max(1, Math.floor(elementWidth / 300)));
   });
 
+  const progress = collections.length > 0
+    ? Math.ceil((startDisplay + numItems) / collections.length * 100)
+    : 0;
+
   return (
-    <section className="flex items-center rounded-2xl border border-black px-5 py-10 bg-white h-full gap-1">
-      {/* Left arrow pagination*/}
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        height="40px"
-        viewBox="0 -960 960 960"
-        width="40px"
-        fill="currentColor"
-        className={`${startDisplay > 0 ? "cursor-pointer opacity-100 hover:text-black" : "opacity-60 cursor-auto"} text-gray-300 mr-auto w-[40px]`}
-        onClick={() => {
-          handleCollectionMovement("left");
-        }}
-        onMouseEnter={() => {
-          start("left");
-        }}
-        onMouseLeave={() => {
-          stop();
-        }}
-      >
-        <path d="M560-240 320-480l240-240 56 56-184 184 184 184-56 56Z" />
-      </svg>
+    <section className="relative group bg-white rounded-2xl shadow-lg p-6 h-full">
+      {/* Navigation Arrows */}
+      <div className="absolute inset-y-0 left-0 flex items-center pr-4 z-10 ml-2">
+        <button
+          className={`p-3 rounded-full transition-all ${startDisplay > 0
+            ? "bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-black"
+            : "opacity-40 cursor-not-allowed"
+            }`}
+          onClick={() => handleCollectionMovement("left")}
+          onMouseEnter={() => start("left")}
+          onMouseLeave={stop}
+          disabled={startDisplay === 0}
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+      </div>
+
+      <div className="absolute inset-y-0 right-0 flex items-center pl-4 z-10 mr-2">
+        <button
+          className={`p-3 rounded-full transition-all ${startDisplay + numItems < collections.length
+            ? "bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-black"
+            : "opacity-40 cursor-not-allowed"
+            }`}
+          onClick={() => handleCollectionMovement("right")}
+          onMouseEnter={() => start("right")}
+          onMouseLeave={stop}
+          disabled={startDisplay + numItems >= collections.length}
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Progress Indicator */}
+      <div className="absolute top-4 left-1/2 -translate-x-1/2 w-32 h-1.5 bg-gray-100 rounded-full">
+        <div
+          className="h-full bg-blue-500 rounded-full transition-all duration-300"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+
+      {/* Collections Container with Touch Handlers */}
       <div
         ref={collectionsSection}
-        className="flex items-center w-full justify-evenly flex-1 gap-1 overflow-hidden"
+        className="flex items-center justify-center gap-6 h-full overflow-hidden mt-3"
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
       >
         {collections.length > 0 && numItems !== 0 ? (
-          collections.map((collection, index) => {
-            if (index >= startDisplay && index <= startDisplay + numItems - 1) {
-              return (
-                <CollectionCard
-                  key={crypto.randomUUID()}
-                  collection={collection}
-                  handleOpenEditSection={onEditCollection}
-                  index={index}
-                />
-              );
-            }
-          })
+          collections.map((collection, index) => (
+            index >= startDisplay && index <= startDisplay + numItems - 1 && (
+              <CollectionCard
+                key={collection._id || crypto.randomUUID()}
+                collection={collection}
+                handleOpenEditSection={onEditCollection}
+                index={index}
+              />
+            )
+          ))
         ) : (
-          <LoadingSpinner />
+          <div className="flex items-center justify-center h-full w-full">
+            <LoadingSpinner />
+          </div>
         )}
       </div>
-      {/* Right arrow pagination */}
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        height="40px"
-        viewBox="0 -960 960 960"
-        width="40px"
-        fill="currentColor"
-        className={`${startDisplay + numItems < collections.length ? "cursor-pointer opacity-100 hover:text-black" : "opacity-60 cursor-auto"} text-gray-300 ml-auto w-[40px]`}
-        onClick={() => {
-          handleCollectionMovement("right");
-        }}
-        onMouseEnter={() => {
-          start("right");
-        }}
-        onMouseLeave={() => {
-          stop();
-        }}
-      >
-        <path d="M504-480 320-664l56-56 240 240-240 240-56-56 184-184Z" />
-      </svg>
     </section>
   );
 }

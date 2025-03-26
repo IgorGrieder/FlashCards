@@ -69,10 +69,10 @@ export type ImageRef = {
 }
 
 export type Card = {
-  category: string;
+  topic: string;
   question: string;
   answer: string;
-  img?: CardImage | null;
+  img: CardImage | null;
   _id: string;
 };
 
@@ -91,7 +91,7 @@ export type CollectionUpdateResponse = {
 export type AddCardToCollectionResponse = {
   cardAdded: boolean;
   message: string;
-  card?: Card
+  newCard: string;
 }
 
 export type CreateCollectionResponse = {

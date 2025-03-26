@@ -114,6 +114,7 @@ cardRoutes.post(
       return res.status(result.code).json({
         cardAdded: true,
         message: cardAdded,
+        newCard: result.newCardId
       });
     }
 

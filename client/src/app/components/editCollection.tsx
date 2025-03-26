@@ -1,5 +1,5 @@
 "use client";
-import { RefObject, useContext, useRef, useState } from "react";
+import { useContext, useState } from "react";
 import { Collection, DeletionResponse } from "../types/types";
 import Button from "./button";
 import { useMutation } from "@tanstack/react-query";
@@ -8,189 +8,131 @@ import { api } from "../libs/axios";
 import { UserContext } from "../context/userContext";
 import CollectionChanges from "./collectionChanges";
 import NewCardSection from "./newCardSection";
-import { useScrollIntoView } from "../hooks/useScrollIntoView";
 
 type EditCollectionProps = {
   collection: Collection;
-  editSection: RefObject<HTMLElement>;
   handleCloseEditSection: VoidFunction;
 };
 
 export default function EditCollection({
   collection,
-  editSection,
   handleCloseEditSection,
 }: EditCollectionProps) {
-  const [editCollection, setEditCollection] = useState(false);
-  const [modalDeletingCollection, setModalDeletingColection] = useState(false);
-  const [newCardSection, setNewCardSection] = useState(false);
-  const collectionRef = useRef<HTMLDivElement>(null);
-  const deleteCollectionRef = useRef<HTMLDivElement>(null);
-  const newCardRef = useRef<HTMLDivElement>(null);
+  const [activeModal, setActiveModal] = useState<"edit" | "delete" | "new-card" | null>(null);
   const userCtx = useContext(UserContext);
 
-
-  // Handle collection edit 
-  const handleEditCollection = () => {
-    setEditCollection(true);
-  }
-
-  const handleAddCardSection = () => {
-    setNewCardSection(true);
-  }
-
-  // Using the scroll into view hook to perform the scroll action when interacting with the elements
-  useScrollIntoView(newCardRef, newCardSection);
-  useScrollIntoView(collectionRef, editCollection);
-  useScrollIntoView(deleteCollectionRef, modalDeletingCollection);
-
   const deleteCollection = async (): AxiosPromise<DeletionResponse> => {
-    const result = await api.post("/cards/delete-collection", {
+    return await api.post("/collections/delete-collection", {
       collectionId: collection._id,
     });
-    return result;
   };
 
   const mutation = useMutation({ mutationFn: deleteCollection });
 
-  // Deletion function
-  const deletion = async () => {
+  const handleCollectionDeletion = async () => {
     try {
-      // Making the post request to our api to login the user
-      const request = await mutation.mutateAsync();
+      await mutation.mutateAsync();
+      const newArray = userCtx?.user?.collections.filter(
+        (item) => item._id !== collection._id,
+      );
 
-      // If the collection was deleted we will remove the modal and the user context
-      if (request.status === 204) {
-        setModalDeletingColection(false);
-        const newArray = userCtx?.user?.collections.filter(
-          (item) => item._id !== collection._id,
-        );
+      userCtx?.dispatch({
+        type: "UPDATE",
+        payload: { collections: newArray },
+      });
 
-        // Updating the context
-        userCtx?.dispatch({
-          type: "UPDATE",
-          payload: {
-            collections: newArray,
-          },
-        });
-
-        // Closing the edit section
-        handleCloseEditSection();
-      }
+      handleCloseEditSection();
     } catch (e) {
       console.log(e);
     }
   };
 
-  // Set the deletion action to the backend
-  const handleCollectionDeletion = () => {
-    deletion();
-  };
-
   return (
-    <section
-      className="mt-[100px] bg-white py-10 px-5 justify-center flex flex-col border border-black rounded-2xl relative"
-      ref={editSection}
-    >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        height="24px"
-        viewBox="0 -960 960 960"
-        width="24px"
-        fill="#000000"
-        className="absolute top-[24px] right-[24px] cursor-pointer"
-        onClick={handleCloseEditSection}
-      >
-        <path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z" />
-      </svg>
-      <h1 className="text-3xl bolder text-center">{collection.name}</h1>
-      <div className="mx-auto flex gap-2 items-center mt-5">
-        <Button
-          text="Excluir colecao"
-          onClick={() => setModalDeletingColection(true)}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            height="24px"
-            viewBox="0 -960 960 960"
-            width="24px"
-            fill="currentColor"
-            className="cursor-pointer mr-2 hover:white"
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center">
+      {/* Main Edit Modal */}
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+        <div className="flex justify-between items-start mb-6">
+          <h2 className="text-2xl font-bold text-gray-800">{collection.name}</h2>
+          <button
+            onClick={handleCloseEditSection}
+            className="text-gray-400 hover:text-gray-600 transition-colors"
           >
-            <path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z" />
-          </svg>
-        </Button>
-        <Button text="Editar colecao" onClick={handleEditCollection}>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            height="24px"
-            viewBox="0 -960 960 960"
-            width="24px"
-            fill="currentColor"
-            className="hover:white mr-2"
-          >
-            <path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h357l-80 80H200v560h560v-278l80-80v358q0 33-23.5 56.5T760-120H200Zm280-360ZM360-360v-170l367-367q12-12 27-18t30-6q16 0 30.5 6t26.5 18l56 57q11 12 17 26.5t6 29.5q0 15-5.5 29.5T897-728L530-360H360Zm481-424-56-56 56 56ZM440-440h56l232-232-28-28-29-28-231 231v57Zm260-260-29-28 29 28 28 28-28-28Z" />
-          </svg>
-        </Button>
-        <Button text="Adicionar Card" onClick={handleAddCardSection}>
-          <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z" /></svg>
-        </Button>
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
 
+        <div className="flex flex-col gap-3">
+          <Button
+            text="Adicionar Card"
+            onClick={() => setActiveModal("new-card")}
+          >
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+
+          </Button>
+
+          <Button
+            disable={collection.cards.length === 0}
+            text="Editar Coleção"
+            onClick={() => setActiveModal("edit")}
+          >
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+            </svg>
+          </Button>
+
+          <Button
+            onClick={() => setActiveModal("delete")}
+            text="Excluir Coleção"
+          >
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </Button>
+        </div>
       </div>
 
-      {/* Edit collections section*/}
-      <div
-        ref={collectionRef}
-      >
-        {editCollection && (<CollectionChanges
-          collection={collection}
-          handleClose={() => handleCloseEditSection()}></CollectionChanges>
-        )
-        }
-      </div>
+      {/* Delete Confirmation Modal */}
+      {activeModal === "delete" && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="bg-white rounded-2xl shadow-xl p-6 max-w-md w-full">
+            <div className="text-center mb-6">
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                Confirmar exclusão
+              </h3>
+              <p className="text-gray-600">
+                Tem certeza que deseja excluir permanentemente esta coleção?
+              </p>
+            </div>
 
-      {/* New card section*/}
-      {newCardSection && <div ref={newCardRef}>
-        <NewCardSection collection={collection}></NewCardSection>
-      </div>}
-
-      {/* Modal for user to delete a collection */}
-      {
-        modalDeletingCollection && (
-          <div ref={deleteCollectionRef} className="w-2/3 mx-auto mt-5 rounded-lg px-4 py-5 border border-black animate-fadeIn">
-            <h1 className="text-xl text-center">
-              Voce tem certeza de que quer excluir a colecao?
-            </h1>
-            <div className="flex gap-2 mt-2 justify-center items-center">
-              <Button text="Sim" onClick={handleCollectionDeletion}>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  height="24px"
-                  viewBox="0 -960 960 960"
-                  width="24px"
-                  fill="currentColor"
-                  className="hover:text-white mr-2"
-                >
-                  <path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z" />
-                </svg>
+            <div className="flex gap-3 justify-end">
+              <Button text="Cancelar" onClick={() => setActiveModal(null)}>
               </Button>
-              <Button text="Nao" onClick={() => setModalDeletingColection(false)}>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  height="24px"
-                  viewBox="0 -960 960 960"
-                  width="24px"
-                  fill="currentColor"
-                  className="hover:text-white mr-2"
-                >
-                  {" "}
-                  <path d="m336-280 144-144 144 144 56-56-144-144 144-144-56-56-144 144-144-144-56 56 144 144-144 144 56 56ZM480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z" />
-                </svg>
+              <Button text="Confirmar Exclusão" onClick={handleCollectionDeletion}>
               </Button>
             </div>
           </div>
-        )
-      }
-    </section >
+        </div>
+      )}
+
+      {/* Edit Collection Modal */}
+      {activeModal === "edit" && (
+        <CollectionChanges
+          collection={collection}
+          handleClose={() => setActiveModal(null)}
+        />
+      )}
+
+      {/* New Card Modal */}
+      {activeModal === "new-card" && (
+        <NewCardSection
+          collection={collection}
+          handleClose={() => setActiveModal(null)}
+        />
+      )}
+    </div>
   );
 }
