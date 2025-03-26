@@ -96,7 +96,10 @@ export default function Login() {
               }`}
           />
           {errors.email && (
-            <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
+            <p className="mt-1 text-sm text-red-500 flex items-center gap-1">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>{errors.email.message}</p>
           )}
         </div>
 
@@ -117,7 +120,10 @@ export default function Login() {
               }`}
           />
           {errors.username && (
-            <p className="text-red-500 text-sm mt-1">
+            <p className="mt-1 text-sm text-red-500 flex items-center gap-1">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
               {errors.username.message}
             </p>
           )}
@@ -138,7 +144,10 @@ export default function Login() {
               }`}
           />
           {errors.password && (
-            <p className="text-red-500 text-sm mt-1">
+            <p className="mt-1 text-sm text-red-500 flex items-center gap-1">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
               {errors.password.message}
             </p>
           )}

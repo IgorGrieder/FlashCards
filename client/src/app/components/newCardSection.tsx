@@ -93,89 +93,128 @@ export default function NewCardSection({ collection, closeSection }: NewCardSect
   const mutation = useMutation({ mutationFn: createCard })
 
   return (
-    <div className="flex justify-center items-center">
-      {/* Form to edit the current card */}
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center">
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="bg-white p-6 rounded-xl shadow-md w-full max-w-[700px] mt-4"
+        className="bg-white rounded-2xl shadow-xl p-6 max-w-md w-full mx-4"
       >
-        <h2 className="text-2xl font-bold text-center mb-6">Flash Card</h2>
-
-        {/* Question field */}
-        <div className="mb-4">
-          <label htmlFor="question" className="block text-sm font-medium mb-2">
-            Questäo
-          </label>
-          <input
-            id="question"
-            type="text"
-            {...register("question")}
-            className={`w-full px-3 py-2 border rounded ${errors.question ? "border-red-500" : "border-gray-300"
-              }`}
-          />
-          {errors.question && (
-            <p className="text-red-500 text-sm mt-1">{errors.question.message}</p>
-          )}
+        <div className="flex justify-between items-start mb-6">
+          <h2 className="text-xl font-bold text-gray-800">Novo Flash Card</h2>
+          <button
+            type="button"
+            onClick={closeSection}
+            className="text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
 
-        {/* Answer field */}
-        <div className="mb-4">
-          <label htmlFor="answer" className="block text-sm font-medium mb-2">
-            Resposta
-          </label>
-          <input
-            id="answer"
-            type="text"
-            {...register("answer")}
-            className={`w-full px-3 py-2 border rounded ${errors.answer ? "border-red-500" : "border-gray-300"
-              }`}
-          />
-          {errors.answer && (
-            <p className="text-red-500 text-sm mt-1">{errors.answer.message}</p>
-          )}
-        </div>
-
-        {/* Category field */}
-        <div className="mb-4">
-          <label htmlFor="category" className="block text-sm font-medium mb-2">
-            Categoria
-          </label>
-          <input
-            id="topic"
-            type="text"
-            {...register("topic")}
-            className={`w-full px-3 py-2 border rounded ${errors.topic ? "border-red-500" : "border-gray-300"
-              }`}
-          />
-          {errors.topic && (
-            <p className="text-red-500 text-sm mt-1">{errors.topic.message}</p>
-          )}
-        </div>
-
-        {/* Image Upload Field */}
-        <div>
-          <label>Imagem</label>
-          <Controller
-            name="img"
-            control={control}
-            render={({ field }) => (
-              < CustomFileInput
-                field={field}
-                accept={ACCEPTED_IMAGE_TYPES.join(",")}
-                buttonText="Upload"
-                buttonTextColor="text-black"
-                buttonBgColor="bg-white"
-              >
-              </CustomFileInput>
+        <div className="space-y-4">
+          <div>
+            <label htmlFor="question" className="block text-sm font-medium text-gray-700 mb-2">
+              Questão
+            </label>
+            <input
+              id="question"
+              type="text"
+              {...register("question")}
+              className={`w-full px-4 py-2 rounded-lg border focus:ring-2 focus:outline-none ${errors.question
+                ? "border-red-300 focus:border-red-500 focus:ring-red-100"
+                : "border-gray-200 focus:border-blue-500 focus:ring-blue-100"
+                }`}
+            />
+            {errors.question && (
+              <p className="mt-1 text-sm text-red-500 flex items-center gap-1">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                {errors.question.message}
+              </p>
             )}
-          />
-          {errors.img && <p>{errors.img.message}</p>}
+          </div>
+
+          <div>
+            <label htmlFor="answer" className="block text-sm font-medium text-gray-700 mb-2">
+              Resposta
+            </label>
+            <input
+              id="answer"
+              type="text"
+              {...register("answer")}
+              className={`w-full px-4 py-2 rounded-lg border focus:ring-2 focus:outline-none ${errors.answer
+                ? "border-red-300 focus:border-red-500 focus:ring-red-100"
+                : "border-gray-200 focus:border-blue-500 focus:ring-blue-100"
+                }`}
+            />
+            {errors.answer && (
+              <p className="mt-1 text-sm text-red-500 flex items-center gap-1">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                {errors.answer.message}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <label htmlFor="topic" className="block text-sm font-medium text-gray-700 mb-2">
+              Categoria
+            </label>
+            <input
+              id="topic"
+              type="text"
+              {...register("topic")}
+              className={`w-full px-4 py-2 rounded-lg border focus:ring-2 focus:outline-none ${errors.topic
+                ? "border-red-300 focus:border-red-500 focus:ring-red-100"
+                : "border-gray-200 focus:border-blue-500 focus:ring-blue-100"
+                }`}
+            />
+            {errors.topic && (
+              <p className="mt-1 text-sm text-red-500 flex items-center gap-1">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                {errors.topic.message}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+              Imagem
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </label>
+            <Controller
+              name="img"
+              control={control}
+              render={({ field }) => (
+                <CustomFileInput
+                  field={field}
+                  accept={ACCEPTED_IMAGE_TYPES.join(",")}
+                  buttonText="Selecionar imagem"
+                  buttonTextColor="text-white"
+                  buttonBgColor="bg-blue-500 hover:bg-blue-600"
+
+                />
+              )}
+            />
+            {errors.img && (
+              <p className="mt-1 text-sm text-red-500">{errors.img.message}</p>
+            )}
+          </div>
         </div>
 
-        {/* Submit Button */}
-        <Button type="submit" additionalClasses="my-5 ml-auto" disable={mutation.isPending} text={mutation.isPending ? "Salvando..." : "Salvar"} ></Button>
-      </form >
+        <Button
+          type="submit"
+          additionalClasses="w-full mt-6 py-3 justify-center"
+          disable={mutation.isPending}
+          text={mutation.isPending ? "Salvando..." : "Criar Card"}
+        />
+      </form>
     </div>
-
-  )
+  );
 }

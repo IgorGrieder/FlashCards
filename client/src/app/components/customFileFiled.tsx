@@ -12,7 +12,13 @@ type CustomFileInputProps = {
   buttonBgColor?: string;
   disabled?: boolean;
 };
-
+/* 
+ *
+ * 
+ *
+ * icon={
+                    
+                  }*/
 export default function CustomFileInput({
   field,
   accept,
