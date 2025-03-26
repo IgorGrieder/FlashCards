@@ -29,7 +29,7 @@ export default function CardsSection({
   const [imageModal, setImageModal] = useState(false);
   const answer = collection[currentCard].answer;
   const question = collection[currentCard].question;
-  const category = collection[currentCard].category;
+  const topic = collection[currentCard].topic;
   const progressBar = useRef<HTMLDivElement>(null);
   const img = collection[currentCard].img;
 
@@ -273,7 +273,7 @@ export default function CardsSection({
       {/* Flash card body */}
       <div className="border border-gray-300 rounded-lg px-2 py-5 bg-white flex items-center justify-center relative min-h-[400px] text-center flex-col">
         <div className="text-gray-400 absolute top-[20px] text-center">
-          <span>{category}</span>
+          <span>{topic}</span>
           <span className="mx-2">·</span>
           <span>{collectionName}</span>
         </div>

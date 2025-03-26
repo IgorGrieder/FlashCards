@@ -1,5 +1,6 @@
-import React, { useRef, useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Button from "./button";
+import ImagePreview from "./imagePreview"; // Componente novo que vamos criar
 
 type CustomFileInputProps = {
   field: {
@@ -10,82 +11,79 @@ type CustomFileInputProps = {
   buttonText: string;
   buttonTextColor?: string;
   buttonBgColor?: string;
-  disabled?: boolean;
 };
-/* 
- *
- * 
- *
- * icon={
-                    
-                  }*/
+
 export default function CustomFileInput({
   field,
   accept,
   buttonText,
   buttonTextColor = "text-black",
   buttonBgColor = "bg-white",
-  disabled = false,
 }: CustomFileInputProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [fileName, setFileName] = useState<string | null>(null); // Track the selected file name
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-  const handleButtonClick = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.click(); // Trigger the file input
+  // URL preview 
+  useEffect(() => {
+    if (field.value) {
+      const url = URL.createObjectURL(field.value);
+      setPreviewUrl(url);
+      return () => URL.revokeObjectURL(url);
+    } else {
+      setPreviewUrl(null);
     }
-  };
+  }, [field.value]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      field.onChange(file); // Pass the selected file to the form field
-      setFileName(file.name); // Update the file name
-    } else {
-      field.onChange(undefined); // Clear the field if no file is selected
-      setFileName(null); // Reset the file name
-    }
+    field.onChange(e.target.files?.[0] || undefined);
   };
 
-  const handleClearFile = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.value = ""; // Clear the file input value
-    }
-    field.onChange(undefined); // Clear the form field
-    setFileName(null); // Reset the file name
+  const handleClear = () => {
+    field.onChange(undefined);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   return (
-    <div className="flex items-center mb-2">
-      {/* Hidden file input */}
-      <input
-        type="file"
-        ref={fileInputRef}
-        className="hidden"
-        accept={accept}
-        onChange={handleFileChange}
-      />
+    <div className="space-y-4">
+      {previewUrl && (
+        <div className="relative group">
+          <ImagePreview
+            src={previewUrl}
+            alt="Preview"
+            className="w-full h-48 rounded-lg border border-gray-200"
+          />
+          <button
+            type="button"
+            onClick={handleClear}
+            className="absolute top-2 right-2 p-1 bg-red-500 rounded-full hover:bg-red-600 transition-colors"
+          >
+            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      )}
 
-      {/* Custom button and file name display */}
       <div className="flex items-center gap-2">
+        <input
+          type="file"
+          ref={fileInputRef}
+          className="hidden"
+          accept={accept}
+          onChange={handleFileChange}
+        />
+
         <Button
           text={buttonText}
           textColor={buttonTextColor}
           bgColor={buttonBgColor}
-          onClick={handleButtonClick}
-          disable={disabled}
+          onClick={() => fileInputRef.current?.click()}
         />
-        {fileName && (
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600">{fileName}</span>
-            <Button
-              text="Clear"
-              textColor="text-white"
-              bgColor="bg-red-500"
-              onClick={handleClearFile}
-              additionalClasses="px-2 py-1 text-sm"
-            />
-          </div>
+
+        {field.value && !previewUrl && (
+          <span className="text-sm text-gray-600">
+            {field.value.name}
+          </span>
         )}
       </div>
     </div>

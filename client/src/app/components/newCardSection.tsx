@@ -1,9 +1,8 @@
 import { Controller } from "react-hook-form"
-import { ACCEPTED_IMAGE_TYPES } from "../constants/constants"
 import Button from "./button"
 import CustomFileInput from "./customFileFiled"
 import useFormCollection from "../hooks/useFormCollection"
-import { useContext, useRef } from "react"
+import { useContext, useRef, useEffect } from "react"
 import { UserContext } from "../context/userContext"
 import { AxiosPromise } from "axios"
 import { useMutation } from "@tanstack/react-query";
@@ -18,9 +17,18 @@ type NewCardSectionProps = {
 }
 
 export default function NewCardSection({ collection, handleClose }: NewCardSectionProps) {
-
   const imageRef = useRef<ImageRef>({ base64: null, contentType: null })
   const userCtx = useContext(UserContext)
+  const abortControllerRef = useRef(new AbortController())
+  const isMounted = useRef(true)
+
+  // Cleanup effect
+  useEffect(() => {
+    return () => {
+      isMounted.current = false
+      abortControllerRef.current.abort()
+    }
+  }, [])
 
   // React hook forms usage
   const {
@@ -32,65 +40,84 @@ export default function NewCardSection({ collection, handleClose }: NewCardSecti
 
   const onSubmit = async (data: CardSchemaType) => {
     try {
-      const request = await mutation.mutateAsync(data);
+      const request = await mutation.mutateAsync(data)
 
-      // If the request was successful we will update the context
-      if (request.status === 201 && request.data.newCard && userCtx?.user?.collections) {
-        const collectionsUpdated = userCtx.user.collections.map((col) => {
+      if (isMounted.current && request.status === 201 && request.data.newCard) {
+        const collectionsUpdated = userCtx?.user?.collections?.map((col) => {
           if (col._id === collection._id) {
-            // Create a new collection object with the updated cards array
             const newCard: Card = {
-              answer: data.answer, question: data.question,
-              topic: data.topic, _id: request.data.newCard
+              answer: data.answer,
+              question: data.question,
+              topic: data.topic,
+              _id: request.data.newCard,
+              img: imageRef.current.base64 ? {
+                data: imageRef.current.base64,
+                contentType: imageRef.current.contentType || 'image/*'
+              } : null
             }
             return {
               ...col,
               cards: [...col.cards, newCard]
-            };
+            }
           }
-
-          return col;
-        });
-
-        userCtx.dispatch({
-          type: "UPDATE",
-          payload: {
-            collections: collectionsUpdated
-          }
+          return col
         })
-        handleClose();
+
+        if (isMounted.current) {
+          userCtx?.dispatch({
+            type: "UPDATE",
+            payload: { collections: collectionsUpdated }
+          })
+          handleClose()
+        }
       }
     } catch (e) {
-      alert("Um erro ocorreu, tente novamente.")
-      console.log(e)
+      if (isMounted.current) {
+        alert("Um erro ocorreu, tente novamente.")
+        console.log(e)
+      }
     }
   }
 
   // Function to proceed the request to the backend 
   const createCard = async (credentials: CardSchemaType): AxiosPromise<AddCardToCollectionResponse> => {
-    // We need to convert the image to base64 to store in mongoDB
+    abortControllerRef.current = new AbortController()
+
     if (credentials.img) {
-      const file = credentials.img;
-      const { base64, type } = await convertToBase64(file);
-      imageRef.current.base64 = base64;
-      imageRef.current.contentType = type;
+      const { base64, type } = await convertToBase64(credentials.img)
+      imageRef.current = { base64, contentType: type }
     }
 
-    const result = await api.post("/cards/add-card", {
+    return api.post("/cards/add-card", {
       card: {
-        img: imageRef.current.base64 ? { base64: imageRef.current.base64, type: imageRef.current.contentType } : null,
+        img: imageRef.current.base64 ? {
+          base64: imageRef.current.base64,
+          type: imageRef.current.contentType
+        } : null,
         question: credentials.question,
         answer: credentials.answer,
         topic: credentials.topic,
       },
       collectionId: collection._id
+    }, {
+      signal: abortControllerRef.current.signal
     })
-
-    return result;
   }
 
   // Tan Stack query mutation
-  const mutation = useMutation({ mutationFn: createCard })
+  const mutation = useMutation({
+    mutationFn: createCard,
+    onSettled: () => {
+      imageRef.current = { base64: null, contentType: null }
+    }
+  })
+
+  const handleSafeClose = () => {
+    abortControllerRef.current.abort()
+    if (isMounted.current) {
+      handleClose()
+    }
+  }
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center">
@@ -102,14 +129,16 @@ export default function NewCardSection({ collection, handleClose }: NewCardSecti
           <h2 className="text-xl font-bold text-gray-800">Novo Flash Card</h2>
           <button
             type="button"
-            onClick={handleClose}
+            onClick={handleSafeClose}
             className="text-gray-400 hover:text-gray-600 transition-colors"
+            disabled={mutation.isPending}
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
+
 
         <div className="space-y-4">
           <div>
@@ -182,29 +211,34 @@ export default function NewCardSection({ collection, handleClose }: NewCardSecti
           </div>
 
           <div>
-            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-              Imagem
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-            </label>
             <Controller
               name="img"
               control={control}
-              render={({ field }) => (
-                <CustomFileInput
-                  field={field}
-                  accept={ACCEPTED_IMAGE_TYPES.join(",")}
-                  buttonText="Selecionar imagem"
-                  buttonTextColor="text-white"
-                  buttonBgColor="bg-blue-500 hover:bg-blue-600"
+              render={({ field, fieldState }) => (
+                <div>
+                  <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+                    Imagem
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  </label>
 
-                />
+                  <CustomFileInput
+                    field={field}
+                    accept="image/*"
+                    buttonText="Selecionar imagem"
+                    buttonTextColor="text-white"
+                    buttonBgColor="bg-blue-600 hover:bg-blue-700"
+                  />
+
+                  {fieldState.error && (
+                    <p className="mt-1 text-sm text-red-500">
+                      {fieldState.error.message}
+                    </p>
+                  )}
+                </div>
               )}
             />
-            {errors.img && (
-              <p className="mt-1 text-sm text-red-500">{errors.img.message}</p>
-            )}
           </div>
         </div>
 
@@ -216,5 +250,5 @@ export default function NewCardSection({ collection, handleClose }: NewCardSecti
         />
       </form>
     </div>
-  );
+  )
 }

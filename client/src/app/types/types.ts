@@ -72,7 +72,7 @@ export type Card = {
   topic: string;
   question: string;
   answer: string;
-  img?: CardImage | null;
+  img: CardImage | null;
   _id: string;
 };
 

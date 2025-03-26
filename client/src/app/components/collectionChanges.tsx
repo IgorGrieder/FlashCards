@@ -1,5 +1,5 @@
 "use client"
-import { useContext, useRef, useState } from "react"
+import { useContext, useRef, useState, useEffect } from "react"
 import Button from "./button"
 import { Controller } from "react-hook-form"
 import { CardSchemaType } from "../schemas/cardSchema"
@@ -23,6 +23,8 @@ export default function CollectionChanges({ collection, handleClose }: Collectio
   const collectionCards = collection.cards;
   const userCtx = useContext(UserContext);
   const imageRef = useRef<ImageRef>({ base64: null, contentType: null })
+  const abortControllerRef = useRef(new AbortController());
+  const isMounted = useRef(true);
 
   // React hook forms usage
   const {
@@ -33,102 +35,130 @@ export default function CollectionChanges({ collection, handleClose }: Collectio
     reset
   } = useFormCollection({ card: collectionCards[currentCard] });
 
+  // Reset form when card changes
+  useEffect(() => {
+    reset({
+      answer: collectionCards[currentCard].answer,
+      question: collectionCards[currentCard].question,
+      topic: collectionCards[currentCard].topic,
+    });
+  }, [currentCard, reset, collectionCards]);
+
+  // Cleanup effect
+  useEffect(() => {
+    return () => {
+      isMounted.current = false;
+      abortControllerRef.current.abort();
+    };
+  }, []);
+
   // On submit function 
   const onSubmit = async (data: CardSchemaType) => {
     try {
       const request = await mutation.mutateAsync(data);
 
-      // If the request was successfull we proceed updating the context
-      if (request.status === 204) {
-        const newCollection = userCtx?.user?.collections;
+      if (isMounted.current && request.status === 204) {
+        const updatedCollections = userCtx?.user?.collections?.map(col => {
+          if (col._id === collection._id) {
+            return {
+              ...col,
+              cards: col.cards.map((card, idx) => {
+                if (idx === currentCard) {
+                  // Mantenha a estrutura original do Card com tratamento correto da imagem
+                  const updatedCard = {
+                    ...card,
+                    ...data,
+                  };
 
-        // Updating the card in the context
-        if (newCollection) {
-          for (const cols of newCollection) {
-            if (cols._id === collection._id) {
-              if (cols.cards) {
-                for (const card of cols.cards) {
-                  if (card._id === collection.cards[currentCard]._id.toString()) {
-                    card.topic = data.topic;
-                    card.question = data.question;
-                    card.answer = data.answer;
-                    if (imageRef.current.base64 && imageRef.current.contentType) {
-                      card.img = {
-                        data: imageRef.current.base64,
-                        contentType: imageRef.current.contentType
-                      }
-                    } else {
-                      card.img = null
-                    }
-
+                  // Preserve a imagem existente se não foi alterada
+                  if (!imageRef.current.base64 && card.img) {
+                    updatedCard.img = card.img;
+                  } else {
+                    updatedCard.img = imageRef.current.base64 ? {
+                      data: imageRef.current.base64,
+                      contentType: imageRef.current.contentType || 'image/*'
+                    } : null;
                   }
-                }
-              }
-            }
-          }
-        }
-        userCtx?.dispatch({
-          type: "UPDATE",
-          payload: {
-            collections: newCollection
-          }
-        })
-      }
 
-      // Closing the section
-      handleClose();
+                  return updatedCard;
+                }
+                return card;
+              })
+            };
+          }
+          return col;
+        });
+
+        if (isMounted.current) {
+          userCtx?.dispatch({
+            type: "UPDATE",
+            payload: {
+              collections: updatedCollections as Collection[]
+            }
+          });
+          handleClose();
+        }
+      }
     } catch (error) {
-      alert("Um erro ocorreu, tente novamente.")
-      console.log(error)
+      if (isMounted.current) {
+        alert("Um erro ocorreu, tente novamente.");
+        console.log(error);
+      }
     }
   };
 
+
   // Function to proceed the request to the backend 
   const updateCard = async (credentials: CardSchemaType): AxiosPromise<CollectionUpdateResponse> => {
-    // We need to convert the image to base64 to store in mongoDB
+    abortControllerRef.current = new AbortController();
+
     if (credentials.img) {
-      const file = credentials.img;
-      const { base64, type } = await convertToBase64(file);
-      imageRef.current.base64 = base64;
-      imageRef.current.contentType = type;
+      const { base64, type } = await convertToBase64(credentials.img);
+      imageRef.current = { base64, contentType: type };
     }
 
     const cardToUpdate = collectionCards[currentCard];
-    const result = await api.patch("/cards/update-card", {
+    return api.patch("/cards/update-card", {
       card: {
         cardId: cardToUpdate._id,
         collectionId: collection._id
       },
       newCard: {
-        img: imageRef.current.base64 ? { base64: imageRef.current.base64, type: imageRef.current.contentType } : null,
+        img: imageRef.current.base64 ? {
+          base64: imageRef.current.base64,
+          type: imageRef.current.contentType
+        } : null,
         question: credentials.question,
         answer: credentials.answer,
         topic: credentials.topic,
       }
-    })
-
-    return result;
+    }, {
+      signal: abortControllerRef.current.signal
+    });
   }
 
   // Tan Stack query mutation
-  const mutation = useMutation({ mutationFn: updateCard })
+  const mutation = useMutation({
+    mutationFn: updateCard,
+    onSettled: () => {
+      imageRef.current = { base64: null, contentType: null };
+    }
+  });
 
   // Function to handle moving to next/previous card
   const handleCardNavigation = (direction: 'next' | 'prev') => {
     const newIndex = direction === 'next' ? currentCard + 1 : currentCard - 1;
-
     if (newIndex >= 0 && newIndex < collectionCards.length) {
-      // Reseta com os valores do PRÓXIMO card
-      reset({
-        answer: collectionCards[newIndex].answer,
-        question: collectionCards[newIndex].question,
-        topic: collectionCards[newIndex].topic,
-      });
-
       setCurrentCard(newIndex);
     }
   };
 
+  const handleSafeClose = () => {
+    abortControllerRef.current.abort();
+    if (isMounted.current) {
+      handleClose();
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center">
@@ -142,8 +172,9 @@ export default function CollectionChanges({ collection, handleClose }: Collectio
           </h2>
           <button
             type="button"
-            onClick={handleClose}
+            onClick={handleSafeClose}
             className="text-gray-400 hover:text-gray-600 transition-colors"
+            disabled={mutation.isPending}
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -245,17 +276,16 @@ export default function CollectionChanges({ collection, handleClose }: Collectio
             {errors.img && <p className="mt-1 text-sm text-red-500">{errors.img.message}</p>}
           </div>
         </div>
-
         <div className="flex items-center justify-between mt-6">
           <div className="flex gap-2">
             <Button
               onClick={() => handleCardNavigation("prev")}
-              disable={currentCard <= 0}
+              disable={currentCard <= 0 || mutation.isPending}
               text="Anterior"
             />
             <Button
               onClick={() => handleCardNavigation("next")}
-              disable={currentCard + 1 >= collectionCards.length}
+              disable={currentCard + 1 >= collectionCards.length || mutation.isPending}
               text="Próxima"
             />
           </div>
