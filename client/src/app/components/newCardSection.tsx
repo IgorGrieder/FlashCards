@@ -70,24 +70,14 @@ export default function NewCardSection({ collection, handleClose }: NewCardSecti
     formData.append("question", credentials.question);
     formData.append("answer", credentials.answer);
     formData.append("topic", credentials.topic);
+    formData.append("collectionId", collection._id);
 
     // Adicione o arquivo diretamente (se existir)
     if (credentials.img) {
-      formData.append("img", credentials.img); // Assume que é um FileList
+      formData.append("img", credentials.img);
     }
 
-    return api.post("/cards/add-card", {
-      card: {
-        img: imageRef.current.base64 ? {
-          base64: imageRef.current.base64,
-          type: imageRef.current.contentType
-        } : null,
-        question: credentials.question,
-        answer: credentials.answer,
-        topic: credentials.topic,
-      },
-      collectionId: collection._id
-    })
+    return api.post("/cards/add-card", formData, { headers: { "Content-Type": "multipart/form-data" } });
   }
 
   // Tan Stack query mutation
