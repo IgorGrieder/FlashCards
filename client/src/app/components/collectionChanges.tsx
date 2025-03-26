@@ -23,8 +23,6 @@ export default function CollectionChanges({ collection, handleClose }: Collectio
   const collectionCards = collection.cards;
   const userCtx = useContext(UserContext);
   const imageRef = useRef<ImageRef>({ base64: null, contentType: null })
-  const abortControllerRef = useRef(new AbortController());
-  const isMounted = useRef(true);
 
   // React hook forms usage
   const {
@@ -44,20 +42,13 @@ export default function CollectionChanges({ collection, handleClose }: Collectio
     });
   }, [currentCard, reset, collectionCards]);
 
-  // Cleanup effect
-  useEffect(() => {
-    return () => {
-      isMounted.current = false;
-      abortControllerRef.current.abort();
-    };
-  }, []);
 
   // On submit function 
   const onSubmit = async (data: CardSchemaType) => {
     try {
       const request = await mutation.mutateAsync(data);
 
-      if (isMounted.current && request.status === 204) {
+      if (request.status === 204) {
         const updatedCollections = userCtx?.user?.collections?.map(col => {
           if (col._id === collection._id) {
             return {
@@ -89,28 +80,23 @@ export default function CollectionChanges({ collection, handleClose }: Collectio
           return col;
         });
 
-        if (isMounted.current) {
-          userCtx?.dispatch({
-            type: "UPDATE",
-            payload: {
-              collections: updatedCollections as Collection[]
-            }
-          });
-          handleClose();
-        }
+        userCtx?.dispatch({
+          type: "UPDATE",
+          payload: {
+            collections: updatedCollections as Collection[]
+          }
+        });
+        handleClose();
       }
     } catch (error) {
-      if (isMounted.current) {
-        alert("Um erro ocorreu, tente novamente.");
-        console.log(error);
-      }
+      alert("Um erro ocorreu, tente novamente.");
+      console.log(error);
     }
   };
 
 
   // Function to proceed the request to the backend 
   const updateCard = async (credentials: CardSchemaType): AxiosPromise<CollectionUpdateResponse> => {
-    abortControllerRef.current = new AbortController();
 
     if (credentials.img) {
       const { base64, type } = await convertToBase64(credentials.img);
@@ -132,17 +118,12 @@ export default function CollectionChanges({ collection, handleClose }: Collectio
         answer: credentials.answer,
         topic: credentials.topic,
       }
-    }, {
-      signal: abortControllerRef.current.signal
     });
   }
 
   // Tan Stack query mutation
   const mutation = useMutation({
     mutationFn: updateCard,
-    onSettled: () => {
-      imageRef.current = { base64: null, contentType: null };
-    }
   });
 
   // Function to handle moving to next/previous card
@@ -150,13 +131,6 @@ export default function CollectionChanges({ collection, handleClose }: Collectio
     const newIndex = direction === 'next' ? currentCard + 1 : currentCard - 1;
     if (newIndex >= 0 && newIndex < collectionCards.length) {
       setCurrentCard(newIndex);
-    }
-  };
-
-  const handleSafeClose = () => {
-    abortControllerRef.current.abort();
-    if (isMounted.current) {
-      handleClose();
     }
   };
 
@@ -172,7 +146,7 @@ export default function CollectionChanges({ collection, handleClose }: Collectio
           </h2>
           <button
             type="button"
-            onClick={handleSafeClose}
+            onClick={handleClose}
             className="text-gray-400 hover:text-gray-600 transition-colors"
             disabled={mutation.isPending}
           >
