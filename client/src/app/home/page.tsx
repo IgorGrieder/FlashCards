@@ -99,11 +99,12 @@ export default function MainUserPage() {
 
   return (
     <main className="p-10">
-      <section className="px-5 py-10">
+      <section className="p-5">
+        {/* Title */}
+        <h1 className="sm:text-6xl text-center text-xl font-extrabold mb-10 sm:mb-20">Suas coleções, {userCtx.user.username}!</h1>
 
-        <h1 className="sm:text-8xl text-center text-xl font-extrabold mb-10 sm:mb-20">Suas coleções, {userCtx.user.username}!</h1>
-
-        <div className="p-6 bg-white rounded-xl shadow-sm space-y-4">
+        {/*How to use section*/}
+        <div className="p-6 bg-white rounded-xl shadow-sm space-y-2">
           <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
             <span className="text-3xl">📚</span>
             Como começar

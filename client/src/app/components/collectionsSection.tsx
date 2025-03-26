@@ -17,6 +17,7 @@ export default function CollectionsSection({
   const collectionsSection = useRef<HTMLDivElement>(null);
   const [numItems, setNumItens] = useState(0);
   const [startDisplay, setStartDisplay] = useState(0);
+  const [touchStart, setTouchStart] = useState(0); // Added touch state
 
   const handleCollectionMovement = (moveTo: "left" | "right") => {
     setStartDisplay((prev) => {
@@ -24,6 +25,21 @@ export default function CollectionsSection({
       if (moveTo === "right" && prev + numItems < collections.length) return prev + 1;
       return prev;
     });
+  };
+
+  // Added touch handlers
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.touches[0].clientX);
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    const touchEnd = e.changedTouches[0].clientX;
+    const diff = touchStart - touchEnd;
+    const swipeThreshold = 50;
+
+    if (Math.abs(diff) > swipeThreshold) {
+      handleCollectionMovement(diff > 0 ? 'right' : 'left');
+    }
   };
 
   const { start, stop } = useArrowMovement((direction) => {
@@ -47,7 +63,7 @@ export default function CollectionsSection({
   return (
     <section className="relative group bg-white rounded-2xl shadow-lg p-6 h-full">
       {/* Navigation Arrows */}
-      <div className="absolute inset-y-0 left-0 flex items-center pr-4 z-10">
+      <div className="absolute inset-y-0 left-0 flex items-center pr-4 z-10 ml-2">
         <button
           className={`p-3 rounded-full transition-all ${startDisplay > 0
             ? "bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-black"
@@ -64,7 +80,7 @@ export default function CollectionsSection({
         </button>
       </div>
 
-      <div className="absolute inset-y-0 right-0 flex items-center pl-4 z-10">
+      <div className="absolute inset-y-0 right-0 flex items-center pl-4 z-10 mr-2">
         <button
           className={`p-3 rounded-full transition-all ${startDisplay + numItems < collections.length
             ? "bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-black"
@@ -89,16 +105,18 @@ export default function CollectionsSection({
         />
       </div>
 
-      {/* Collections Container */}
+      {/* Collections Container with Touch Handlers */}
       <div
         ref={collectionsSection}
-        className="flex items-center justify-center gap-6 h-full overflow-hidden"
+        className="flex items-center justify-center gap-6 h-full overflow-hidden mt-3"
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
       >
         {collections.length > 0 && numItems !== 0 ? (
           collections.map((collection, index) => (
             index >= startDisplay && index <= startDisplay + numItems - 1 && (
               <CollectionCard
-                key={crypto.randomUUID()}
+                key={collection._id || crypto.randomUUID()}
                 collection={collection}
                 handleOpenEditSection={onEditCollection}
                 index={index}
