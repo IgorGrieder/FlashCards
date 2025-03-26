@@ -2,7 +2,7 @@ import { Controller } from "react-hook-form"
 import Button from "./button"
 import CustomFileInput from "./customFileFiled"
 import useFormCollection from "../hooks/useFormCollection"
-import { useContext, useRef, useEffect } from "react"
+import { useContext, useRef } from "react"
 import { UserContext } from "../context/userContext"
 import { AxiosPromise } from "axios"
 import { useMutation } from "@tanstack/react-query";
@@ -19,16 +19,6 @@ type NewCardSectionProps = {
 export default function NewCardSection({ collection, handleClose }: NewCardSectionProps) {
   const imageRef = useRef<ImageRef>({ base64: null, contentType: null })
   const userCtx = useContext(UserContext)
-  const abortControllerRef = useRef(new AbortController())
-  const isMounted = useRef(true)
-
-  // Cleanup effect
-  useEffect(() => {
-    return () => {
-      isMounted.current = false
-      abortControllerRef.current.abort()
-    }
-  }, [])
 
   // React hook forms usage
   const {
@@ -42,7 +32,7 @@ export default function NewCardSection({ collection, handleClose }: NewCardSecti
     try {
       const request = await mutation.mutateAsync(data)
 
-      if (isMounted.current && request.status === 201 && request.data.newCard) {
+      if (request.status === 201 && request.data.newCard) {
         const collectionsUpdated = userCtx?.user?.collections?.map((col) => {
           if (col._id === collection._id) {
             const newCard: Card = {
@@ -63,26 +53,20 @@ export default function NewCardSection({ collection, handleClose }: NewCardSecti
           return col
         })
 
-        if (isMounted.current) {
-          userCtx?.dispatch({
-            type: "UPDATE",
-            payload: { collections: collectionsUpdated }
-          })
-          handleClose()
-        }
+        userCtx?.dispatch({
+          type: "UPDATE",
+          payload: { collections: collectionsUpdated }
+        })
+        handleClose()
       }
     } catch (e) {
-      if (isMounted.current) {
-        alert("Um erro ocorreu, tente novamente.")
-        console.log(e)
-      }
+      alert("Um erro ocorreu, tente novamente.")
+      console.log(e)
     }
   }
 
   // Function to proceed the request to the backend 
   const createCard = async (credentials: CardSchemaType): AxiosPromise<AddCardToCollectionResponse> => {
-    abortControllerRef.current = new AbortController()
-
     if (credentials.img) {
       const { base64, type } = await convertToBase64(credentials.img)
       imageRef.current = { base64, contentType: type }
@@ -99,25 +83,13 @@ export default function NewCardSection({ collection, handleClose }: NewCardSecti
         topic: credentials.topic,
       },
       collectionId: collection._id
-    }, {
-      signal: abortControllerRef.current.signal
     })
   }
 
   // Tan Stack query mutation
   const mutation = useMutation({
     mutationFn: createCard,
-    onSettled: () => {
-      imageRef.current = { base64: null, contentType: null }
-    }
   })
-
-  const handleSafeClose = () => {
-    abortControllerRef.current.abort()
-    if (isMounted.current) {
-      handleClose()
-    }
-  }
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center">
@@ -129,7 +101,7 @@ export default function NewCardSection({ collection, handleClose }: NewCardSecti
           <h2 className="text-xl font-bold text-gray-800">Novo Flash Card</h2>
           <button
             type="button"
-            onClick={handleSafeClose}
+            onClick={handleClose}
             className="text-gray-400 hover:text-gray-600 transition-colors"
             disabled={mutation.isPending}
           >
