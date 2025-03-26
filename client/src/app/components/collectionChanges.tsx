@@ -30,6 +30,7 @@ export default function CollectionChanges({ collection, handleClose }: Collectio
     handleSubmit,
     formState: { errors },
     control,
+    reset
   } = useFormCollection({ card: collectionCards[currentCard] });
 
   // On submit function 
@@ -114,12 +115,20 @@ export default function CollectionChanges({ collection, handleClose }: Collectio
 
   // Function to handle moving to next/previous card
   const handleCardNavigation = (direction: 'next' | 'prev') => {
-    if (direction === 'next' && currentCard < collectionCards.length - 1) {
-      setCurrentCard(prev => prev + 1);
-    } else if (direction === 'prev' && currentCard > 0) {
-      setCurrentCard(prev => prev - 1);
+    const newIndex = direction === 'next' ? currentCard + 1 : currentCard - 1;
+
+    if (newIndex >= 0 && newIndex < collectionCards.length) {
+      // Reseta com os valores do PRÓXIMO card
+      reset({
+        answer: collectionCards[newIndex].answer,
+        question: collectionCards[newIndex].question,
+        topic: collectionCards[newIndex].topic,
+      });
+
+      setCurrentCard(newIndex);
     }
   };
+
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center">

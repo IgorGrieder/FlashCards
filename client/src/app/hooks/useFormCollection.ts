@@ -17,6 +17,7 @@ export default function useFormCollection(props: Props) {
     handleSubmit,
     formState: { errors },
     control,
+    reset
   } = useForm<CardSchemaType>({
     resolver: zodResolver(cardSchema),
     defaultValues: {
@@ -24,9 +25,8 @@ export default function useFormCollection(props: Props) {
       topic: topic,
       question: question,
     }
-
   });
 
-  return { register, handleSubmit, formState: { errors }, control }
+  return { register, handleSubmit, formState: { errors }, control, reset }
 
 } 
