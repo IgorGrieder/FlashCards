@@ -151,7 +151,6 @@ export default function MainUserPage() {
       {/* Edit collection section */}
       {editSectionCollection && (
         <EditCollection
-          editSection={editSection}
           handleCloseEditSection={handleCloseEditSection}
           collection={editSectionCollection}
         ></EditCollection>

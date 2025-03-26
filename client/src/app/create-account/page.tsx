@@ -125,7 +125,7 @@ export default function Login() {
 
         {/* Password Field */}
         <div className="mb-6">
-          <label htmlFor="password" className="block text-sm sm:text-2xl font-semibold mb-2">
+          <label htmlFor="password" className="block text-sm sm:text-xl font-semibold mb-2">
             Senha
           </label>
           <input
