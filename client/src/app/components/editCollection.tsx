@@ -130,7 +130,7 @@ export default function EditCollection({
       {activeModal === "new-card" && (
         <NewCardSection
           collection={collection}
-          closeSection={() => setActiveModal(null)}
+          handleClose={() => setActiveModal(null)}
         />
       )}
     </div>

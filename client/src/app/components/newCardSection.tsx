@@ -14,10 +14,10 @@ import convertToBase64 from "../utils/convertBase64"
 
 type NewCardSectionProps = {
   collection: Collection
-  closeSection: VoidFunction
+  handleClose: VoidFunction
 }
 
-export default function NewCardSection({ collection, closeSection }: NewCardSectionProps) {
+export default function NewCardSection({ collection, handleClose }: NewCardSectionProps) {
 
   const imageRef = useRef<ImageRef>({ base64: null, contentType: null })
   const userCtx = useContext(UserContext)
@@ -58,7 +58,7 @@ export default function NewCardSection({ collection, closeSection }: NewCardSect
             collections: collectionsUpdated
           }
         })
-        closeSection();
+        handleClose();
       }
     } catch (e) {
       alert("Um erro ocorreu, tente novamente.")
@@ -102,7 +102,7 @@ export default function NewCardSection({ collection, closeSection }: NewCardSect
           <h2 className="text-xl font-bold text-gray-800">Novo Flash Card</h2>
           <button
             type="button"
-            onClick={closeSection}
+            onClick={handleClose}
             className="text-gray-400 hover:text-gray-600 transition-colors"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
