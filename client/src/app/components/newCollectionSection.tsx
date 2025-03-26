@@ -5,16 +5,10 @@ import { AxiosPromise } from "axios"
 import { useMutation } from "@tanstack/react-query";
 import { api } from "../libs/axios"
 import { CreateCollectionResponse } from "../types/types"
-import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
+import { CollectionSchemaType, collectionSchema } from "../schemas/collectionSchema";
 
-const collectionSchema = z.object({
-  name: z.string().min(1, "Preencha o nome"),
-  category: z.string().min(1, "Preencha a categoria"),
-})
-
-type CollectionSchemaType = z.infer<typeof collectionSchema>;
 
 type NewCollectionSectionProps = {
   handleClose: VoidFunction
@@ -23,7 +17,6 @@ type NewCollectionSectionProps = {
 export default function NewCollectionSection({ handleClose }: NewCollectionSectionProps) {
   const userCtx = useContext(UserContext)
 
-  // React hook forms usage
   const {
     register,
     handleSubmit,
@@ -33,25 +26,17 @@ export default function NewCollectionSection({ handleClose }: NewCollectionSecti
   const onSubmit = async (data: CollectionSchemaType) => {
     try {
       const request = await mutation.mutateAsync(data);
-
-      // If the request was successful we will update the context
       if (request.status === 201 && userCtx?.user?.collections) {
-        // Updating the context
         if (request?.data.collection) {
           const collections = [...userCtx?.user.collections, request.data.collection]
-
           if (collections) {
             userCtx.dispatch({
               type: "UPDATE",
-              payload: {
-                collections: collections
-              }
+              payload: { collections: collections }
             })
           }
         }
       }
-
-      // Closing the section
       handleClose();
     } catch (e) {
       alert("Um erro ocorreu, tente novamente.")
@@ -59,69 +44,85 @@ export default function NewCollectionSection({ handleClose }: NewCollectionSecti
     }
   }
 
-  // Function to proceed the request to the backend 
   const createCollection = async (credentials: CollectionSchemaType): AxiosPromise<CreateCollectionResponse> => {
-    const result = await api.post("collections/create-collection", {
+    return await api.post("collections/create-collection", {
       name: credentials.name,
       category: credentials.category,
     })
-
-    return result;
   }
 
-  // Tan Stack query mutation
   const mutation = useMutation({ mutationFn: createCollection })
 
   return (
-    <div className="inset-0 flex fixed justify-center items-center bg-black/60 z-50" onClick={handleClose}>
-      {/* Form to edit the current card */}
+    <div className="fixed inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm z-50" onClick={handleClose}>
       <form
         onSubmit={handleSubmit(onSubmit)}
         onClick={e => e.stopPropagation()}
-        className="bg-white p-6 rounded-xl shadow-md w-full max-w-[700px] mt-4"
+        className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md mx-4"
       >
-        <h2 className="text-2xl font-bold text-center mb-6">Colecao Nova</h2>
-
-        {/* Name field */}
-        <div className="mb-4">
-          <label htmlFor="question" className="block text-sm font-medium mb-2">
-            Nome
-          </label>
-          <input
-            id="name"
-            type="text"
-            {...register("name")}
-            className={`w-full px-3 py-2 border rounded ${errors.name ? "border-red-500" : "border-gray-300"
-              }`}
-          />
-          {errors.name && (
-            <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
-          )}
+        <div className="flex justify-between items-start mb-8">
+          <h2 className="sm:text-4xl text-2xl font-bold text-gray-800">Nova Coleção</h2>
+          <button
+            type="button"
+            onClick={handleClose}
+            className="text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
 
-        {/* Category field */}
-        <div className="mb-4">
-          <label htmlFor="category" className="block text-sm font-medium mb-2">
-            Categoria
-          </label>
-          <input
-            id="category"
-            type="text"
-            {...register("category")}
-            className={`w-full px-3 py-2 border rounded ${errors.category ? "border-red-500" : "border-gray-300"
-              }`}
-          />
-          {errors.category && (
-            <p className="text-red-500 text-sm mt-1">{errors.category.message}</p>
-          )}
+        <div className="space-y-6">
+          {/* Name Field */}
+          <div>
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+              Nome da Coleção
+            </label>
+            <input
+              id="name"
+              type="text"
+              {...register("name")}
+              className={`w-full px-4 py-3 rounded-lg border focus:ring-2 focus:outline-none transition-all ${errors.name
+                ? "border-red-300 focus:border-red-500 focus:ring-red-100"
+                : "border-gray-200 focus:border-blue-500 focus:ring-blue-100"
+                }`}
+            />
+            {errors.name && (
+              <p className="mt-2 text-sm text-red-500">{errors.name.message}</p>
+            )}
+          </div>
+
+          {/* Category Field */}
+          <div>
+            <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
+              Categoria
+            </label>
+            <input
+              id="category"
+              type="text"
+              {...register("category")}
+              className={`w-full px-4 py-3 rounded-lg border focus:ring-2 focus:outline-none transition-all ${errors.category
+                ? "border-red-300 focus:border-red-500 focus:ring-red-100"
+                : "border-gray-200 focus:border-blue-500 focus:ring-blue-100"
+                }`}
+            />
+            {errors.category && (
+              <p className="mt-2 text-sm text-red-500">{errors.category.message}</p>
+            )}
+          </div>
+
+          {/* Submit Button */}
+          <div className="pt-4">
+            <Button
+              type="submit"
+              additionalClasses="w-full justify-center py-3"
+              disable={mutation.isPending}
+              text={mutation.isPending ? "Criando..." : "Criar Coleção"}
+            />
+          </div>
         </div>
-
-
-        {/* Submit Button */}
-        <Button type="submit" additionalClasses="my-5 ml-auto" disable={mutation.isPending} text={mutation.isPending ? "Criando..." : "Criar"} ></Button>
-      </form >
+      </form>
     </div>
-
   )
 }
-
