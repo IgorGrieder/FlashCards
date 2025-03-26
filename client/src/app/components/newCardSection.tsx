@@ -9,7 +9,6 @@ import { useMutation } from "@tanstack/react-query";
 import { api } from "../libs/axios"
 import { CardSchemaType } from "../schemas/cardSchema"
 import { ImageRef, AddCardToCollectionResponse, Collection, Card } from "../types/types"
-import convertToBase64 from "../utils/convertBase64"
 
 type NewCardSectionProps = {
   collection: Collection
@@ -67,9 +66,14 @@ export default function NewCardSection({ collection, handleClose }: NewCardSecti
 
   // Function to proceed the request to the backend 
   const createCard = async (credentials: CardSchemaType): AxiosPromise<AddCardToCollectionResponse> => {
+    const formData = new FormData();
+    formData.append("question", credentials.question);
+    formData.append("answer", credentials.answer);
+    formData.append("topic", credentials.topic);
+
+    // Adicione o arquivo diretamente (se existir)
     if (credentials.img) {
-      const { base64, type } = await convertToBase64(credentials.img)
-      imageRef.current = { base64, contentType: type }
+      formData.append("img", credentials.img); // Assume que é um FileList
     }
 
     return api.post("/cards/add-card", {
