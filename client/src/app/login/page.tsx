@@ -77,11 +77,11 @@ export default function Login() {
         onSubmit={handleSubmit(onSubmit)}
         className="bg-white p-6 rounded-xl shadow-md w-full max-w-md"
       >
-        <h2 className="text-2xl font-bold text-center mb-6">Entrar</h2>
+        <h2 className="text-2xl sm:text-4xl font-extrabold text-center mb-6">Entrar</h2>
 
         {/* Email Field */}
         <div className="mb-4">
-          <label htmlFor="login" className="block text-sm font-medium mb-2">
+          <label htmlFor="login" className="block text-sm sm:text-2xl font-semibold mb-2">
             Email/usuário
           </label>
           <input
@@ -100,7 +100,7 @@ export default function Login() {
 
         {/* Password Field */}
         <div className="mb-6">
-          <label htmlFor="password" className="block text-sm font-medium mb-2">
+          <label htmlFor="password" className="block text-sm sm:text-2xl font-semibold mb-2">
             Senha
           </label>
           <input
