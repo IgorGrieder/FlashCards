@@ -14,7 +14,7 @@ export default function Home() {
   return (
     <main className="h-screen text-xl px-10">
       <section className="flex flex-col h-full items-center justify-center">
-        <h1 className="text-8xl font-extrabold mb-10 sm:mb-20">Flash Cards</h1>
+        <h1 className="sm:text-8xl text-xl font-extrabold mb-10 sm:mb-20">Flash Cards</h1>
 
         {/* Main text */}
         <div className="flex gap-5 sm:items-center">
