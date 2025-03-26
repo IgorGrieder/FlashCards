@@ -7,37 +7,12 @@ import { api } from "../libs/axios";
 import { CreateAccountResponse } from "../types/types";
 import { useRouter } from "next/navigation";
 import { UserContext } from "../context/userContext";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-
-const createSchema = z.object({
-  email: z.string().email("Insira um email válido"),
-  username: z
-    .string()
-    .min(3, "Usuário deve ter pelo menos 3 caracteres")
-    .max(50, "Usuário não pode ter mais de 50 caracteres")
-    .refine(
-      (value) => {
-        // Check if it's a valid username (alphanumeric and underscores)
-        const usernameRegex = /^[a-zA-Z0-9_]+$/;
-
-        return usernameRegex.test(value);
-      },
-      {
-        message: "Insira um nome de usuário válido",
-      },
-    ),
-  password: z
-    .string()
-    .min(6, "Senha deve ter pelo menos 6 caracteres")
-    .max(50, "Senha não pode ter mais de 50 caracteres"),
-});
-
-type LoginSchemaType = z.infer<typeof createSchema>;
+import { CreateAccountSchemaType, createSchema } from "../schemas/createAccountSchema";
 
 // Function to make the request to the backend about the account creation
 const createUser = async (
-  credentials: LoginSchemaType,
+  credentials: CreateAccountSchemaType,
 ): AxiosPromise<CreateAccountResponse> => {
   const result = await api.post("/users/create-account", {
     email: credentials.email,
@@ -62,7 +37,7 @@ export default function Login() {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<LoginSchemaType>({
+  } = useForm<CreateAccountSchemaType>({
     resolver: zodResolver(createSchema),
     defaultValues: {
       email: "",
@@ -72,7 +47,7 @@ export default function Login() {
   });
 
   // onSubmit method
-  const onSubmit = async (formData: LoginSchemaType) => {
+  const onSubmit = async (formData: CreateAccountSchemaType) => {
     try {
       // Making the post request to our api to create an user
       const request = await mutation.mutateAsync(formData);
@@ -102,11 +77,11 @@ export default function Login() {
         onSubmit={handleSubmit(onSubmit)}
         className="bg-white p-6 rounded-xl shadow-md w-full max-w-md"
       >
-        <h2 className="text-2xl font-bold text-center mb-6">Entrar</h2>
+        <h2 className="text-2xl sm:text-4xl font-extrabold text-center mb-6">Entrar</h2>
 
         {/* Email Field */}
         <div className="mb-4">
-          <label htmlFor="email" className="block text-sm font-medium mb-2">
+          <label htmlFor="email" className="block text-sm sm:text-2xl font-semibold mb-2">
             Email
           </label>
           <input
@@ -115,9 +90,8 @@ export default function Login() {
             {...register("email", {
               onChange: () => setCreateFailed(false),
             })}
-            className={`w-full px-3 py-2 border rounded ${
-              errors.email ? "border-red-500" : "border-gray-300"
-            }`}
+            className={`w-full px-3 py-2 border rounded ${errors.email ? "border-red-500" : "border-gray-300"
+              }`}
           />
           {errors.email && (
             <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
@@ -126,7 +100,7 @@ export default function Login() {
 
         {/* Username Field */}
         <div className="mb-4">
-          <label htmlFor="username" className="block text-sm font-medium mb-2">
+          <label htmlFor="username" className="block text-sm sm:text-2xl font-semibold mb-2">
             Usuário
           </label>
           <input
@@ -135,9 +109,8 @@ export default function Login() {
             {...register("username", {
               onChange: () => setCreateFailed(false),
             })}
-            className={`w-full px-3 py-2 border rounded ${
-              errors.username ? "border-red-500" : "border-gray-300"
-            }`}
+            className={`w-full px-3 py-2 border rounded ${errors.username ? "border-red-500" : "border-gray-300"
+              }`}
           />
           {errors.username && (
             <p className="text-red-500 text-sm mt-1">
@@ -148,7 +121,7 @@ export default function Login() {
 
         {/* Password Field */}
         <div className="mb-6">
-          <label htmlFor="password" className="block text-sm font-medium mb-2">
+          <label htmlFor="password" className="block text-sm sm:text-2xl font-semibold mb-2">
             Senha
           </label>
           <input
@@ -157,9 +130,8 @@ export default function Login() {
             {...register("password", {
               onChange: () => setCreateFailed(false),
             })}
-            className={`w-full px-3 py-2 border rounded ${
-              errors.password ? "border-red-500" : "border-gray-300"
-            }`}
+            className={`w-full px-3 py-2 border rounded ${errors.password ? "border-red-500" : "border-gray-300"
+              }`}
           />
           {errors.password && (
             <p className="text-red-500 text-sm mt-1">
@@ -181,7 +153,8 @@ export default function Login() {
         <button
           type="submit"
           disabled={mutation.isPending}
-          className="px-3 py-4 items-center text-sm transition-colors hover:text-white border-gray-300 border hover:bg-black sm:text-base rounded-lg cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed w-full justify-center flex`}"
+          className="px-3 py-4 items-center text-sm transition-colors hover:text-white border-gray-300 border hover:bg-black sm:text-base 
+          rounded-lg cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed w-full justify-center flex`}"
         >
           {mutation.isPending ? "Criando..." : "Criar conta"}
         </button>
