@@ -74,10 +74,10 @@ export default function NewCardSection({ collection, handleClose }: NewCardSecti
 
     // Adicione o arquivo diretamente (se existir)
     if (credentials.img) {
-      formData.append("img", credentials.img);
+      formData.append("file", credentials.img);
     }
 
-    return api.post("/cards/add-card", formData, { headers: { "Content-Type": "multipart/form-data" } });
+    return await api.post("/cards/add-card", formData, { headers: { "Content-Type": "multipart/form-data" } });
   }
 
   // Tan Stack query mutation

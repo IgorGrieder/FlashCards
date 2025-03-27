@@ -107,7 +107,7 @@ export default function CollectionChanges({ collection, handleClose }: Collectio
       formData.append("img", credentials.img);
     }
 
-    return api.post("/cards/update-card", formData, { headers: { "Content-Type": "multipart/form-data" } });
+    return await api.post("/cards/update-card", formData, { headers: { "Content-Type": "multipart/form-data" } });
   }
 
   // Tan Stack query mutation
