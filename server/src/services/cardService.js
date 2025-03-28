@@ -3,6 +3,15 @@ import { internalServerErrorCode, noContentCode, badRequest, notFoundCode, creat
 import { ObjectId } from "mongodb";
 
 class CardService {
+
+  /**
+     * Adds a new card to a collection
+     * @static
+     * @async
+     * @param {Object} card - The card object to add
+     * @param {string} collectionId - MongoDB collection ID as string
+     * @returns {Promise<{success: boolean, code: string, newCardId?: import('mongodb').ObjectId}>}
+     */
   static async addCardToCollection(
     card,
     collectionId,
@@ -27,6 +36,14 @@ class CardService {
     }
   }
 
+  /**
+     * Deletes a card from a collection
+     * @static
+     * @async
+     * @param {string} collectionId - MongoDB collection ID as string
+     * @param {string} cardId - MongoDB card ID as string
+     * @returns {Promise<{success: boolean, code: string}>}
+     */
   static async deleteCardFromCollection(
     collectionId, cardId
   ) {
@@ -53,6 +70,15 @@ class CardService {
     }
   }
 
+  /**
+     * Updates an existing card in a collection
+     * @static
+     * @async
+     * @param {Object} card - Card object with updated values
+     * @param {string} cardId - MongoDB card ID as string
+     * @param {string} collectionId - MongoDB collection ID as string
+     * @returns {Promise<{success: boolean, code: string}>}
+     */
   static async updateCard(
     card,
     cardId,
