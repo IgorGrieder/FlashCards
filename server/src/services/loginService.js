@@ -8,6 +8,15 @@ import { expiresIn, saltRounds } from "../constants/jwtConstants.js";
 import { errorToken, expiredToken, unauthorizedMessage, userNotFound } from "../constants/messageConstants.js";
 
 class LoginService {
+
+  /**
+     * Authenticates a user and generates JWT
+     * @static
+     * @async
+     * @param {string} login - Username or email
+     * @param {string} password - Plain text password
+     * @returns {Promise<{success: boolean, code: string, token?: string, user?: import('mongodb').Document}>}
+     */
   static async logIn(login, password) {
 
     // Since the user can login with username or email we need to check for both
@@ -39,6 +48,15 @@ class LoginService {
     }
   }
 
+  /**
+     * Updates user password after validation
+     * @static
+     * @async
+     * @param {string} login - Username or email
+     * @param {string} oldPassword - Current plain text password
+     * @param {string} newPassword - New plain text password
+     * @returns {Promise<{passwordUpdated: boolean, code: string}>}
+     */
   static async updatePassword(login, oldPassword, newPassword) {
     try {
       const result = await DBUsers().findOne({ $or: [{ username: login }, { email: login }] });
@@ -68,6 +86,15 @@ class LoginService {
     }
   }
 
+  /**
+    * Creates a new user account
+    * @static
+    * @async
+    * @param {string} email - User email
+    * @param {string} username - User username
+    * @param {string} password - Plain text password
+    * @returns {Promise<{accountCreated: boolean, code: string, token?: string, username?: string}>}
+    */
   static async createAccount(email, username, password) {
     try {
       const hashedPassword = await LoginService.hashPassword(password);
@@ -89,6 +116,12 @@ class LoginService {
     }
   }
 
+  /**
+    * Generates JWT token for authenticated user
+    * @static
+    * @param {import('mongodb').Document} user - User document from DB
+    * @returns {Promise<{generated: boolean, token?: string, message?: string}>}
+    */
   static generateJWT(user) {
     return new Promise((resolve) => {
       const payload = {
@@ -108,6 +141,13 @@ class LoginService {
     })
   }
 
+  /**
+     * Hashes plain text password using bcrypt
+     * @static
+     * @async
+     * @param {string} password - Plain text password
+     * @returns {Promise<string>} Resolves with hashed password
+     */
   static async hashPassword(password) {
     try {
       const hashedPassword = await bcrypt.hash(password, saltRounds);
@@ -117,6 +157,12 @@ class LoginService {
     }
   }
 
+  /**
+     * Validates JWT token
+     * @static
+     * @param {{token: string}} validate - Object containing JWT token
+     * @returns {Promise<{validated: boolean, decoded?: object, message?: string}>}
+     */
   static validateJWT(validate) {
     return new Promise((resolve) => {
       jsonwebtoken.verify(validate.token, process.env.SECRET_KEY_JWT, (err, decoded) => {
@@ -136,6 +182,13 @@ class LoginService {
     });
   }
 
+  /**
+     * Deletes a user account
+     * @static
+     * @async
+     * @param {string} userId - MongoDB user ID as string
+     * @returns {Promise<{deleted: boolean, code: string, message?: string}>}
+     */
   static async deleteUser(userId) {
     try {
       const result = await DBUsers().deleteOne({ _id: new ObjectId(userId) });
@@ -150,9 +203,16 @@ class LoginService {
       return { deleted: true, code: noContentCode };
     } catch (error) {
       return { deleted: false, code: internalServerErrorCode };
-    }
-  }
 
+  /**
+   * Checks if user exists by username or email
+   * @static
+   * @async
+   * @param {string} login - Username or email to check
+   * @param {boolean} isEmail - Flag to indicate email search
+   * @returns {Promise<boolean>}
+   */   }
+  }
   static async findUser(login, isEmail) {
     try {
       let result = null;

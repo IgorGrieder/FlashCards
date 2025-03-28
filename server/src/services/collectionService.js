@@ -3,10 +3,6 @@ import { internalServerErrorCode, created, noContentCode, okCode, badRequest } f
 import { ObjectId } from "mongodb";
 import { unexpectedError } from "../constants/messageConstants.js";
 
-/**
- * Service class for handling collection operations in MongoDB
- * @class
- */
 class CollectionService {
 
   /**
