@@ -10,11 +10,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@types/aws-sdk": "^0.0.42",
+    "@aws-sdk/client-s3": "^3.777.0",
     "@types/express": "^5.0.0",
     "@types/mongodb": "^4.0.7",
-    "@types/mongoose": "^5.11.97",
-    "aws-sdk": "^2.1692.0",
     "axios": "^1.7.9",
     "bcrypt": "^5.1.1",
     "bcryptjs": "^3.0.2",

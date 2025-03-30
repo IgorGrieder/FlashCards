@@ -10,18 +10,6 @@ dotenv.config({ path: "../.env" });
 const app = express();
 const PORT = process.env.PORT;
 
-// s3 config
-// const s3client = new S3Client({
-//   region: "sa-east-1",
-//   credentials: {
-//     accessKeyId: process.env.ACCESS_KEY,
-//     secretAccessKey: process.env.SECRET_ACCESS_KEY
-//
-//   }
-// });
-
-
-
 /**
  * startServer - This function handles the initialization of the server, ensuring
  * that the database connection is successful before setting up the Express app and
