@@ -1,14 +1,13 @@
-import { Controller } from "react-hook-form"
 import Button from "./button"
-import CustomFileInput from "./customFileFiled"
 import useFormCollection from "../hooks/useFormCollection"
-import { useContext, useRef } from "react"
+import { useContext } from "react"
 import { UserContext } from "../context/userContext"
 import { AxiosPromise } from "axios"
 import { useMutation } from "@tanstack/react-query";
 import { api } from "../libs/axios"
 import { CardSchemaType } from "../schemas/cardSchema"
-import { ImageRef, AddCardToCollectionResponse, Collection, Card } from "../types/types"
+import { AddCardToCollectionResponse, Collection, Card } from "../types/types"
+import { ACCEPTED_IMAGE_TYPES, MAX_FILE_SIZE } from "../constants/constants"
 
 type NewCardSectionProps = {
   collection: Collection
@@ -16,20 +15,17 @@ type NewCardSectionProps = {
 }
 
 export default function NewCardSection({ collection, handleClose }: NewCardSectionProps) {
-  const imageRef = useRef<ImageRef>({ base64: null, contentType: null })
-  const userCtx = useContext(UserContext)
+  const userCtx = useContext(UserContext);
 
-  // React hook forms usage
   const {
     register,
     handleSubmit,
     formState: { errors },
-    control,
-  } = useFormCollection({ card: null })
+  } = useFormCollection({ card: null });
 
   const onSubmit = async (data: CardSchemaType) => {
     try {
-      const request = await mutation.mutateAsync(data)
+      const request = await mutation.mutateAsync(data);
 
       if (request.status === 201 && request.data.newCard) {
         const collectionsUpdated = userCtx?.user?.collections?.map((col) => {
@@ -39,32 +35,27 @@ export default function NewCardSection({ collection, handleClose }: NewCardSecti
               question: data.question,
               topic: data.topic,
               _id: request.data.newCard,
-              img: imageRef.current.base64 ? {
-                data: imageRef.current.base64,
-                contentType: imageRef.current.contentType || 'image/*'
-              } : null
-            }
+              img: request.data.imageURL || null // Use the URL from backend response
+            };
             return {
               ...col,
               cards: [...col.cards, newCard]
-            }
+            };
           }
-          return col
-        })
+          return col;
+        });
 
         userCtx?.dispatch({
           type: "UPDATE",
           payload: { collections: collectionsUpdated }
-        })
-        handleClose()
+        });
+        handleClose();
       }
     } catch (e) {
-      alert("Um erro ocorreu, tente novamente.")
-      console.log(e)
+      alert("Um erro ocorreu, tente novamente.");
+      console.log(e);
     }
-  }
-
-  // Function to proceed the request to the backend 
+  };
   const createCard = async (credentials: CardSchemaType): AxiosPromise<AddCardToCollectionResponse> => {
     const formData = new FormData();
     formData.append("question", credentials.question);
@@ -72,18 +63,19 @@ export default function NewCardSection({ collection, handleClose }: NewCardSecti
     formData.append("topic", credentials.topic);
     formData.append("collectionId", collection._id);
 
-    // Adicione o arquivo diretamente (se existir)
-    if (credentials.img) {
-      formData.append("file", credentials.img);
+    // Properly handle FileList type
+    if (credentials.img && credentials.img.length > 0) {
+      formData.append("file", credentials.img[0]); // Access first file in FileList
     }
 
-    return await api.post("/cards/add-card", formData, { headers: { "Content-Type": "multipart/form-data" } });
-  }
+    return await api.post("/cards/add-card", formData, {
+      headers: { "Content-Type": "multipart/form-data" }
+    });
+  };
 
-  // Tan Stack query mutation
   const mutation = useMutation({
     mutationFn: createCard,
-  })
+  });
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center">
@@ -177,34 +169,31 @@ export default function NewCardSection({ collection, handleClose }: NewCardSecti
           </div>
 
           <div>
-            <Controller
-              name="img"
-              control={control}
-              render={({ field, fieldState }) => (
-                <div>
-                  <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                    Imagem
-                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                  </label>
-
-                  <CustomFileInput
-                    field={field}
-                    accept="image/*"
-                    buttonText="Selecionar imagem"
-                    buttonTextColor="text-white"
-                    buttonBgColor="bg-blue-600 hover:bg-blue-700"
-                  />
-
-                  {fieldState.error && (
-                    <p className="mt-1 text-sm text-red-500">
-                      {fieldState.error.message}
-                    </p>
-                  )}
-                </div>
-              )}
+            <label htmlFor="img" className="block text-sm font-medium text-gray-700 mb-2">
+              Arquivo
+            </label>
+            <input
+              id="img"
+              type="file"
+              {...register("img", {
+                validate: {
+                  validType: (files) => !files || files.length === 0 || ACCEPTED_IMAGE_TYPES.includes(files[0].type),
+                  validSize: (files) => !files || files.length === 0 || files[0].size <= MAX_FILE_SIZE
+                }
+              })}
+              className={`w-full px-4 py-2 rounded-lg border focus:ring-2 focus:outline-none ${errors.img
+                ? "border-red-300 focus:border-red-500 focus:ring-red-100"
+                : "border-gray-200 focus:border-blue-500 focus:ring-blue-100"
+                }`}
             />
+            {errors.img && (
+              <p className="mt-1 text-sm text-red-500 flex items-center gap-1">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                {errors.img.message}
+              </p>
+            )}
           </div>
         </div>
 

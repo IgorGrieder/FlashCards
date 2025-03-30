@@ -58,21 +58,11 @@ export type CollectionsRespose = {
   message?: string;
 };
 
-export type CardImage = {
-  data: string;
-  contentType: string;
-};
-
-export type ImageRef = {
-  base64: string | null;
-  contentType: string | null;
-}
-
 export type Card = {
   topic: string;
   question: string;
   answer: string;
-  img: CardImage | null;
+  img: string | null;
   _id: string;
 };
 
@@ -92,6 +82,7 @@ export type AddCardToCollectionResponse = {
   cardAdded: boolean;
   message: string;
   newCard: string;
+  imageURL: string;
 }
 
 export type CreateCollectionResponse = {
