@@ -10,9 +10,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@types/aws-sdk": "^0.0.42",
     "@types/express": "^5.0.0",
     "@types/mongodb": "^4.0.7",
     "@types/mongoose": "^5.11.97",
+    "aws-sdk": "^2.1692.0",
     "axios": "^1.7.9",
     "bcrypt": "^5.1.1",
     "bcryptjs": "^3.0.2",
@@ -22,7 +24,7 @@
     "express": "^4.21.1",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.15.0",
-    "mongoose": "^8.8.2"
+    "multer": "^1.4.5-lts.2"
   },
   "devDependencies": {
     "nodemon": "^3.1.7"
