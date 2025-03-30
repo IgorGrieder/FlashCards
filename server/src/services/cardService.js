@@ -19,8 +19,6 @@ class CardService {
     try {
       // Adding an ObjectID for the card
       card._id = new ObjectId();
-      console.log("Searching for collection:", collectionId);
-      console.log("Exists?", await DBCollections().findOne({ _id: new ObjectId(collectionId) }));
 
       const collectionModified = await DBCollections().findOneAndUpdate(
         { _id: new ObjectId(collectionId) },
