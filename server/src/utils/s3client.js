@@ -1,6 +1,4 @@
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
-import { GetBucketLocationCommand } from "@aws-sdk/client-s3"
-
+import { S3Client, PutObjectCommand, DeleteObjectsCommand } from "@aws-sdk/client-s3";
 
 class S3 {
   s3 = new S3Client({
@@ -30,6 +28,32 @@ class S3 {
   async insertS3(params) {
     try {
       await this.s3.send(new PutObjectCommand(params));
+      return true;
+    } catch (err) {
+      console.log(err);
+      return false;
+    }
+  }
+
+  /**
+   * Low-level method to delete objects from S3
+   * @async
+   * @param {import('@aws-sdk/client-s3').DeleteObjectsCommandInput} params - S3 delete objects parameters
+   * @returns {Promise<boolean>} Returns true if deletion succeeded, false if failed
+   * @throws {Error} May throw errors from AWS S3 SDK
+   * @description This method uses the AWS SDK v3 DeleteObjectsCommand to delete multiple objects
+   * @see {@link https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-s3/interfaces/deleteobjectscommandinput.html|DeleteObjectsCommandInput}
+   * @example
+   * await removeS3({
+   *   Bucket: 'my-bucket',
+   *   Delete: {
+   *     Objects: [{ Key: 'file1.jpg' }, { Key: 'file2.jpg' }]
+   *   }
+   * });
+   */
+  async removeS3(params) {
+    try {
+      await this.s3.send(new DeleteObjectsCommand(params));
       return true;
     } catch (err) {
       console.log(err);
