@@ -4,6 +4,7 @@ import CardService from "../services/cardService.js";
 import { cardAdded, collectionNotFound, errorAddCard, errorUpdateCard, incompleteReqInfo, unexpectedError } from "../constants/messageConstants.js";
 import { badRequest, internalServerErrorCode, noContentCode } from "../constants/codeConstants.js";
 import upload from "../utils/multer.js";
+import { ObjectId } from "mongodb";
 
 // Router instance
 const cardRoutes = new Router();
@@ -22,22 +23,6 @@ const validateCardToDelete = (req, res, next) => {
 
   next();
 };
-
-const validateCardToInsert = (req, res, next) => {
-  // const { answer, topic, question } = req.body.card;
-  // const collectionId = req.body.collectionId;
-  //
-  // // if any of the given requirements aren't given we must return a bad call
-  // if (!collectionId || !answer || !topic || !question) {
-  //   return res.status(badRequest).json({
-  //     collectionCreated: false,
-  //     message: incompleteReqInfo,
-  //   });
-  // }
-  //
-  next();
-
-}
 
 // Routes ---------------------------------------------------------------------
 cardRoutes.patch(
@@ -102,13 +87,25 @@ cardRoutes.post(
   "/add-card",
   Utils.validateJWTMiddlewear,
   upload.single("file"),
-  validateCardToInsert,
   async (req, res) => {
-    console.log(req.body);
-    console.log(req.file);
-    return
-    const card = req.body.card;
-    const { collectionId } = req.body;
+    const card = { answer: req.body.answer, question: req.body.question, topic: req.body.topic };
+    const collectionId = req.body.collectionId;
+
+    // Adding an ObjectID for the card
+    const objID = new ObjectId();
+    card._id = objID;
+
+    // If there's an image on the request we will try to upload it in S3
+    if (req.file) {
+      const uploaded = CardService.insertImage(req.file, objID.toString());
+      if (!uploaded) {
+        return res.status(unexpectedError).json({
+          cardAdded: false,
+          message: unexpectedError,
+        });
+      }
+
+    }
 
     const result = await CardService.addCardToCollection(
       card,

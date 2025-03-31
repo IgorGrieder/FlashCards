@@ -11,16 +11,23 @@ class S3 {
     },
     signatureVersion: 'v4'
   });
-  async verifyBucket() {
-    const location = await this.s3.send(
-      new GetBucketLocationCommand({ Bucket: process.env.BUCKET_NAME })
-    )
-    console.log('Actual bucket region:', location.LocationConstraint)
-  }
+
+  /**
+    * Low-level method to insert an object into S3
+    * @async
+    * @param {import('@aws-sdk/client-s3').PutObjectCommandInput} params - S3 put object parameters
+    * @returns {Promise<boolean>} Returns true if upload succeeded, false if failed
+    * @description This method uses the AWS SDK v3 PutObjectCommand to upload files
+    * @see {@link https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-s3/interfaces/putobjectcommandinput.html|PutObjectCommandInput}
+    * @example
+    * await insertS3({
+    *   Bucket: 'my-bucket',
+    *   Key: 'file.jpg',
+    *   Body: buffer,
+    *   ContentType: 'image/jpeg'
+    * });
+    */
   async insertS3(params) {
-    console.log('Bucket Region:', process.env.BUCKET_REGION)
-    console.log('Bucket Name:', process.env.BUCKET_NAME)
-    console.log('Access Key:', process.env.ACCESS_KEY ? '***' : 'MISSING')
     try {
       await this.s3.send(new PutObjectCommand(params));
       return true;

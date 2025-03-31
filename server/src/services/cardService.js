@@ -1,6 +1,7 @@
 import { DBCollections } from "../database/collectionsInstances.js"
 import { internalServerErrorCode, noContentCode, badRequest, notFoundCode, created } from "../constants/codeConstants.js";
 import { ObjectId } from "mongodb";
+import S3 from "../utils/s3client.js"
 
 class CardService {
 
@@ -17,9 +18,6 @@ class CardService {
     collectionId,
   ) {
     try {
-      // Adding an ObjectID for the card
-      card._id = new ObjectId();
-
       const collectionModified = await DBCollections().findOneAndUpdate(
         { _id: new ObjectId(collectionId) },
         { $push: { cards: card } },
@@ -117,6 +115,28 @@ class CardService {
     }
   }
 
+  /**
+   * Inserts an image file into AWS S3
+   * @static
+   * @async
+   * @param {Express.Multer.File} file - The file object from Multer middleware (contains buffer and mimetype)
+   * @param {string} fileName - The desired filename for storage in S3
+   * @returns {Promise<boolean>} Returns true if upload succeeded, false if failed
+   * @throws {Error} May throw errors from AWS S3 SDK if upload fails
+   * @example
+   * await YourClassName.insertImage(req.file, 'profile-123.jpg');
+   */
+  static async insertImage(file, fileName) {
+    const s3 = new S3();
+    const params = {
+      Bucket: process.env.BUCKET_NAME,
+      Key: fileName,
+      Body: file.buffer,
+      ContentType: file.mimetype
+    }
+
+    return await s3.insertS3(params);
+  }
 }
 
 export default CardService
