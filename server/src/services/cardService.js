@@ -46,10 +46,32 @@ class CardService {
     collectionId, cardId
   ) {
     try {
-      const updatedCollection = await DBCollections().findOneAndUpdate({ _id: new ObjectId(collectionId) },
-        { $pull: { cards: { _id: new ObjectId(cardId) } } }, {
-        returnDocument: 'after'
-      })
+      // First get the card to check if it has an image
+      const collection = await DBCollections().findOne({
+        _id: new ObjectId(collectionId),
+        "cards._id": new ObjectId(cardId)
+      });
+
+      if (!collection) {
+        return {
+          success: false,
+          code: badRequest,
+        };
+      }
+
+      // Find the card in the collection
+      const card = collection.cards.find(c => c._id.toString() === cardId);
+
+      // Delete the card's image from S3 if it exists
+      if (card) {
+        await CardService.deleteImage(cardId);
+      }
+
+      const updatedCollection = await DBCollections().findOneAndUpdate(
+        { _id: new ObjectId(collectionId) },
+        { $pull: { cards: { _id: new ObjectId(cardId) } } },
+        { returnDocument: 'after' }
+      );
 
       if (!updatedCollection) {
         return {
@@ -83,6 +105,11 @@ class CardService {
     collectionId
   ) {
     try {
+      // If the card has a new image, we need to delete the old one first
+      if (card.hasNewImage) {
+        await CardService.deleteImage(cardId);
+      }
+
       const collectionModified = await DBCollections().findOneAndUpdate(
         {
           _id: new ObjectId(collectionId),
@@ -145,6 +172,18 @@ class CardService {
     }
 
     return await s3.getS3(params);
+  }
+
+  static async deleteImage(fileName) {
+    const s3 = new S3();
+    const params = {
+      Bucket: process.env.BUCKET_NAME,
+      Delete: {
+        Objects: [{ Key: fileName }]
+      }
+    }
+
+    return await s3.deleteS3(params);
   }
 }
 

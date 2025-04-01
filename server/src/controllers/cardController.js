@@ -58,9 +58,22 @@ cardRoutes.patch(
 cardRoutes.patch(
   "/update-card",
   Utils.validateJWTMiddlewear,
+  upload.single("file"),
   async (req, res) => {
     const card = req.body.card;
     const { cardId, collectionId } = req.body;
+
+    // If there's a new image, upload it and set the flag
+    if (req.file) {
+      card.hasNewImage = true;
+      const uploaded = await CardService.insertImage(req.file, cardId);
+      if (!uploaded) {
+        return res.status(internalServerErrorCode).json({
+          cardUpdated: false,
+          message: unexpectedError,
+        });
+      }
+    }
 
     const result = await CardService.updateCard(card, cardId, collectionId);
 
@@ -80,7 +93,6 @@ cardRoutes.patch(
       cardAdded: false,
       message: errorUpdateCard,
     });
-
   },
 );
 
