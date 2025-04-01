@@ -44,6 +44,7 @@ cardRoutes.patch(
         message: collectionNotFound
       })
     }
+
     // Internal server error
     if (result.code === internalServerErrorCode) {
       return res.status(result.code).json({

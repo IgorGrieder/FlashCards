@@ -7,8 +7,6 @@ class S3 {
       accessKeyId: process.env.ACCESS_KEY,
       secretAccessKey: process.env.SECRET_ACCESS_KEY
     },
-    signatureVersion: 'v4',
-    retryMode: "standard"
   });
 
   /**
@@ -58,6 +56,7 @@ class S3 {
       console.error(`S3 Error [${err.$metadata?.httpStatusCode}]:`, err.message);
       return false;
     }
+
   }
 
   /**

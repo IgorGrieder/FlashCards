@@ -122,7 +122,6 @@ class CardService {
    * @param {Express.Multer.File} file - The file object from Multer middleware (contains buffer and mimetype)
    * @param {string} fileName - The desired filename for storage in S3
    * @returns {Promise<boolean>} Returns true if upload succeeded, false if failed
-   * @throws {Error} May throw errors from AWS S3 SDK if upload fails
    * @example
    * await YourClassName.insertImage(req.file, 'profile-123.jpg');
    */
@@ -136,6 +135,16 @@ class CardService {
     }
 
     return await s3.insertS3(params);
+  }
+
+  static async getImage(fileName) {
+    const s3 = new S3();
+    const params = {
+      Bucket: process.env.BUCKET_NAME,
+      Key: fileName,
+    }
+
+    return await s3.getS3(params);
   }
 }
 
