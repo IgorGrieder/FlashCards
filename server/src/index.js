@@ -4,13 +4,11 @@ import DB from "./database/config.js"
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import setUpRoutes from "./controllers/routes.js";
-import { response } from "./services/ollama.js";
 
 // .env config
 dotenv.config({ path: "../.env" });
 const app = express();
 const PORT = process.env.PORT;
-console.log(response)
 
 /**
  * startServer - This function handles the initialization of the server, ensuring

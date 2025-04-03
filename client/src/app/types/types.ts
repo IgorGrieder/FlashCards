@@ -90,3 +90,10 @@ export type CreateCollectionResponse = {
   message: string;
   collection?: Collection
 }
+
+export type ImageCaching = {
+  [collectionId: string]: {
+    timestamp: number;
+    images: { [cardId: string]: string }
+  };
+}
