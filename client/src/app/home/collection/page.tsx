@@ -2,19 +2,64 @@
 import CardsSection from "@/app/components/cardsSection";
 import LoadingPage from "@/app/components/loadingPage";
 import { UserContext } from "@/app/context/userContext";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Collection } from "@/app/types/types";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useContext, useEffect, useRef, useState } from "react";
+import { ImagesContext } from "@/app/context/imagesContext";
+import axios from "axios";
 
 export default function CollectionPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const userCtx = useContext(UserContext);
   const userCollections = userCtx?.user?.collections;
-  const collectionName = searchParams.get("name");
+  const collectionName = searchParams.get("name") || "";
+  const collectionId = searchParams.get("id") || "";
   const [isChecked, setIsChecked] = useState(false);
   const [collection, setCollection] = useState<Collection | null>(null);
   const flashCards = useRef<HTMLDivElement>(null);
+  const { updateCache } = useContext(ImagesContext);
+  const queryClient = useQueryClient();
+
+  // Fetch images from server
+  const _ = useQuery({
+    queryKey: ['collection-images', collectionId],
+    queryFn: async () => {
+      const response = await axios.get<Record<string, Blob>>(
+        `/api/collections/${collectionId}/images`,
+        { responseType: 'arraybuffer' }
+      );
+
+      const imageBlobs = response.data;
+
+      const imageMap = Object.fromEntries(
+        Object.entries(imageBlobs).map(([cardId, buffer]) => {
+          if (!(buffer instanceof ArrayBuffer)) {
+            return [cardId, '']; // Fallback empty image
+          }
+
+          const blob = new Blob([buffer], { type: 'image/jpeg' });
+          return [cardId, URL.createObjectURL(blob)];
+        })
+      );
+
+      updateCache(collectionId, imageMap);
+      return imageMap;
+    },
+  });
+
+  // Cleanup when leaving collection
+  useEffect(() => {
+    return () => {
+      // Schedule cache removal after 15 minutes
+      setTimeout(() => {
+        queryClient.removeQueries({ queryKey: ["collection-images", collectionId] });
+        updateCache(collectionId, {}); // Clear from context
+      }, 1000 * 60 * 15);
+    };
+  }, [collectionId, queryClient, updateCache]);
+
 
   // Use effect for checking user and collections
   useEffect(() => {
@@ -28,7 +73,7 @@ export default function CollectionPage() {
     // Checking if the user has a collection with the name provided
     if (userCollections) {
       for (let i = 0; i <= userCollections?.length - 1; i++) {
-        if (userCollections[i].name === collectionName) {
+        if (userCollections[i].name === collectionName && userCollections[i]._id === collectionId) {
           collectionExists = true;
           setCollection(userCollections[i]);
           break;
@@ -42,7 +87,7 @@ export default function CollectionPage() {
     }
 
     setIsChecked(true);
-  }, [userCtx, router, userCollections, collectionName, collection]);
+  }, [userCtx, router, userCollections, collectionName, collection, collectionId]);
 
   if (!isChecked) {
     return <LoadingPage></LoadingPage>;
@@ -78,6 +123,7 @@ export default function CollectionPage() {
       {collection && (
         <div ref={flashCards}>
           <CardsSection
+            collectionId={collectionId}
             collection={collection.cards}
             collectionName={collectionName ?? ""}
           ></CardsSection>

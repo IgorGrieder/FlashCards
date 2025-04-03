@@ -1,12 +1,23 @@
 "use client";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 import UserProvider from "../context/userContext";
-const queryClient = new QueryClient();
+import ImageProvider from "../context/imagesContext";
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 30, // 30 minutes
+    },
+  },
+});
 
 const Providers = ({ children }: { children: React.ReactNode }) => {
   return (
     <QueryClientProvider client={queryClient}>
-      <UserProvider>{children}</UserProvider>
+      <UserProvider>
+        <ImageProvider>
+          {children}
+        </ImageProvider>
+      </UserProvider>
     </QueryClientProvider>
   );
 };

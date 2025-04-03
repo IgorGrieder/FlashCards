@@ -1,7 +1,7 @@
 import { createContext, useEffect, useState } from "react";
 import { ImageCaching } from "../types/types";
 
-const ImagesContext = createContext<{ cache: ImageCaching; updateCache: (collectionId: string, images: Record<string, string>) => void }>(
+export const ImagesContext = createContext<{ cache: ImageCaching; updateCache: (collectionId: string, images: Record<string, string>) => void }>(
   ({ cache: {}, updateCache: () => { } }));
 
 export default function ImageProvider({ children }: { children: React.ReactNode }) {
