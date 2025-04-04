@@ -22,11 +22,36 @@ export default function CollectionPage() {
   const { updateCache } = useContext(ImagesContext);
   const queryClient = useQueryClient();
 
+  // const { data: images } = useQuery({
+  //   queryKey: ['collection-images', collectionId],
+  //   queryFn: async (): Promise<Record<string, string>> => {
+  //     const response = await axios.get<ArrayBuffer>(
+  //       `/api/collections/${collectionId}/images`,
+  //       { responseType: 'arraybuffer' }
+  //     );
+  //
+  //     const buffer = response.data;
+  //
+  //     // Validate buffer
+  //     if (!(buffer instanceof ArrayBuffer)) {
+  //       throw new Error('Invalid image data');
+  //     }
+  //
+  //     // Convert to Blob
+  //     const blob = new Blob([buffer], { type: 'image/jpeg' });
+  //     const url = URL.createObjectURL(blob);
+  //
+  //     return {
+  //       [collectionId]: url
+  //     };
+  //   },
+  // });
+
   // Fetch images from server
   const _ = useQuery({
     queryKey: ['collection-images', collectionId],
     queryFn: async () => {
-      const response = await axios.get<Record<string, Blob>>(
+      const response = await axios.get<Record<string, ArrayBuffer>>(
         `/api/collections/${collectionId}/images`,
         { responseType: 'arraybuffer' }
       );

@@ -2,6 +2,7 @@
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 import UserProvider from "../context/userContext";
 import ImageProvider from "../context/imagesContext";
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
