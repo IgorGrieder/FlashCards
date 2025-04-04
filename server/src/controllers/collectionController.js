@@ -21,6 +21,43 @@ const validateCreateCollection = (req, res, next) => {
   next();
 };
 
+collectionRoutes.get('/collections/:collectionId/images', async (req, res) => {
+  try {
+    const images = await CollectionService.getImages(req.params.collectionId);
+
+    console.log(images);
+
+    if (!images) {
+      return res.status(404).send('Collection not found');
+    }
+
+    res.setHeader('Content-Type', 'multipart/mixed; boundary="BOUNDARY"');
+
+    for (const { cardId, stream } of images) {
+      if (!stream) continue;
+
+      res.write(`--BOUNDARY\r\n`);
+      res.write(`Content-Type: ${stream.contentType}\r\n`);
+      res.write(`Content-ID: ${cardId}\r\n\r\n`);
+
+      for await (const chunk of stream) {
+        res.write(chunk);
+      }
+
+      res.write('\r\n');
+    }
+
+    res.write('--BOUNDARY--\r\n');
+    console.log(res);
+    res.end();
+    res.status(200).send();
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Server error');
+  }
+});
+
 collectionRoutes.get(
   "/get-collections",
   Utils.validateJWTMiddlewear,

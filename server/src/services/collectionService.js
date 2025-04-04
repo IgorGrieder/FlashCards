@@ -2,8 +2,19 @@ import { DBCollections } from "../database/collectionsInstances.js";
 import { internalServerErrorCode, created, noContentCode, okCode, badRequest } from "../constants/codeConstants.js";
 import { ObjectId } from "mongodb";
 import { unexpectedError } from "../constants/messageConstants.js";
+import S3 from "../utils/s3client.js";
 
 class CollectionService {
+
+  static async getImages(collectionId) {
+    const result = await S3().CollectionImages(collectionId);
+
+    if (!result || result.length === 0) {
+      return { success: false, code: noContentCode };
+    }
+
+    return { success: true, code: okCode, images: result };
+  }
 
   /**
    * Retrieves all collections belonging to a user

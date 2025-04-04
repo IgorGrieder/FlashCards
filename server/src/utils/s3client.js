@@ -1,13 +1,16 @@
 import { S3Client, PutObjectCommand, DeleteObjectsCommand, GetObjectCommand } from "@aws-sdk/client-s3";
+import { DBCollections } from "../database/collectionsInstances.js";
 
 class S3 {
-  s3 = new S3Client({
-    region: process.env.BUCKET_REGION,
-    credentials: {
-      accessKeyId: process.env.ACCESS_KEY,
-      secretAccessKey: process.env.SECRET_ACCESS_KEY
-    },
-  });
+  constructor() {
+    this.s3 = new S3Client({
+      region: process.env.BUCKET_REGION,
+      credentials: {
+        accessKeyId: process.env.ACCESS_KEY,
+        secretAccessKey: process.env.SECRET_ACCESS_KEY
+      },
+    });
+  }
 
   /**
     * Low-level method to insert an object into S3
@@ -59,38 +62,38 @@ class S3 {
 
   }
 
-  /**
-   * Low - level method to retrieve an object from S3
-    * @async
-    * @param { import('@aws-sdk/client-s3').GetObjectCommandInput } params - S3 get object parameters
-      * @returns { Promise < { buffer: Buffer, contentType: string } | null >} Returns object with file data or null
-        * @see {
-    @link https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-s3/interfaces/getobjectcommandinput.html|GetObjectCommandInput}
-   * @example
-      * await getS3({
-        *   Bucket: 'my-bucket',
-        *   Key: 'file.jpg'
-   * });
-   */
-  async getS3(params) {
+  async getS3ObjectStream(cardId) {
+    const params = {
+      Bucket: process.env.BUCKET_NAME,
+      Key: cardId
+    };
+
     try {
       const { Body, ContentType } = await this.s3.send(new GetObjectCommand(params));
-
-      // Convert ReadableStream to Buffer
-      const chunks = [];
-      for await (const chunk of Body) {
-        chunks.push(chunk);
-      }
-
       return {
-        buffer: Buffer.concat(chunks),
+        stream: Body,
         contentType: ContentType
       };
     } catch (err) {
-      console.error(`S3 Error [${err.$metadata?.httpStatusCode}]:`, err.message);
+      console.error('S3 Error:', err);
       return null;
     }
   }
+
+  async getCollectionImages(collectionId) {
+    const collection = await DBCollections().findOne(
+      { _id: new ObjectId(collectionId) },
+      { projection: { cards: 1 } }
+    );
+
+    if (!collection) return null;
+
+    return collection.cards.map(card => ({
+      cardId: card._id,
+      stream: this.getS3ObjectStream(card._id)
+    }));
+  }
+
 }
 
 export default S3
