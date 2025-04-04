@@ -24,6 +24,7 @@ export default function ImageProvider({ children }: { children: React.ReactNode 
         const now = Date.now();
         return Object.fromEntries(
           Object.entries(prev).filter(
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             ([_, entry]) => now - entry.timestamp < 1000 * 60 * 30 // 30-minute TTL
           )
         );

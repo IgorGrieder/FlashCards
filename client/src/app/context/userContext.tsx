@@ -47,10 +47,10 @@ export default function UserProvider({
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
       dispatch({ type: "LOGIN", payload: JSON.parse(storedUser) });
-      setIsLoading(false);
     } else {
       router.push("/");
     }
+    setIsLoading(false);
   }, [router]);
 
   // Handle authentication redirects
