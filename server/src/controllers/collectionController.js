@@ -21,7 +21,7 @@ const validateCreateCollection = (req, res, next) => {
   next();
 };
 
-collectionRoutes.get('/collections/:collectionId/images', async (req, res) => {
+collectionRoutes.get('/collections/:collectionId', async (req, res) => {
   try {
     const images = await CollectionService.getImages(req.params.collectionId);
 

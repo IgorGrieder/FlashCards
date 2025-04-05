@@ -22,7 +22,7 @@ export default function CollectionCard({
     if (editRef.current?.contains(e.target as Node)) {
       handleOpenEditSection(collection);
     } else if (hasCards) {
-      router.push(`home/collection?name=${collection.name}`);
+      router.push(`home/collection?name=${collection.name}&id=${collection._id}`);
     }
   };
 
