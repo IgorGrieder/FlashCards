@@ -35,7 +35,8 @@ export default function CustomFileInput({
   }, [field.value]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    field.onChange(e.target.files?.[0] || undefined);
+    const file = e.target.files?.[0];
+    field.onChange(file || undefined);
   };
 
   const handleClear = () => {

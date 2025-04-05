@@ -1,10 +1,28 @@
-import { DBCollections } from "../database/collectionsInstances.js"
+import { DBCollections } from "../database/collectionsInstances.js";
 import { internalServerErrorCode, created, noContentCode, okCode, badRequest } from "../constants/codeConstants.js";
 import { ObjectId } from "mongodb";
 import { unexpectedError } from "../constants/messageConstants.js";
+import S3 from "../utils/s3client.js";
 
 class CollectionService {
 
+  static async getImages(collectionId) {
+    const result = await S3().CollectionImages(collectionId);
+
+    if (!result || result.length === 0) {
+      return { success: false, code: noContentCode };
+    }
+
+    return { success: true, code: okCode, images: result };
+  }
+
+  /**
+   * Retrieves all collections belonging to a user
+   * @static
+   * @async
+   * @param {string} userId - MongoDB user ID as string
+   * @returns {Promise<{success: boolean, code: string, collections?: Array<import('mongodb').Document>}>}
+   */
   static async getUserCollections(userId) {
     try {
       const collections = (await DBCollections().find({ owner: new ObjectId(userId) }).toArray())
@@ -20,6 +38,15 @@ class CollectionService {
     }
   }
 
+  /**
+   * Creates a new collection for a user
+   * @static
+   * @async
+   * @param {string} category - Collection category
+   * @param {string} name - Collection name
+   * @param {string} userId - MongoDB user ID as string
+   * @returns {Promise<{success: boolean, code: string, collection?: import('mongodb').Document}>}
+   */
   static async createCollection(category, name, userId) {
     try {
       const newCollection = await DBCollections().insertOne({
@@ -43,6 +70,13 @@ class CollectionService {
     }
   }
 
+  /**
+   * Deletes a collection by ID
+   * @static
+   * @async
+   * @param {string} collectionId - MongoDB collection ID as string
+   * @returns {Promise<{success: boolean, code: string, message?: string}>}
+   */
   static async deleteCollection(collectionId) {
     try {
       const result = await DBCollections().deleteOne({ _id: new ObjectId(collectionId) })

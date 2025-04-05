@@ -1,6 +1,8 @@
 import { MongoClient } from 'mongodb';
 
 let db;
+
+/** @type {import('mongodb').Db} */
 let client;
 
 async function connectDB() {
@@ -18,6 +20,11 @@ async function connectDB() {
   }
 }
 
+/**
+ * Returns a MongoDB Collection instance.
+ * @param {string} col - Collection name
+ * @returns {import('mongodb').Collection}
+ */
 function getDB(col) {
   if (!db) {
     throw new Error('Database not connected. Call connectDB() first.');

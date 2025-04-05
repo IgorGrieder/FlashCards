@@ -1,10 +1,11 @@
 import dotenv from "dotenv";
 import express from "express";
 import DB from "./database/config.js"
-import setUpRoutes from "./controllers/routes.js";
 import cookieParser from "cookie-parser";
 import cors from "cors";
+import setUpRoutes from "./controllers/routes.js";
 
+// .env config
 dotenv.config({ path: "../.env" });
 const app = express();
 const PORT = process.env.PORT;
@@ -34,8 +35,8 @@ const startServer = async () => {
       }),
     );
     // Set up middlewares and routes after DB connection is established
-    app.use(express.json({ limit: "50mb" }));
-    app.use(express.urlencoded({ limit: "50mb", extended: true }));
+    app.use(express.json({ limit: "10mb" }));
+    app.use(express.urlencoded({ limit: "10mb", extended: true }));
     app.use(cookieParser());
 
     // Set up routes

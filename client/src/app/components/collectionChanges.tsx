@@ -11,7 +11,6 @@ import { api } from "../libs/axios"
 import { UserContext } from "../context/userContext"
 import CustomFileInput from "./customFileFiled"
 import useFormCollection from "../hooks/useFormCollection"
-import convertToBase64 from "../utils/convertBase64"
 
 type CollectionChangesProps = {
   collection: Collection
@@ -97,28 +96,18 @@ export default function CollectionChanges({ collection, handleClose }: Collectio
 
   // Function to proceed the request to the backend 
   const updateCard = async (credentials: CardSchemaType): AxiosPromise<CollectionUpdateResponse> => {
+    const formData = new FormData();
+    formData.append("question", credentials.question);
+    formData.append("answer", credentials.answer);
+    formData.append("topic", credentials.topic);
+    formData.append("collectionId", collection._id);
+    formData.append("cardId", collectionCards[currentCard]._id);
 
     if (credentials.img) {
-      const { base64, type } = await convertToBase64(credentials.img);
-      imageRef.current = { base64, contentType: type };
+      formData.append("img", credentials.img);
     }
 
-    const cardToUpdate = collectionCards[currentCard];
-    return api.patch("/cards/update-card", {
-      card: {
-        cardId: cardToUpdate._id,
-        collectionId: collection._id
-      },
-      newCard: {
-        img: imageRef.current.base64 ? {
-          base64: imageRef.current.base64,
-          type: imageRef.current.contentType
-        } : null,
-        question: credentials.question,
-        answer: credentials.answer,
-        topic: credentials.topic,
-      }
-    });
+    return await api.post("/cards/update-card", formData, { headers: { "Content-Type": "multipart/form-data" } });
   }
 
   // Tan Stack query mutation
