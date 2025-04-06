@@ -2,7 +2,7 @@
 import CardsSection from "@/app/components/cardsSection";
 import LoadingPage from "@/app/components/loadingPage";
 import { UserContext } from "@/app/context/userContext";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Collection } from "@/app/types/types";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useContext, useEffect, useRef, useState } from "react";
@@ -20,48 +20,43 @@ export default function CollectionPage() {
   const [collection, setCollection] = useState<Collection | null>(null);
   const flashCards = useRef<HTMLDivElement>(null);
   const { updateCache } = useContext(ImagesContext);
-  const queryClient = useQueryClient();
 
   // Fetch images from server
-  const _ = useQuery({
+  const { data: imageMetadata, isLoading: isLoadingImages } = useQuery({
     queryKey: ['collection-images', collectionId],
     queryFn: async () => {
-      console.log('Fetching images');
-      const response = await axios.get<Record<string, ArrayBuffer>>(
-        `/api/collections/collectionId=${collectionId}`,
-        { responseType: 'arraybuffer' }
-      );
-
-      const imageBlobs = response.data;
-
-      const imageMap = Object.fromEntries(
-        Object.entries(imageBlobs).map(([cardId, buffer]) => {
-          if (!(buffer instanceof ArrayBuffer)) {
-            return [cardId, '']; // Fallback empty image
-          }
-
-          const blob = new Blob([buffer], { type: 'image/jpeg' });
-          return [cardId, URL.createObjectURL(blob)];
-        })
-      );
-
-      updateCache(collectionId, imageMap);
-      return imageMap;
+      const response = await axios.get(`/api/collections/${collectionId}`);
+      return response.data.images;
     },
+    staleTime: 1000 * 60 * 15, // Consider data fresh for 15 minutes
   });
 
-  // I need to double check that
-  // Cleanup when leaving collection
+  // Load images progressively
   useEffect(() => {
-    return () => {
-      // Schedule cache removal after 15 minutes
-      setTimeout(() => {
-        queryClient.removeQueries({ queryKey: ["collection-images", collectionId] });
-        updateCache(collectionId, {}); // Clear from context
-      }, 1000 * 60 * 15);
-    };
-  }, [collectionId, queryClient, updateCache]);
+    if (!imageMetadata) return;
 
+    const loadImages = async () => {
+      const imageMap: Record<string, string> = {};
+
+      for (const metadata of imageMetadata) {
+        try {
+          const response = await axios.get(
+            `/api/collections/${collectionId}/image/${metadata.cardId}`,
+            { responseType: 'blob' }
+          );
+
+          const blob = new Blob([response.data], { type: metadata.contentType });
+          imageMap[metadata.cardId] = URL.createObjectURL(blob);
+        } catch (error) {
+          console.error(`Failed to load image for card ${metadata.cardId}:`, error);
+        }
+      }
+
+      updateCache(collectionId, imageMap);
+    };
+
+    loadImages();
+  }, [imageMetadata, collectionId, updateCache]);
 
   // Use effect for checking user and collections
   useEffect(() => {
@@ -91,8 +86,8 @@ export default function CollectionPage() {
     setIsChecked(true);
   }, [userCtx, router, userCollections, collectionName, collection, collectionId]);
 
-  if (!isChecked) {
-    return <LoadingPage></LoadingPage>;
+  if (!isChecked || isLoadingImages) {
+    return <LoadingPage />;
   }
 
   return (

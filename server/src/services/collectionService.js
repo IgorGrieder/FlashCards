@@ -5,15 +5,31 @@ import { unexpectedError } from "../constants/messageConstants.js";
 import S3 from "../utils/s3client.js";
 
 class CollectionService {
+  constructor() {
+    this.s3 = new S3();
+  }
 
-  static async getImages(collectionId) {
-    const result = await S3().CollectionImages(collectionId);
+  async getImages(collectionId) {
+    try {
+      const images = await this.s3.getCollectionImages(collectionId);
 
-    if (!result || result.length === 0) {
-      return { success: false, code: noContentCode };
+      if (!images || images.length === 0) {
+        return { success: false, code: noContentCode };
+      }
+
+      return {
+        success: true,
+        code: okCode,
+        images: images.map(img => ({
+          cardId: img.cardId,
+          contentType: img.contentType,
+          contentLength: img.contentLength,
+        }))
+      };
+    } catch (error) {
+      console.error('Error getting collection images:', error);
+      return { success: false, code: internalServerErrorCode };
     }
-
-    return { success: true, code: okCode, images: result };
   }
 
   /**

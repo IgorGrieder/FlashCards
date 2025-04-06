@@ -1,5 +1,6 @@
 import { S3Client, PutObjectCommand, DeleteObjectsCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 import { DBCollections } from "../database/collectionsInstances.js";
+import { ObjectId } from "mongodb";
 
 class S3 {
   constructor() {
@@ -69,10 +70,18 @@ class S3 {
     };
 
     try {
-      const { Body, ContentType } = await this.s3.send(new GetObjectCommand(params));
+      const command = new GetObjectCommand(params);
+      const response = await this.s3.send(command);
+
+      if (!response.Body) {
+        throw new Error('No content found in S3 object');
+      }
+
       return {
-        stream: Body,
-        contentType: ContentType
+        stream: response.Body,
+        contentType: response.ContentType,
+        contentLength: response.ContentLength,
+        lastModified: response.LastModified
       };
     } catch (err) {
       console.error('S3 Error:', err);
@@ -81,19 +90,33 @@ class S3 {
   }
 
   async getCollectionImages(collectionId) {
-    const collection = await DBCollections().findOne(
-      { _id: new ObjectId(collectionId) },
-      { projection: { cards: 1 } }
-    );
+    try {
+      const collection = await DBCollections().findOne(
+        { _id: new ObjectId(collectionId) },
+        { projection: { cards: 1 } }
+      );
 
-    if (!collection) return null;
+      if (!collection) {
+        return null;
+      }
 
-    return collection.cards.map(card => ({
-      cardId: card._id,
-      stream: this.getS3ObjectStream(card._id)
-    }));
+      const imagePromises = collection.cards.map(async (card) => {
+        const imageData = await this.getS3ObjectStream(card._id);
+        if (!imageData) return null;
+
+        return {
+          cardId: card._id,
+          ...imageData
+        };
+      });
+
+      const images = await Promise.all(imagePromises);
+      return images.filter(img => img !== null);
+    } catch (err) {
+      console.error('Error fetching collection images:', err);
+      return null;
+    }
   }
-
 }
 
 export default S3

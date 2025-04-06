@@ -8,6 +8,15 @@ export default function ImageProvider({ children }: { children: React.ReactNode 
   const [cache, setCache] = useState<ImageCaching>({});
 
   const updateCache = (collectionId: string, images: Record<string, string>) => {
+    // First revoke any existing object URLs to prevent memory leaks
+    if (cache[collectionId]?.images) {
+      Object.values(cache[collectionId].images).forEach(url => {
+        if (url && typeof url === 'string' && url.startsWith('blob:')) {
+          URL.revokeObjectURL(url);
+        }
+      });
+    }
+
     setCache((prevCache) => ({
       ...prevCache,
       [collectionId]: {
