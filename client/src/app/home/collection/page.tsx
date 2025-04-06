@@ -6,8 +6,9 @@ import { Collection,  ImagesResponse } from "@/app/types/types";
 import { useSearchParams } from "next/navigation";
 import { useContext, useEffect, useRef, useState } from "react";
 import { ImagesContext } from "@/app/context/imagesContext";
-import axios, { AxiosResponse } from "axios";
+import { AxiosResponse } from "axios";
 import { UserContext } from "@/app/context/userContext";
+import { api } from "@/app/libs/axios";
 
 export default function CollectionPage() {
   const searchParams = useSearchParams();
@@ -20,7 +21,7 @@ export default function CollectionPage() {
   const { updateCache } = useContext(ImagesContext);
 
   const loadImages = async (): Promise<Record<string, string>> =>  {
-    const response: AxiosResponse<ImagesResponse> = await axios.get(`/api/collections/${collectionId}/all-images`);
+    const response: AxiosResponse<ImagesResponse> = await api.get(`collections/${collectionId}/all-images`);
     const imageMap: Record<string, string> = {};
 
     Object.entries(response.data.images).forEach(([cardId, imageData]) => {
