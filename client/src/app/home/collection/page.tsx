@@ -1,28 +1,26 @@
 "use client";
 import CardsSection from "@/app/components/cardsSection";
 import LoadingPage from "@/app/components/loadingPage";
-import { UserContext } from "@/app/context/userContext";
 import { useQuery } from "@tanstack/react-query";
-import { Collection, GetImagesResponse } from "@/app/types/types";
-import { useRouter, useSearchParams } from "next/navigation";
+import { Collection,  ImagesResponse } from "@/app/types/types";
+import { useSearchParams } from "next/navigation";
 import { useContext, useEffect, useRef, useState } from "react";
 import { ImagesContext } from "@/app/context/imagesContext";
 import axios, { AxiosResponse } from "axios";
+import { UserContext } from "@/app/context/userContext";
 
 export default function CollectionPage() {
-  const router = useRouter();
   const searchParams = useSearchParams();
-  const userCtx = useContext(UserContext);
-  const userCollections = userCtx?.user?.collections;
   const collectionName = searchParams.get("name") || "";
+  const userCtx = useContext(UserContext);
   const collectionId = searchParams.get("id") || "";
-  const [isChecked, setIsChecked] = useState(false);
+  const [isChecking, setIsChecking] = useState(true);
   const [collection, setCollection] = useState<Collection | null>(null);
   const flashCards = useRef<HTMLDivElement>(null);
   const { updateCache } = useContext(ImagesContext);
 
-  const loadImages = async () => {
-    const response: AxiosResponse<GetImagesResponse> = await axios.get(`/api/collections/${collectionId}/all-images`);
+  const loadImages = async (): Promise<Record<string, string>> =>  {
+    const response: AxiosResponse<ImagesResponse> = await axios.get(`/api/collections/${collectionId}/all-images`);
     const imageMap: Record<string, string> = {};
 
     Object.entries(response.data.images).forEach(([cardId, imageData]) => {
@@ -37,40 +35,25 @@ export default function CollectionPage() {
   }
 
   // Fetch images from server
-  const { data: _, isLoading: isLoadingImages } = useQuery({
+  const { data: images, isLoading: isLoadingImages } = useQuery({
     queryKey: ['collection-images', collectionId],
     queryFn: loadImages, staleTime: 1000 * 60 * 15, // Consider data fresh for 15 minutes
   });
 
-  // Use effect for checking user and collections
   useEffect(() => {
-    let collectionExists = false;
+    // Update the collection in the state after render
+    if (userCtx?.user?.collections) {
 
-    // The user doesn't have any collection
-    if (userCollections && userCollections.length <= 0) {
-      router.push("/home");
-    }
+      const col = userCtx?.user?.collections.findIndex(col => col._id === collectionId);
 
-    // Checking if the user has a collection with the name provided
-    if (userCollections) {
-      for (let i = 0; i <= userCollections?.length - 1; i++) {
-        if (userCollections[i].name === collectionName && userCollections[i]._id === collectionId) {
-          collectionExists = true;
-          setCollection(userCollections[i]);
-          break;
-        }
+      if (col !== -1) {
+        setCollection(userCtx?.user?.collections[col]);
+        setIsChecking(false);
       }
     }
+  }, [setCollection, setIsChecking, collectionId, userCtx]);
 
-    // If the collection doesn't exist we will send the user back to the home page
-    if (!collectionExists || (collection && collection?.cards.length <= 0)) {
-      router.push("/home");
-    }
-
-    setIsChecked(true);
-  }, [userCtx, router, userCollections, collectionName, collection, collectionId]);
-
-  if (!isChecked || isLoadingImages) {
+  if (isChecking || isLoadingImages) {
     return <LoadingPage />;
   }
 
@@ -104,9 +87,10 @@ export default function CollectionPage() {
       {collection && (
         <div ref={flashCards}>
           <CardsSection
+            collectionImages={images || {}}
             collectionId={collectionId}
             collection={collection.cards}
-            collectionName={collectionName ?? ""}
+            collectionName={collectionName}
           ></CardsSection>
         </div>
       )}

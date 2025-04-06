@@ -91,20 +91,15 @@ export type CreateCollectionResponse = {
   collection?: Collection;
 };
 
-export type GetImagesResponse = {
+export type ImagesResponse = {
   success: boolean;
-  images: {
-    [cardId: string]: {
-      data: ArrayBuffer;
-      contentType: string;
-      contentLength: string;
-    };
-  };
+  images: ImagesCaching;
 };
 
-export type ImageCaching = {
-  [collectionId: string]: {
-    timestamp: number;
-    images: { [cardId: string]: string };
+export type ImagesCaching = {
+  [cardId: string]: {
+    data: ArrayBuffer;
+    contentType: string;
+    contentLength: string;
   };
 };

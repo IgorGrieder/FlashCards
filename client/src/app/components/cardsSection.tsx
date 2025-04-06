@@ -11,6 +11,7 @@ type CardsSectionProps = {
   collection: Card[] | [];
   collectionName: string;
   collectionId: string;
+  collectionImages: Record<string, string>;
 };
 
 export default function CardsSection({
