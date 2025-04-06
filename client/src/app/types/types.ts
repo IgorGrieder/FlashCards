@@ -1,9 +1,9 @@
 import { Dispatch, SetStateAction } from "react";
 
 export type DeletionResponse = {
-  collectionDeleted: number,
-  message: string
-}
+  collectionDeleted: number;
+  message: string;
+};
 
 export type LoginResponse = {
   logged: boolean;
@@ -76,24 +76,35 @@ export type Collection = {
 
 export type CollectionUpdateResponse = {
   cardUpdated: boolean;
-}
+};
 
 export type AddCardToCollectionResponse = {
   cardAdded: boolean;
   message: string;
   newCard: string;
   imageURL: string;
-}
+};
 
 export type CreateCollectionResponse = {
   collectionCreated: boolean;
   message: string;
-  collection?: Collection
-}
+  collection?: Collection;
+};
+
+export type GetImagesResponse = {
+  success: boolean;
+  images: {
+    [cardId: string]: {
+      data: ArrayBuffer;
+      contentType: string;
+      contentLength: string;
+    };
+  };
+};
 
 export type ImageCaching = {
   [collectionId: string]: {
     timestamp: number;
-    images: { [cardId: string]: string }
+    images: { [cardId: string]: string };
   };
-}
+};

@@ -63,6 +63,47 @@ class S3 {
 
   }
 
+  async getImages(collectionId) {
+    const collection = await DBCollections().findOne({ _id: new ObjectId(collectionId) });
+
+    if (!collection) {
+      return {success: false}
+    }
+
+    // Create a response object with all images
+    const imagesData = {};
+
+    // Process all images in parallel
+    await Promise.all(collection.collection.cards.map(async (card) => {
+      try {
+        const imageData = await s3.getS3ObjectStream(card._id);
+
+        if (imageData && imageData.stream) {
+          // Convert stream to buffer
+          const chunks = [];
+          for await (const chunk of imageData.stream) {
+            chunks.push(chunk);
+          }
+          const buffer = Buffer.concat(chunks);
+
+          // Add to images data with card ID as key
+          imagesData[card._id] = {
+            data: buffer,
+            contentType: imageData.contentType,
+            contentLength: buffer.length
+          };
+        }
+      } catch (error) {
+        // If an image fails log into the console
+        console.error(`Error processing image for card ${card._id}:`, error);
+      }
+    }));
+
+    if (imagesData) {
+      return { success: true, images: imagesData };
+    }
+  }
+
   async getS3ObjectStream(cardId) {
     const params = {
       Bucket: process.env.BUCKET_NAME,
@@ -81,7 +122,6 @@ class S3 {
         stream: response.Body,
         contentType: response.ContentType,
         contentLength: response.ContentLength,
-        lastModified: response.LastModified
       };
     } catch (err) {
       console.error('S3 Error:', err);
@@ -89,34 +129,6 @@ class S3 {
     }
   }
 
-  async getCollectionImages(collectionId) {
-    try {
-      const collection = await DBCollections().findOne(
-        { _id: new ObjectId(collectionId) },
-        { projection: { cards: 1 } }
-      );
-
-      if (!collection) {
-        return null;
-      }
-
-      const imagePromises = collection.cards.map(async (card) => {
-        const imageData = await this.getS3ObjectStream(card._id);
-        if (!imageData) return null;
-
-        return {
-          cardId: card._id,
-          ...imageData
-        };
-      });
-
-      const images = await Promise.all(imagePromises);
-      return images.filter(img => img !== null);
-    } catch (err) {
-      console.error('Error fetching collection images:', err);
-      return null;
-    }
-  }
 }
 
 export default S3

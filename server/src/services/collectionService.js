@@ -2,36 +2,12 @@ import { DBCollections } from "../database/collectionsInstances.js";
 import { internalServerErrorCode, created, noContentCode, okCode, badRequest } from "../constants/codeConstants.js";
 import { ObjectId } from "mongodb";
 import { unexpectedError } from "../constants/messageConstants.js";
-import S3 from "../utils/s3client.js";
+import S3 from "../utils/s3Service.js";
 
 class CollectionService {
   constructor() {
     this.s3 = new S3();
   }
-
-  async getImages(collectionId) {
-    try {
-      const images = await this.s3.getCollectionImages(collectionId);
-
-      if (!images || images.length === 0) {
-        return { success: false, code: noContentCode };
-      }
-
-      return {
-        success: true,
-        code: okCode,
-        images: images.map(img => ({
-          cardId: img.cardId,
-          contentType: img.contentType,
-          contentLength: img.contentLength,
-        }))
-      };
-    } catch (error) {
-      console.error('Error getting collection images:', error);
-      return { success: false, code: internalServerErrorCode };
-    }
-  }
-
   /**
    * Retrieves all collections belonging to a user
    * @static

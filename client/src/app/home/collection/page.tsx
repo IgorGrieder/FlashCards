@@ -3,11 +3,11 @@ import CardsSection from "@/app/components/cardsSection";
 import LoadingPage from "@/app/components/loadingPage";
 import { UserContext } from "@/app/context/userContext";
 import { useQuery } from "@tanstack/react-query";
-import { Collection } from "@/app/types/types";
+import { Collection, GetImagesResponse } from "@/app/types/types";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useContext, useEffect, useRef, useState } from "react";
 import { ImagesContext } from "@/app/context/imagesContext";
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 
 export default function CollectionPage() {
   const router = useRouter();
@@ -21,42 +21,26 @@ export default function CollectionPage() {
   const flashCards = useRef<HTMLDivElement>(null);
   const { updateCache } = useContext(ImagesContext);
 
+  const loadImages = async () => {
+    const response: AxiosResponse<GetImagesResponse> = await axios.get(`/api/collections/${collectionId}/all-images`);
+    const imageMap: Record<string, string> = {};
+
+    Object.entries(response.data.images).forEach(([cardId, imageData]) => {
+      // Convert the base64 or binary data to a blob
+      const blob = new Blob([imageData.data], { type: imageData.contentType });
+      imageMap[cardId] = URL.createObjectURL(blob);
+    });
+
+    // Update your cache
+    updateCache(collectionId, imageMap);
+    return imageMap
+  }
+
   // Fetch images from server
-  const { data: imageMetadata, isLoading: isLoadingImages } = useQuery({
+  const { data: _, isLoading: isLoadingImages } = useQuery({
     queryKey: ['collection-images', collectionId],
-    queryFn: async () => {
-      const response = await axios.get(`/api/collections/${collectionId}`);
-      return response.data.images;
-    },
-    staleTime: 1000 * 60 * 15, // Consider data fresh for 15 minutes
+    queryFn: loadImages, staleTime: 1000 * 60 * 15, // Consider data fresh for 15 minutes
   });
-
-  // Load images progressively
-  useEffect(() => {
-    if (!imageMetadata) return;
-
-    const loadImages = async () => {
-      const imageMap: Record<string, string> = {};
-
-      for (const metadata of imageMetadata) {
-        try {
-          const response = await axios.get(
-            `/api/collections/${collectionId}/image/${metadata.cardId}`,
-            { responseType: 'blob' }
-          );
-
-          const blob = new Blob([response.data], { type: metadata.contentType });
-          imageMap[metadata.cardId] = URL.createObjectURL(blob);
-        } catch (error) {
-          console.error(`Failed to load image for card ${metadata.cardId}:`, error);
-        }
-      }
-
-      updateCache(collectionId, imageMap);
-    };
-
-    loadImages();
-  }, [imageMetadata, collectionId, updateCache]);
 
   // Use effect for checking user and collections
   useEffect(() => {
