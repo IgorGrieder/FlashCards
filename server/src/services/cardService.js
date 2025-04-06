@@ -1,7 +1,7 @@
 import { DBCollections } from "../database/collectionsInstances.js"
 import { internalServerErrorCode, noContentCode, badRequest, notFoundCode, created } from "../constants/codeConstants.js";
 import { ObjectId } from "mongodb";
-import S3 from "../utils/s3client.js"
+import S3 from "../utils/s3Service.js"
 
 class CardService {
 

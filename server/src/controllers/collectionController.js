@@ -3,6 +3,7 @@ import Utils from "../utils/utils.js";
 import CollectionService from "../services/collectionService.js";
 import { collectionCreated, deletedCollection, errorCreateCollection, incompleteReqInfo, unexpectedError } from "../constants/messageConstants.js";
 import { badRequest, created, internalServerErrorCode, noContentCode } from "../constants/codeConstants.js";
+import S3 from "../utils/s3Service.js";
 
 // Router instance
 const collectionRoutes = new Router();
@@ -21,40 +22,58 @@ const validateCreateCollection = (req, res, next) => {
   next();
 };
 
-collectionRoutes.get('/collections/:collectionId', async (req, res) => {
+// Get all images for a collection at once
+collectionRoutes.get('/:collectionId/all-images',
+  Utils.validateJWTMiddlewear, async (req, res) => {
   try {
-    const images = await CollectionService.getImages(req.params.collectionId);
+    const { collectionId } = req.params;
+    const s3 = new S3();
 
-    console.log(images);
+    // Get the collection details to find all card IDs
+    const result = await s3.getImages(collectionId);
 
-    if (!images) {
-      return res.status(404).send('Collection not found');
+    if (!result.success) {
+      return res.status(404).json({ message: 'Collection not found' });
     }
 
-    res.setHeader('Content-Type', 'multipart/mixed; boundary="BOUNDARY"');
-
-    for (const { cardId, stream } of images) {
-      if (!stream) continue;
-
-      res.write(`--BOUNDARY\r\n`);
-      res.write(`Content-Type: ${stream.contentType}\r\n`);
-      res.write(`Content-ID: ${cardId}\r\n\r\n`);
-
-      for await (const chunk of stream) {
-        res.write(chunk);
-      }
-
-      res.write('\r\n');
-    }
-
-    res.write('--BOUNDARY--\r\n');
-    console.log(res);
-    res.end();
-    res.status(200).send();
-
+    return res.status(200).json({
+      success: true,
+      images: result.images
+    });
   } catch (err) {
-    console.error(err);
-    res.status(500).send('Server error');
+    console.error('Error getting all collection images:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Get a single image by ID (for previews when not cached)
+collectionRoutes.get('/image/:imageId', async (req, res) => {
+  try {
+    const { imageId } = req.params;
+    const s3 = new S3();
+
+    // Get the image directly from S3
+    const imageData = await s3.getS3ObjectStream(imageId);
+
+    if (!imageData || !imageData.stream) {
+      return res.status(404).json({ error: 'Image not found' });
+    }
+
+    // Set appropriate headers
+    res.setHeader('Content-Type', imageData.contentType || 'application/octet-stream');
+    if (imageData.contentLength) {
+      res.setHeader('Content-Length', imageData.contentLength);
+    }
+
+    // Stream the image data directly to the response
+    imageData.stream.pipe(res);
+  } catch (err) {
+    console.error('Error streaming single image:', err);
+    if (!res.headersSent) {
+      res.status(500).json({ error: 'Server error while streaming image' });
+    } else {
+      res.end();
+    }
   }
 });
 

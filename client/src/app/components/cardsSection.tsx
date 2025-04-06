@@ -7,12 +7,12 @@ import { useRouter } from "next/navigation";
 import ImageModal from "./imageModal";
 import { ImagesContext } from "../context/imagesContext";
 
-type CardsSectionProps =
-  {
-    collection: Card[] | [];
-    collectionName: string;
-    collectionId: string;
-  };
+type CardsSectionProps = {
+  collection: Card[] | [];
+  collectionName: string;
+  collectionId: string;
+  collectionImages: Record<string, string>;
+};
 
 export default function CardsSection({
   collection,
@@ -283,12 +283,24 @@ export default function CardsSection({
         </div>
         <p className="font-semibold text-xl">{question}</p>
         <div>
-          {img && (
-            imageModal ?
-              <ImageModal alt="Card Image" isOpen={imageModal} onClose={() => setImageModal(false)} src={cache[collectionId]?.images[collection[currentCard]?._id] || ""}
+          {img &&
+            (imageModal ? (
+              <ImageModal
+                alt="Card Image"
+                isOpen={imageModal}
+                onClose={() => setImageModal(false)}
+                src={
+                  cache[collectionId]?.images[collection[currentCard]?._id] ||
+                  ""
+                }
               ></ImageModal>
-              : <Button text="Abrir imagem" additionalClasses="mt-5" onClick={() => setImageModal(true)}></Button>
-          )}
+            ) : (
+              <Button
+                text="Abrir imagem"
+                additionalClasses="mt-5"
+                onClick={() => setImageModal(true)}
+              ></Button>
+            ))}
         </div>
         <button
           className="cursor-pointer text-sm text-gray-500 underline underline-offset-4 transition-colors hover:text-black sm:text-base absolute bottom-[20px] z-10"
@@ -380,7 +392,6 @@ export default function CardsSection({
           </svg>
         </Button>
       </div>
-    </section >
+    </section>
   );
 }
-
