@@ -89,7 +89,7 @@ class S3 {
     await Promise.all(
       collection.cards.map(async (card) => {
         try {
-          const imageData = await this.s3.getS3ObjectStream(card._id);
+          const imageData = await this.getS3ObjectStream(card._id);
 
           if (imageData && imageData.stream) {
             // Convert stream to buffer
