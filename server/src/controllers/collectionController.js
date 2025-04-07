@@ -40,7 +40,6 @@ collectionRoutes.get(
   async (req, res) => {
     try {
       const { collectionId } = req.params;
-      console.log(req.params);
       const s3 = new S3();
 
       // Get the collection details to find all card IDs
