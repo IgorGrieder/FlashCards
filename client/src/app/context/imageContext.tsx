@@ -1,16 +1,14 @@
-import { createContext, Dispatch, SetStateAction, useState } from "react";
+import { createContext, MutableRefObject, useRef  } from "react";
 
-type ImageCaching = {
-    cache: string[];
-    setCache: Dispatch<SetStateAction<string[]>>
-}
+type ImageCaching = MutableRefObject<string[]>;
 
 export const ImageContext = createContext<ImageCaching | null>(null);
 
 export function ImageContextProvider({children}: {children: React.ReactNode}) {
-    const [cache, setCache] = useState<string[]>([]);
+    const cache = useRef<string[]>([]);
+
     return (
-        <ImageContext.Provider value={{ cache, setCache }}>
+        <ImageContext.Provider value={cache}>
             {children}
         </ImageContext.Provider>
     )

@@ -8,6 +8,7 @@ import { useContext, useEffect, useRef, useState } from "react";
 import { AxiosResponse } from "axios";
 import { UserContext } from "@/app/context/userContext";
 import { api } from "@/app/libs/axios";
+import { ImageContext } from "@/app/context/imageContext";
 
 export default function CollectionPage() {
   const searchParams = useSearchParams();
@@ -17,15 +18,27 @@ export default function CollectionPage() {
   const [isChecking, setIsChecking] = useState(true);
   const [collection, setCollection] = useState<Collection | null>(null);
   const flashCards = useRef<HTMLDivElement>(null);
+  const cache = useContext(ImageContext);
 
   const loadImages = async (): Promise<Record<string, string>> =>  {
+    // First we need to revoke images in the cache
+    if (cache?.current) {
+      for (const url in cache.current) {
+        URL.revokeObjectURL(url);
+      }
+    }
+
     const response: AxiosResponse<ImagesResponse> = await api.get(`collections/${collectionId}/all-images`);
     const imageMap: Record<string, string> = {};
 
     Object.entries(response.data.images).forEach(([cardId, imageData]) => {
 
       const blob = new Blob([imageData.data], { type: imageData.contentType });
-      imageMap[cardId] = URL.createObjectURL(blob);
+      const url = URL.createObjectURL(blob);
+      imageMap[cardId] = url;
+
+      // Add in the cache
+      if (cache?.current) cache.current.push(url);
     });
 
   return imageMap
