@@ -18,15 +18,11 @@ export default function CollectionPage() {
   const [isChecking, setIsChecking] = useState(true);
   const [collection, setCollection] = useState<Collection | null>(null);
   const flashCards = useRef<HTMLDivElement>(null);
-  const cache = useContext(ImageContext);
+  const cacheCtx = useContext(ImageContext);
 
   const loadImages = async (): Promise<Record<string, string>> =>  {
     // First we need to revoke images in the cache
-    if (cache?.current) {
-      for (const url in cache.current) {
-        URL.revokeObjectURL(url);
-      }
-    }
+    cacheCtx?.revokeCache();
 
     const response: AxiosResponse<ImagesResponse> = await api.get(`collections/${collectionId}/all-images`);
     const imageMap: Record<string, string> = {};
@@ -36,9 +32,7 @@ export default function CollectionPage() {
       const blob = new Blob([imageData.data], { type: imageData.contentType });
       const url = URL.createObjectURL(blob);
       imageMap[cardId] = url;
-
-      // Add in the cache
-      if (cache?.current) cache.current.push(url);
+      cacheCtx?.insertCache(url);
     });
 
   return imageMap
