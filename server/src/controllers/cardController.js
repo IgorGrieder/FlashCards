@@ -1,8 +1,19 @@
 import { Router } from "express";
 import Utils from "../utils/utils.js";
 import CardService from "../services/cardService.js";
-import { cardAdded, collectionNotFound, errorAddCard, errorUpdateCard, incompleteReqInfo, unexpectedError } from "../constants/messageConstants.js";
-import { badRequest, internalServerErrorCode, noContentCode } from "../constants/codeConstants.js";
+import {
+  cardAdded,
+  collectionNotFound,
+  errorAddCard,
+  errorUpdateCard,
+  incompleteReqInfo,
+  unexpectedError,
+} from "../constants/messageConstants.js";
+import {
+  badRequest,
+  internalServerErrorCode,
+  noContentCode,
+} from "../constants/codeConstants.js";
 import upload from "../utils/multer.js";
 import { ObjectId } from "mongodb";
 
@@ -32,7 +43,10 @@ cardRoutes.patch(
   async (req, res) => {
     const { collectionId, cardId } = req.body;
 
-    const result = await CardService.deleteCardFromCollection(collectionId, cardId);
+    const result = await CardService.deleteCardFromCollection(
+      collectionId,
+      cardId
+    );
 
     if (result.success) {
       return res.status(noContentCode).send();
@@ -41,8 +55,8 @@ cardRoutes.patch(
     if (result.code === badRequest) {
       return res.status(result.code).json({
         collectionCreated: false,
-        message: collectionNotFound
-      })
+        message: collectionNotFound,
+      });
     }
 
     // Internal server error
@@ -52,7 +66,7 @@ cardRoutes.patch(
         message: unexpectedError,
       });
     }
-  },
+  }
 );
 
 cardRoutes.patch(
@@ -93,7 +107,7 @@ cardRoutes.patch(
       cardAdded: false,
       message: errorUpdateCard,
     });
-  },
+  }
 );
 
 cardRoutes.post(
@@ -101,7 +115,11 @@ cardRoutes.post(
   Utils.validateJWTMiddlewear,
   upload.single("file"),
   async (req, res) => {
-    const card = { answer: req.body.answer, question: req.body.question, topic: req.body.topic };
+    const card = {
+      answer: req.body.answer,
+      question: req.body.question,
+      topic: req.body.topic,
+    };
     const collectionId = req.body.collectionId;
 
     // Adding an ObjectID for the card
@@ -110,26 +128,25 @@ cardRoutes.post(
 
     // If there's an image on the request we will try to upload it in S3
     if (req.file) {
-      const uploaded = CardService.insertImage(req.file, objID.toString());
+      const uploaded = await CardService.insertImage(
+        req.file,
+        objID.toString()
+      );
       if (!uploaded) {
         return res.status(unexpectedError).json({
           cardAdded: false,
           message: unexpectedError,
         });
       }
-
     }
 
-    const result = await CardService.addCardToCollection(
-      card,
-      collectionId,
-    );
+    const result = await CardService.addCardToCollection(card, collectionId);
 
     if (result.success) {
       return res.status(result.code).json({
         cardAdded: true,
         message: cardAdded,
-        newCard: result.newCardId
+        newCard: result.newCardId,
       });
     }
 
@@ -145,7 +162,7 @@ cardRoutes.post(
       cardAdded: false,
       message: errorAddCard,
     });
-  },
+  }
 );
 
 export default cardRoutes;

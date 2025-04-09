@@ -3,7 +3,7 @@ import useFormCollection from "../hooks/useFormCollection"
 import { useContext } from "react"
 import { UserContext } from "../context/userContext"
 import { AxiosPromise } from "axios"
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../libs/axios"
 import { CardSchemaType } from "../schemas/cardSchema"
 import { AddCardToCollectionResponse, Collection, Card } from "../types/types"
@@ -16,6 +16,7 @@ type NewCardSectionProps = {
 
 export default function NewCardSection({ collection, handleClose }: NewCardSectionProps) {
   const userCtx = useContext(UserContext);
+  const queryClient = useQueryClient();
 
   const {
     register,
@@ -49,6 +50,11 @@ export default function NewCardSection({ collection, handleClose }: NewCardSecti
           type: "UPDATE",
           payload: { collections: collectionsUpdated }
         });
+
+        // Invalidating the query
+        queryClient.invalidateQueries({
+          queryKey: ['collection-images', collection._id]
+        });
         handleClose();
       }
     } catch (e) {
@@ -56,6 +62,7 @@ export default function NewCardSection({ collection, handleClose }: NewCardSecti
       console.log(e);
     }
   };
+
   const createCard = async (credentials: CardSchemaType): AxiosPromise<AddCardToCollectionResponse> => {
     const formData = new FormData();
     formData.append("question", credentials.question);

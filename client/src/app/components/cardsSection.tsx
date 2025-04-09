@@ -1,26 +1,22 @@
 "use client";
-import { useContext, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Card } from "../types/types";
 import Button from "./button";
 import confetti from "canvas-confetti";
 import { useRouter } from "next/navigation";
 import ImageModal from "./imageModal";
-import { ImagesContext } from "../context/imagesContext";
 
 type CardsSectionProps = {
   collection: Card[] | [];
   collectionName: string;
-  collectionId: string;
   collectionImages: Record<string, string>;
 };
 
 export default function CardsSection({
   collection,
-  collectionName,
-  collectionId,
+  collectionName
 }: CardsSectionProps) {
   const router = useRouter();
-  const { cache } = useContext(ImagesContext);
   const [currentCard, setCurrentCard] = useState(0);
   const [cardsAnswers, setCardsAnswers] = useState(() => {
     const emptyArray = new Array(collection.length).fill(null);
@@ -290,8 +286,7 @@ export default function CardsSection({
                 isOpen={imageModal}
                 onClose={() => setImageModal(false)}
                 src={
-                  cache[collectionId]?.images[collection[currentCard]?._id] ||
-                  ""
+                  "I will pass the data from now"
                 }
               ></ImageModal>
             ) : (

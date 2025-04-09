@@ -5,9 +5,10 @@ import { useQuery } from "@tanstack/react-query";
 import { Collection,  ImagesResponse } from "@/app/types/types";
 import { useSearchParams } from "next/navigation";
 import { useContext, useEffect, useRef, useState } from "react";
-import { ImagesContext } from "@/app/context/imagesContext";
-import axios, { AxiosResponse } from "axios";
+import { AxiosResponse } from "axios";
 import { UserContext } from "@/app/context/userContext";
+import { api } from "@/app/libs/axios";
+import { ImageContext } from "@/app/context/imageContext";
 
 export default function CollectionPage() {
   const searchParams = useSearchParams();
@@ -17,27 +18,30 @@ export default function CollectionPage() {
   const [isChecking, setIsChecking] = useState(true);
   const [collection, setCollection] = useState<Collection | null>(null);
   const flashCards = useRef<HTMLDivElement>(null);
-  const { updateCache } = useContext(ImagesContext);
+  const cacheCtx = useContext(ImageContext);
 
   const loadImages = async (): Promise<Record<string, string>> =>  {
-    const response: AxiosResponse<ImagesResponse> = await axios.get(`/api/collections/${collectionId}/all-images`);
+    // First we need to revoke images in the cache
+    cacheCtx?.revokeCache();
+
+    const response: AxiosResponse<ImagesResponse> = await api.get(`collections/${collectionId}/all-images`);
     const imageMap: Record<string, string> = {};
 
     Object.entries(response.data.images).forEach(([cardId, imageData]) => {
-      // Convert the base64 or binary data to a blob
+
       const blob = new Blob([imageData.data], { type: imageData.contentType });
-      imageMap[cardId] = URL.createObjectURL(blob);
+      const url = URL.createObjectURL(blob);
+      imageMap[cardId] = url;
+      cacheCtx?.insertCache(url);
     });
 
-    // Update your cache
-    updateCache(collectionId, imageMap);
-    return imageMap
+  return imageMap
   }
 
   // Fetch images from server
   const { data: images, isLoading: isLoadingImages } = useQuery({
     queryKey: ['collection-images', collectionId],
-    queryFn: loadImages, staleTime: 1000 * 60 * 15, // Consider data fresh for 15 minutes
+    queryFn: loadImages
   });
 
   useEffect(() => {
@@ -88,7 +92,6 @@ export default function CollectionPage() {
         <div ref={flashCards}>
           <CardsSection
             collectionImages={images || {}}
-            collectionId={collectionId}
             collection={collection.cards}
             collectionName={collectionName}
           ></CardsSection>

@@ -1,4 +1,9 @@
-import { S3Client, PutObjectCommand, DeleteObjectsCommand, GetObjectCommand } from "@aws-sdk/client-s3";
+import {
+  S3Client,
+  PutObjectCommand,
+  DeleteObjectsCommand,
+  GetObjectCommand,
+} from "@aws-sdk/client-s3";
 import { DBCollections } from "../database/collectionsInstances.js";
 import { ObjectId } from "mongodb";
 
@@ -8,32 +13,35 @@ class S3 {
       region: process.env.BUCKET_REGION,
       credentials: {
         accessKeyId: process.env.ACCESS_KEY,
-        secretAccessKey: process.env.SECRET_ACCESS_KEY
+        secretAccessKey: process.env.SECRET_ACCESS_KEY,
       },
     });
   }
 
   /**
-    * Low-level method to insert an object into S3
-    * @async
-    * @param {import('@aws-sdk/client-s3').PutObjectCommandInput} params - S3 put object parameters
-    * @returns {Promise<boolean>} Returns true if upload succeeded, false if failed
-    * @description This method uses the AWS SDK v3 PutObjectCommand to upload files
-    * @see {@link https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-s3/interfaces/putobjectcommandinput.html|PutObjectCommandInput}
-    * @example
-    * await insertS3({
-    *   Bucket: 'my-bucket',
-    *   Key: 'file.jpg',
-    *   Body: buffer,
-    *   ContentType: 'image/jpeg'
-    * });
-    */
+   * Low-level method to insert an object into S3
+   * @async
+   * @param {import('@aws-sdk/client-s3').PutObjectCommandInput} params - S3 put object parameters
+   * @returns {Promise<boolean>} Returns true if upload succeeded, false if failed
+   * @description This method uses the AWS SDK v3 PutObjectCommand to upload files
+   * @see {@link https://docs.aws.amazon.com/AWSJavaScriptSDK/v3/latest/clients/client-s3/interfaces/putobjectcommandinput.html|PutObjectCommandInput}
+   * @example
+   * await insertS3({
+   *   Bucket: 'my-bucket',
+   *   Key: 'file.jpg',
+   *   Body: buffer,
+   *   ContentType: 'image/jpeg'
+   * });
+   */
   async insertS3(params) {
     try {
       await this.s3.send(new PutObjectCommand(params));
       return true;
     } catch (err) {
-      console.error(`S3 Error [${err.$metadata?.httpStatusCode}]:`, err.message);
+      console.error(
+        `S3 Error [${err.$metadata?.httpStatusCode}]:`,
+        err.message
+      );
       return false;
     }
   }
@@ -57,47 +65,53 @@ class S3 {
       await this.s3.send(new DeleteObjectsCommand(params));
       return true;
     } catch (err) {
-      console.error(`S3 Error [${err.$metadata?.httpStatusCode}]:`, err.message);
+      console.error(
+        `S3 Error [${err.$metadata?.httpStatusCode}]:`,
+        err.message
+      );
       return false;
     }
-
   }
 
   async getImages(collectionId) {
-    const collection = await DBCollections().findOne({ _id: new ObjectId(collectionId) });
+    const collection = await DBCollections().findOne({
+      _id: new ObjectId(collectionId),
+    });
 
     if (!collection) {
-      return {success: false}
+      return { success: false };
     }
 
     // Create a response object with all images
     const imagesData = {};
 
     // Process all images in parallel
-    await Promise.all(collection.collection.cards.map(async (card) => {
-      try {
-        const imageData = await s3.getS3ObjectStream(card._id);
+    await Promise.all(
+      collection.cards.map(async (card) => {
+        try {
+          const imageData = await this.getS3ObjectStream(card._id.toString());
 
-        if (imageData && imageData.stream) {
-          // Convert stream to buffer
-          const chunks = [];
-          for await (const chunk of imageData.stream) {
-            chunks.push(chunk);
+          if (imageData && imageData.stream) {
+            // Convert stream to buffer
+            const chunks = [];
+            for await (const chunk of imageData.stream) {
+              chunks.push(chunk);
+            }
+            const buffer = Buffer.concat(chunks);
+
+            // Add to images data with card ID as key
+            imagesData[card._id] = {
+              data: buffer,
+              contentType: imageData.contentType,
+              contentLength: buffer.length,
+            };
           }
-          const buffer = Buffer.concat(chunks);
-
-          // Add to images data with card ID as key
-          imagesData[card._id] = {
-            data: buffer,
-            contentType: imageData.contentType,
-            contentLength: buffer.length
-          };
+        } catch (error) {
+          // If an image fails log into the console
+          console.error(`Error processing image for card ${card._id}:`, error);
         }
-      } catch (error) {
-        // If an image fails log into the console
-        console.error(`Error processing image for card ${card._id}:`, error);
-      }
-    }));
+      })
+    );
 
     if (imagesData) {
       return { success: true, images: imagesData };
@@ -107,7 +121,7 @@ class S3 {
   async getS3ObjectStream(cardId) {
     const params = {
       Bucket: process.env.BUCKET_NAME,
-      Key: cardId
+      Key: cardId,
     };
 
     try {
@@ -115,7 +129,7 @@ class S3 {
       const response = await this.s3.send(command);
 
       if (!response.Body) {
-        throw new Error('No content found in S3 object');
+        throw new Error("No content found in S3 object");
       }
 
       return {
@@ -124,11 +138,10 @@ class S3 {
         contentLength: response.ContentLength,
       };
     } catch (err) {
-      console.error('S3 Error:', err);
+      console.error("S3 Error:", err);
       return null;
     }
   }
-
 }
 
-export default S3
+export default S3;

@@ -1,8 +1,19 @@
 import { Router } from "express";
 import Utils from "../utils/utils.js";
 import CollectionService from "../services/collectionService.js";
-import { collectionCreated, deletedCollection, errorCreateCollection, incompleteReqInfo, unexpectedError } from "../constants/messageConstants.js";
-import { badRequest, created, internalServerErrorCode, noContentCode } from "../constants/codeConstants.js";
+import {
+  collectionCreated,
+  deletedCollection,
+  errorCreateCollection,
+  incompleteReqInfo,
+  unexpectedError,
+} from "../constants/messageConstants.js";
+import {
+  badRequest,
+  created,
+  internalServerErrorCode,
+  noContentCode,
+} from "../constants/codeConstants.js";
 import S3 from "../utils/s3Service.js";
 
 // Router instance
@@ -23,31 +34,34 @@ const validateCreateCollection = (req, res, next) => {
 };
 
 // Get all images for a collection at once
-collectionRoutes.get('/:collectionId/all-images',
-  Utils.validateJWTMiddlewear, async (req, res) => {
-  try {
-    const { collectionId } = req.params;
-    const s3 = new S3();
+collectionRoutes.get(
+  "/:collectionId/all-images",
+  Utils.validateJWTMiddlewear,
+  async (req, res) => {
+    try {
+      const { collectionId } = req.params;
+      const s3 = new S3();
 
-    // Get the collection details to find all card IDs
-    const result = await s3.getImages(collectionId);
+      // Get the collection details to find all card IDs
+      const result = await s3.getImages(collectionId);
 
-    if (!result.success) {
-      return res.status(404).json({ message: 'Collection not found' });
+      if (!result.success) {
+        return res.status(404).json({ message: "Collection not found" });
+      }
+
+      return res.status(200).json({
+        success: true,
+        images: result.images,
+      });
+    } catch (err) {
+      console.error("Error getting all collection images:", err);
+      res.status(500).json({ error: "Server error" });
     }
-
-    return res.status(200).json({
-      success: true,
-      images: result.images
-    });
-  } catch (err) {
-    console.error('Error getting all collection images:', err);
-    res.status(500).json({ error: 'Server error' });
   }
-});
+);
 
 // Get a single image by ID (for previews when not cached)
-collectionRoutes.get('/image/:imageId', async (req, res) => {
+collectionRoutes.get("/image/:imageId", async (req, res) => {
   try {
     const { imageId } = req.params;
     const s3 = new S3();
@@ -56,21 +70,24 @@ collectionRoutes.get('/image/:imageId', async (req, res) => {
     const imageData = await s3.getS3ObjectStream(imageId);
 
     if (!imageData || !imageData.stream) {
-      return res.status(404).json({ error: 'Image not found' });
+      return res.status(404).json({ error: "Image not found" });
     }
 
     // Set appropriate headers
-    res.setHeader('Content-Type', imageData.contentType || 'application/octet-stream');
+    res.setHeader(
+      "Content-Type",
+      imageData.contentType || "application/octet-stream"
+    );
     if (imageData.contentLength) {
-      res.setHeader('Content-Length', imageData.contentLength);
+      res.setHeader("Content-Length", imageData.contentLength);
     }
 
     // Stream the image data directly to the response
     imageData.stream.pipe(res);
   } catch (err) {
-    console.error('Error streaming single image:', err);
+    console.error("Error streaming single image:", err);
     if (!res.headersSent) {
-      res.status(500).json({ error: 'Server error while streaming image' });
+      res.status(500).json({ error: "Server error while streaming image" });
     } else {
       res.end();
     }
@@ -103,7 +120,7 @@ collectionRoutes.get(
         message: unexpectedError,
       });
     }
-  },
+  }
 );
 
 collectionRoutes.post(
@@ -132,9 +149,8 @@ collectionRoutes.post(
       collectionDeleted: true,
       message: errorCreateCollection,
     });
-
   }
-)
+);
 
 collectionRoutes.post(
   "/create-collection",
@@ -147,14 +163,14 @@ collectionRoutes.post(
     const result = await CollectionService.createCollection(
       category,
       name,
-      userId,
+      userId
     );
 
     if (result.success) {
       return res.status(created).json({
         collectionCreated: true,
         message: collectionCreated,
-        collection: result.collection
+        collection: result.collection,
       });
     }
 
@@ -170,7 +186,7 @@ collectionRoutes.post(
       collectionCreated: false,
       message: errorCreateCollection,
     });
-  },
+  }
 );
 
-export default collectionRoutes
+export default collectionRoutes;
