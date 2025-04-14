@@ -92,7 +92,7 @@ export default function CollectionPage() {
         <div ref={flashCards}>
           <CardsSection
             collectionImages={images || {}}
-            collection={collection.cards}
+            cards={collection.cards}
             collectionName={collectionName}
           ></CardsSection>
         </div>

@@ -7,13 +7,13 @@ import { useRouter } from "next/navigation";
 import ImageModal from "./imageModal";
 
 type CardsSectionProps = {
-  collection: Card[] | [];
+  cards: Card[] | [];
   collectionName: string;
   collectionImages: Record<string, string>;
 };
 
 export default function CardsSection({
-  collection,
+  cards: collection,
   collectionName
 }: CardsSectionProps) {
   const router = useRouter();
