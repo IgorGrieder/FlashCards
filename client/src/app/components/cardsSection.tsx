@@ -2,24 +2,25 @@
 import { useRef, useState } from "react";
 import { Card } from "../types/types";
 import Button from "./button";
-import confetti from "canvas-confetti";
 import { useRouter } from "next/navigation";
 import ImageModal from "./imageModal";
+import { showStars } from "../utils/starsAnimation";
 
 type CardsSectionProps = {
-  collection: Card[] | [];
+  cards: Card[] | [];
   collectionName: string;
   collectionImages: Record<string, string>;
 };
 
 export default function CardsSection({
-  collection,
-  collectionName
+  cards,
+  collectionName,
+  collectionImages
 }: CardsSectionProps) {
   const router = useRouter();
   const [currentCard, setCurrentCard] = useState(0);
   const [cardsAnswers, setCardsAnswers] = useState(() => {
-    const emptyArray = new Array(collection.length).fill(null);
+    const emptyArray = new Array(cards.length).fill(null);
     return emptyArray;
   });
   const [rightAnswers, setRightAnswers] = useState(0);
@@ -27,19 +28,21 @@ export default function CardsSection({
   const [showAnswer, setShowAnswer] = useState(false);
   const [disableButtons, setDisableButtons] = useState(false);
   const [imageModal, setImageModal] = useState(false);
-  const answer = collection[currentCard].answer;
-  const question = collection[currentCard].question;
-  const topic = collection[currentCard].topic;
+
+  // Card information
+  const answer = cards[currentCard].answer;
+  const question = cards[currentCard].question;
+  const topic = cards[currentCard].topic;
   const progressBar = useRef<HTMLDivElement>(null);
-  const img = collection[currentCard].img;
+  const imgURL = collectionImages[cards[currentCard]._id];
 
   // Next question updates on the bar and the current card
   const handleNextQuestion = () => {
-    if (currentCard + 1 <= collection.length - 1) {
+    if (currentCard + 1 <= cards.length - 1) {
       setCurrentCard(currentCard + 1);
       if (progressBar.current) {
         progressBar.current.style.width =
-          ((currentCard + 1) / (collection.length - 1)) * 100 + "%";
+          ((currentCard + 1) / (cards.length - 1)) * 100 + "%";
       }
     }
   };
@@ -73,7 +76,7 @@ export default function CardsSection({
         const newProgress =
           currentCard - 1 === 0
             ? 0
-            : ((currentCard - 1) / (collection.length - 1)) * 100;
+            : ((currentCard - 1) / (cards.length - 1)) * 100;
         progressBar.current.style.width = newProgress + "%";
       }
 
@@ -105,7 +108,7 @@ export default function CardsSection({
 
   // Restart the state of the UI
   const handleRestartQuestions = () => {
-    setCardsAnswers(new Array(collection.length).fill(null));
+    setCardsAnswers(new Array(cards.length).fill(null));
     setCurrentCard(0);
     setWrongAnswers(0);
     setRightAnswers(0);
@@ -115,40 +118,6 @@ export default function CardsSection({
     if (progressBar.current) {
       progressBar.current.style.width = "0px";
     }
-  };
-
-  // Show stars animation with canvas confetti
-  const showStars = () => {
-    const defaults = {
-      spread: 360,
-      ticks: 50,
-      gravity: 0,
-      decay: 0.94,
-      startVelocity: 30,
-      colors: ["FFE400", "FFBD00", "E89400", "FFCA6C", "FDFFB8"],
-    };
-
-    const shoot = () => {
-      confetti({
-        ...defaults,
-        particleCount: 40,
-        scalar: 1.2,
-        shapes: ["star"],
-      });
-
-      confetti({
-        ...defaults,
-        particleCount: 10,
-        scalar: 0.75,
-        shapes: ["circle"],
-      });
-    };
-
-    setTimeout(shoot, 0);
-    setTimeout(shoot, 100);
-    setTimeout(shoot, 200);
-    setTimeout(shoot, 300);
-    setTimeout(shoot, 400);
   };
 
   // Handle the end of the collection
@@ -190,7 +159,7 @@ export default function CardsSection({
             </svg>
 
             <span className="text-gray-700 text-center">
-              {currentCard + 1} / {collection.length}
+              {currentCard + 1} / {cards.length}
             </span>
 
             {/* Right arrow */}
@@ -200,7 +169,7 @@ export default function CardsSection({
               viewBox="0 -960 960 960"
               width="24px"
               fill="currentColor"
-              className={`${currentCard + 1 <= collection.length - 1 ? "cursor-pointer opacity-100 hover:text-black" : "opacity-60 cursor-auto"} text-gray-300`}
+              className={`${currentCard + 1 <= cards.length - 1 ? "cursor-pointer opacity-100 hover:text-black" : "opacity-60 cursor-auto"} text-gray-300`}
               onClick={handleNextQuestion}
             >
               <path d="M504-480 320-664l56-56 240 240-240 240-56-56 184-184Z" />
@@ -279,15 +248,13 @@ export default function CardsSection({
         </div>
         <p className="font-semibold text-xl">{question}</p>
         <div>
-          {img &&
+          {imgURL &&
             (imageModal ? (
               <ImageModal
                 alt="Card Image"
                 isOpen={imageModal}
                 onClose={() => setImageModal(false)}
-                src={
-                  "I will pass the data from now"
-                }
+                src={imgURL}
               ></ImageModal>
             ) : (
               <Button

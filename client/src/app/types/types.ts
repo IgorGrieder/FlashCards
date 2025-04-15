@@ -103,3 +103,7 @@ export type ImagesCaching = {
     contentLength: string;
   };
 };
+
+export type ImageCtx = {
+  [card: string]: string
+}

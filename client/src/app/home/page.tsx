@@ -63,7 +63,7 @@ export default function MainUserPage() {
         userCtx?.dispatch({ type: "LOGOUT" });
         router.push("/");
       }
-      throw error;
+      return { collectionsFound: false }
     }
   };
 

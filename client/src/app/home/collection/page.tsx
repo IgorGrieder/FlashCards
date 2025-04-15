@@ -2,7 +2,7 @@
 import CardsSection from "@/app/components/cardsSection";
 import LoadingPage from "@/app/components/loadingPage";
 import { useQuery } from "@tanstack/react-query";
-import { Collection,  ImagesResponse } from "@/app/types/types";
+import { Collection, ImagesResponse } from "@/app/types/types";
 import { useSearchParams } from "next/navigation";
 import { useContext, useEffect, useRef, useState } from "react";
 import { AxiosResponse } from "axios";
@@ -20,7 +20,7 @@ export default function CollectionPage() {
   const flashCards = useRef<HTMLDivElement>(null);
   const cacheCtx = useContext(ImageContext);
 
-  const loadImages = async (): Promise<Record<string, string>> =>  {
+  const loadImages = async (): Promise<Record<string, string>> => {
     // First we need to revoke images in the cache
     cacheCtx?.revokeCache();
 
@@ -32,10 +32,10 @@ export default function CollectionPage() {
       const blob = new Blob([imageData.data], { type: imageData.contentType });
       const url = URL.createObjectURL(blob);
       imageMap[cardId] = url;
-      cacheCtx?.insertCache(url);
+      cacheCtx?.insertCache(url, cardId);
     });
 
-  return imageMap
+    return imageMap
   }
 
   // Fetch images from server
@@ -92,7 +92,7 @@ export default function CollectionPage() {
         <div ref={flashCards}>
           <CardsSection
             collectionImages={images || {}}
-            collection={collection.cards}
+            cards={collection.cards}
             collectionName={collectionName}
           ></CardsSection>
         </div>
