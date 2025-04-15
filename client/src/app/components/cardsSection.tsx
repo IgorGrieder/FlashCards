@@ -2,9 +2,9 @@
 import { useRef, useState } from "react";
 import { Card } from "../types/types";
 import Button from "./button";
-import confetti from "canvas-confetti";
 import { useRouter } from "next/navigation";
 import ImageModal from "./imageModal";
+import { showStars } from "../utils/starsAnimation";
 
 type CardsSectionProps = {
   cards: Card[] | [];
@@ -28,6 +28,8 @@ export default function CardsSection({
   const [showAnswer, setShowAnswer] = useState(false);
   const [disableButtons, setDisableButtons] = useState(false);
   const [imageModal, setImageModal] = useState(false);
+
+  // Card information
   const answer = cards[currentCard].answer;
   const question = cards[currentCard].question;
   const topic = cards[currentCard].topic;
@@ -116,40 +118,6 @@ export default function CardsSection({
     if (progressBar.current) {
       progressBar.current.style.width = "0px";
     }
-  };
-
-  // Show stars animation with canvas confetti
-  const showStars = () => {
-    const defaults = {
-      spread: 360,
-      ticks: 50,
-      gravity: 0,
-      decay: 0.94,
-      startVelocity: 30,
-      colors: ["FFE400", "FFBD00", "E89400", "FFCA6C", "FDFFB8"],
-    };
-
-    const shoot = () => {
-      confetti({
-        ...defaults,
-        particleCount: 40,
-        scalar: 1.2,
-        shapes: ["star"],
-      });
-
-      confetti({
-        ...defaults,
-        particleCount: 10,
-        scalar: 0.75,
-        shapes: ["circle"],
-      });
-    };
-
-    setTimeout(shoot, 0);
-    setTimeout(shoot, 100);
-    setTimeout(shoot, 200);
-    setTimeout(shoot, 300);
-    setTimeout(shoot, 400);
   };
 
   // Handle the end of the collection
